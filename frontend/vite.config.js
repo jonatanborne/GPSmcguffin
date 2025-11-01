@@ -13,6 +13,15 @@ export default defineConfig({
                 rewrite: (path) => path.replace(/^\/api/, '')
             }
         }
+    },
+    preview: {
+        host: true, // Tillåt access från nätverket
+        port: process.env.PORT || 3000,
+        allowedHosts: [
+            '.railway.app', // Tillåt alla Railway-domäner
+            'web-frontend.up.railway.app', // Specifik domän
+            'frontend.up.railway.app' // Om den heter något annat
+        ]
     }
 })
 
