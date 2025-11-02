@@ -16,15 +16,15 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api'
 const GeofenceEditor = () => {
     const mapRef = useRef(null)
     const mapInstanceRef = useRef(null)
-  const [geofences, setGeofences] = useState([])
-  const [isAddingCircle, setIsAddingCircle] = useState(false)
-  const [isAddingPolygon, setIsAddingPolygon] = useState(false)
-  const [polygonPoints, setPolygonPoints] = useState([])
-  const [dogPosition, setDogPosition] = useState({ lat: 59.334, lng: 18.066 })
-  const [dogInside, setDogInside] = useState(false)
-  const [currentGeofences, setCurrentGeofences] = useState([])
-  const [events, setEvents] = useState([])
-  const [previousInside, setPreviousInside] = useState([])
+    const [geofences, setGeofences] = useState([])
+    const [isAddingCircle, setIsAddingCircle] = useState(false)
+    const [isAddingPolygon, setIsAddingPolygon] = useState(false)
+    const [polygonPoints, setPolygonPoints] = useState([])
+    const [dogPosition, setDogPosition] = useState({ lat: 59.334, lng: 18.066 })
+    const [dogInside, setDogInside] = useState(false)
+    const [currentGeofences, setCurrentGeofences] = useState([])
+    const [events, setEvents] = useState([])
+    const [previousInside, setPreviousInside] = useState([])
     const [tracks, setTracks] = useState([])
     const [currentTrack, setCurrentTrack] = useState(null)
     const [isTracking, setIsTracking] = useState(false)
@@ -103,35 +103,55 @@ const GeofenceEditor = () => {
         return allTracks
     }
 
-    // Skapa nytt track
+    // Skapa nytt track (fungerar alltid - sparar lokalt om API misslyckas)
     const createTrack = async (type) => {
-        try {
-            const response = await axios.post(`${API_BASE}/tracks`, {
-                track_type: type,
-                name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`
-            })
-            return response.data
-        } catch (error) {
-            console.error('Fel vid skapande av track:', error)
-            console.error('Error details:', error.response?.data || error.message)
-            console.error('API_BASE:', API_BASE)
-            // Endast markera som offline om det verkligen är ett nätverksfel
-            if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED' || !error.response) {
-                // Verkligt nätverksfel - vi är offline
-                setIsOnline(false)
-                const tempTrack = {
-                    id: Date.now(), // Temporärt ID
+        // Skapa track lokalt först (fungerar alltid)
+        const localId = Date.now()
+        const tempTrack = {
+            id: localId,
+            track_type: type,
+            name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
+            created_at: new Date().toISOString(),
+            positions: []
+        }
+        
+        // Spara lokalt direkt
+        localStorage.setItem(`track_${localId}`, JSON.stringify(tempTrack))
+        localStorage.setItem(`track_${localId}_positions`, JSON.stringify([]))
+        
+        // Försök skapa på server (men fortsätt även om det misslyckas)
+        if (navigator.onLine) {
+            try {
+                const response = await axios.post(`${API_BASE}/tracks`, {
                     track_type: type,
-                    name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
-                    created_at: new Date().toISOString(),
-                    positions: []
+                    name: tempTrack.name
+                })
+                // Om det lyckades, uppdatera med serverns ID
+                const serverTrack = response.data
+                // Spara både lokalt och på server (använd serverns ID framåt)
+                localStorage.setItem(`track_${serverTrack.id}`, JSON.stringify(serverTrack))
+                localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify([]))
+                // Ta bort lokal kopia om vi fick ett server-ID
+                if (serverTrack.id !== localId) {
+                    localStorage.removeItem(`track_${localId}`)
+                    localStorage.removeItem(`track_${localId}_positions`)
+                    // Uppdatera offline queue med rätt ID
+                    offlineQueueRef.current = offlineQueueRef.current.map(item => 
+                        item.trackId === localId ? { ...item, trackId: serverTrack.id } : item
+                    )
                 }
+                return serverTrack
+            } catch (error) {
+                console.error('Kunde inte skapa track på server:', error)
+                // Spara i queue för senare synkning
                 offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+                // Men returnera track ändå så spårning kan fortsätta
                 return tempTrack
             }
-            // Annat fel (t.ex. serverfel, validering) - vi är fortfarande online
-            alert(`Kunde inte skapa track: ${error.response?.data?.detail || error.message}`)
-            return null
+        } else {
+            // Offline - spara i queue för senare
+            offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+            return tempTrack
         }
     }
 
@@ -341,52 +361,28 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Kontrollera faktisk connectivity (mycket mer stabil - använder navigator.onLine som primär källa)
-    const checkOnlineStatus = async () => {
-        // Primär kontroll: navigator.onLine är den bästa indikatorn för internet-anslutning
-        if (!navigator.onLine) {
-            onlineCheckFailuresRef.current = 0
-            setIsOnline(false)
-            return false
-        }
-
-        // Om navigator.onLine säger att vi är online, vi är online
-        // Backend-ping är sekundär och ska inte ändra status om navigator säger online
-        setIsOnline(true)
+    // Enkel online-detektering - bara navigator.onLine (bästa indikatorn)
+    const checkOnlineStatus = () => {
+        // Använd bara navigator.onLine - den är tillförlitlig för internet-anslutning
+        const online = navigator.onLine
+        setIsOnline(online)
         
-        // Försök pinga backend i bakgrunden (för att synka data), men ändra inte status baserat på det
-        try {
-            const response = await axios.get(`${API_BASE}/ping`, { timeout: 2000 })
-            if (response.data.status === 'ok') {
-                onlineCheckFailuresRef.current = 0
-                // Backend svarar, perfekt - vi är definitivt online
-            }
-        } catch (error) {
-            // Backend svarar inte, men navigator säger att vi har internet
-            // Vi är fortfarande online (kanske backend är nere, men vi har internet)
-            // Bara ändra status om det är ett verkligt nätverksfel
-            if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED') {
-                // Detta borde inte hända om navigator.onLine är true, men för säkerhets skull
-                setIsOnline(false)
-                return false
-            }
-            // Annars: vi har internet, backend svarar bara inte - vi är fortfarande online
+        // Om vi blir online igen, synka queue
+        if (online && offlineQueueRef.current.length > 0) {
+            syncOfflineQueue()
         }
-        return true
+        
+        return online
     }
 
-    // Nätverksdetektering
+    // Nätverksdetektering - enkel och tillförlitlig
     useEffect(() => {
         // Kontrollera status vid start
         checkOnlineStatus()
 
-        const handleOnline = async () => {
-            // Vänta lite och verifiera att vi faktiskt är online
-            await new Promise(resolve => setTimeout(resolve, 500))
-            const isReallyOnline = await checkOnlineStatus()
-            if (isReallyOnline) {
-                syncOfflineQueue()
-            }
+        const handleOnline = () => {
+            setIsOnline(true)
+            syncOfflineQueue()
         }
 
         const handleOffline = () => {
@@ -396,10 +392,10 @@ const GeofenceEditor = () => {
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
 
-        // Kontrollera connectivity var 30:e sekund (mer sällan för att undvika flippning)
+        // Kontrollera status var 5:e sekund (för att fånga upp ändringar)
         const interval = setInterval(() => {
             checkOnlineStatus()
-        }, 30000)
+        }, 5000)
 
         return () => {
             window.removeEventListener('online', handleOnline)
@@ -786,88 +782,88 @@ const GeofenceEditor = () => {
         return () => clearInterval(interval)
     }, [])
 
-  // Skapa ny cirkel-geofence
-  const createCircleGeofence = async (center, radius) => {
-    try {
-      const response = await axios.post(`${API_BASE}/geofences`, {
-        name: `Cirkel ${geofences.length + 1}`,
-        geofence: {
-          type: 'circle',
-          center: center,
-          radius_m: radius
+    // Skapa ny cirkel-geofence
+    const createCircleGeofence = async (center, radius) => {
+        try {
+            const response = await axios.post(`${API_BASE}/geofences`, {
+                name: `Cirkel ${geofences.length + 1}`,
+                geofence: {
+                    type: 'circle',
+                    center: center,
+                    radius_m: radius
+                }
+            })
+            setGeofences([...geofences, response.data])
+        } catch (error) {
+            console.error('Fel vid skapande av geofence:', error)
         }
-      })
-      setGeofences([...geofences, response.data])
-    } catch (error) {
-      console.error('Fel vid skapande av geofence:', error)
     }
-  }
 
-  // Skapa ny polygon-geofence
-  const createPolygonGeofence = async (vertices) => {
-    try {
-      const response = await axios.post(`${API_BASE}/geofences`, {
-        name: `Polygon ${geofences.length + 1}`,
-        geofence: {
-          type: 'polygon',
-          vertices: vertices
+    // Skapa ny polygon-geofence
+    const createPolygonGeofence = async (vertices) => {
+        try {
+            const response = await axios.post(`${API_BASE}/geofences`, {
+                name: `Polygon ${geofences.length + 1}`,
+                geofence: {
+                    type: 'polygon',
+                    vertices: vertices
+                }
+            })
+            setGeofences([...geofences, response.data])
+            setPolygonPoints([])
+            setIsAddingPolygon(false)
+        } catch (error) {
+            console.error('Fel vid skapande av geofence:', error)
         }
-      })
-      setGeofences([...geofences, response.data])
-      setPolygonPoints([])
-      setIsAddingPolygon(false)
-    } catch (error) {
-      console.error('Fel vid skapande av geofence:', error)
     }
-  }
 
-  // Utvärdera hundens position
-  const evaluatePosition = async (position) => {
-    try {
-      const response = await axios.post(`${API_BASE}/evaluate`, {
-        position: position
-      })
-      
-      const currentInside = response.data.results.filter(r => r.inside)
-      const currentInsideIds = currentInside.map(r => r.geofence_id)
-      const previousInsideIds = previousInside.map(r => r.geofence_id)
-      
-      // Hitta ENTER events (nya geofences)
-      const entered = currentInside.filter(r => !previousInsideIds.includes(r.geofence_id))
-      // Hitta EXIT events (försvunna geofences)
-      const exited = previousInside.filter(r => !currentInsideIds.includes(r.geofence_id))
-      
-      // Lägg till events
-      const newEvents = []
-      entered.forEach(geofence => {
-        newEvents.push({
-          type: 'ENTER',
-          geofence: geofence.name,
-          timestamp: new Date().toLocaleTimeString()
-        })
-      })
-      exited.forEach(geofence => {
-        newEvents.push({
-          type: 'EXIT',
-          geofence: geofence.name,
-          timestamp: new Date().toLocaleTimeString()
-        })
-      })
-      
-      if (newEvents.length > 0) {
-        setEvents(prev => [...newEvents, ...prev].slice(0, 20)) // Behåll senaste 20
-      }
-      
-      setCurrentGeofences(currentInside)
-      setPreviousInside(currentInside)
-      setDogInside(currentInside.length > 0)
-      
-      return response.data
-    } catch (error) {
-      console.error('Fel vid utvärdering:', error)
-      return null
+    // Utvärdera hundens position
+    const evaluatePosition = async (position) => {
+        try {
+            const response = await axios.post(`${API_BASE}/evaluate`, {
+                position: position
+            })
+
+            const currentInside = response.data.results.filter(r => r.inside)
+            const currentInsideIds = currentInside.map(r => r.geofence_id)
+            const previousInsideIds = previousInside.map(r => r.geofence_id)
+
+            // Hitta ENTER events (nya geofences)
+            const entered = currentInside.filter(r => !previousInsideIds.includes(r.geofence_id))
+            // Hitta EXIT events (försvunna geofences)
+            const exited = previousInside.filter(r => !currentInsideIds.includes(r.geofence_id))
+
+            // Lägg till events
+            const newEvents = []
+            entered.forEach(geofence => {
+                newEvents.push({
+                    type: 'ENTER',
+                    geofence: geofence.name,
+                    timestamp: new Date().toLocaleTimeString()
+                })
+            })
+            exited.forEach(geofence => {
+                newEvents.push({
+                    type: 'EXIT',
+                    geofence: geofence.name,
+                    timestamp: new Date().toLocaleTimeString()
+                })
+            })
+
+            if (newEvents.length > 0) {
+                setEvents(prev => [...newEvents, ...prev].slice(0, 20)) // Behåll senaste 20
+            }
+
+            setCurrentGeofences(currentInside)
+            setPreviousInside(currentInside)
+            setDogInside(currentInside.length > 0)
+
+            return response.data
+        } catch (error) {
+            console.error('Fel vid utvärdering:', error)
+            return null
+        }
     }
-  }
 
     // Initiera karta
     useEffect(() => {
@@ -891,18 +887,18 @@ const GeofenceEditor = () => {
             const dogMarker = L.marker([dogPosition.lat, dogPosition.lng], { icon: dogIcon }).addTo(map)
 
             // Klick-händelse för att lägga till cirklar, polygoner och gömställen
-      map.on('click', (e) => {
-        if (isAddingCircle) {
-          const radius = 50 // 50 meter
-          createCircleGeofence({ lat: e.latlng.lat, lng: e.latlng.lng }, radius)
-          setIsAddingCircle(false)
-        } else if (isAddingPolygon) {
-          const newPoint = { lat: e.latlng.lat, lng: e.latlng.lng }
-          const newPoints = [...polygonPoints, newPoint]
-          setPolygonPoints(newPoints)
-          
-          // Lägg till temporär markör
-          L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
+            map.on('click', (e) => {
+                if (isAddingCircle) {
+                    const radius = 50 // 50 meter
+                    createCircleGeofence({ lat: e.latlng.lat, lng: e.latlng.lng }, radius)
+                    setIsAddingCircle(false)
+                } else if (isAddingPolygon) {
+                    const newPoint = { lat: e.latlng.lat, lng: e.latlng.lng }
+                    const newPoints = [...polygonPoints, newPoint]
+                    setPolygonPoints(newPoints)
+
+                    // Lägg till temporär markör
+                    L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
                 } else if (isAddingHidingSpot && selectedTrackForHidingSpots) {
                     // Lägg till gömställe vid klickad position
                     createHidingSpot(selectedTrackForHidingSpots.id, {
@@ -910,8 +906,8 @@ const GeofenceEditor = () => {
                         lng: e.latlng.lng
                     })
                     setIsAddingHidingSpot(false)
-        }
-      })
+                }
+            })
 
             // Ladda befintliga geofences
             loadGeofences()
@@ -942,70 +938,70 @@ const GeofenceEditor = () => {
                 }
             })
 
-      // Lägg till geofences
-      geofences.forEach(geofence => {
-        const shape = geofence.geofence
-        if (shape.type === 'circle') {
-          L.circle([shape.center.lat, shape.center.lng], {
-            radius: shape.radius_m,
-            color: '#3b82f6',
-            fillColor: '#3b82f6',
-            fillOpacity: 0.2
-          }).addTo(mapInstanceRef.current)
-        } else if (shape.type === 'polygon') {
-          const coords = shape.vertices.map(v => [v.lat, v.lng])
-          L.polygon(coords, {
-            color: '#10b981',
-            fillColor: '#10b981',
-            fillOpacity: 0.2
-          }).addTo(mapInstanceRef.current)
-        }
-      })
-      
-      // Visa polygon-under-uppbyggnad
-      if (polygonPoints.length > 1) {
-        const coords = polygonPoints.map(p => [p.lat, p.lng])
-        L.polyline(coords, {
-          color: '#f59e0b',
-          weight: 3,
-          dashArray: '5, 5'
-        }).addTo(mapInstanceRef.current)
-      }
+            // Lägg till geofences
+            geofences.forEach(geofence => {
+                const shape = geofence.geofence
+                if (shape.type === 'circle') {
+                    L.circle([shape.center.lat, shape.center.lng], {
+                        radius: shape.radius_m,
+                        color: '#3b82f6',
+                        fillColor: '#3b82f6',
+                        fillOpacity: 0.2
+                    }).addTo(mapInstanceRef.current)
+                } else if (shape.type === 'polygon') {
+                    const coords = shape.vertices.map(v => [v.lat, v.lng])
+                    L.polygon(coords, {
+                        color: '#10b981',
+                        fillColor: '#10b981',
+                        fillOpacity: 0.2
+                    }).addTo(mapInstanceRef.current)
+                }
+            })
+
+            // Visa polygon-under-uppbyggnad
+            if (polygonPoints.length > 1) {
+                const coords = polygonPoints.map(p => [p.lat, p.lng])
+                L.polyline(coords, {
+                    color: '#f59e0b',
+                    weight: 3,
+                    dashArray: '5, 5'
+                }).addTo(mapInstanceRef.current)
+            }
         }
     }, [geofences])
 
     // Simulera hundens rörelse med smoothing (bara om vi inte spårar med GPS)
-  useEffect(() => {
+    useEffect(() => {
         if (isTracking && trackType === 'dog') {
             // Stoppa simulering när vi spårar med GPS
             return
         }
 
-    const interval = setInterval(() => {
-      setDogPosition(prev => {
-        // Smoothing: mindre steg och mer realistisk rörelse
-        const step = 0.0002 // Mindre steg
-        const newLat = prev.lat + (Math.random() - 0.5) * step
-        const newLng = prev.lng + (Math.random() - 0.5) * step
-        const newPos = { lat: newLat, lng: newLng }
-        
-        // Uppdatera hundmarkören
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.eachLayer((layer) => {
-            if (layer.options.icon && layer.options.icon.className === 'dog-marker') {
-              layer.setLatLng([newLat, newLng])
-            }
-          })
-        }
-        
-        // Utvärdera position
-        evaluatePosition(newPos)
-        
-        return newPos
-      })
-    }, 1500) // Snabbare uppdatering
+        const interval = setInterval(() => {
+            setDogPosition(prev => {
+                // Smoothing: mindre steg och mer realistisk rörelse
+                const step = 0.0002 // Mindre steg
+                const newLat = prev.lat + (Math.random() - 0.5) * step
+                const newLng = prev.lng + (Math.random() - 0.5) * step
+                const newPos = { lat: newLat, lng: newLng }
 
-    return () => clearInterval(interval)
+                // Uppdatera hundmarkören
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.eachLayer((layer) => {
+                        if (layer.options.icon && layer.options.icon.className === 'dog-marker') {
+                            layer.setLatLng([newLat, newLng])
+                        }
+                    })
+                }
+
+                // Utvärdera position
+                evaluatePosition(newPos)
+
+                return newPos
+            })
+        }, 1500) // Snabbare uppdatering
+
+        return () => clearInterval(interval)
     }, [isTracking, trackType])
 
     return (
@@ -1025,20 +1021,20 @@ const GeofenceEditor = () => {
                     <span className="font-medium">Meny</span>
                 </button>
 
-        {/* Status för hundens position */}
+                {/* Status för hundens position */}
                 <div className="absolute top-4 right-4 bg-white p-3 rounded-lg shadow-lg max-w-sm z-[999]">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">🐕</span>
-            <span className={dogInside ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-              {dogInside ? 'Inne i område' : 'Ute ur område'}
-            </span>
-          </div>
-          {currentGeofences.length > 0 && (
-            <div className="text-sm text-gray-600">
-              I: {currentGeofences.map(g => g.name).join(', ')}
-            </div>
-          )}
-        </div>
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">🐕</span>
+                        <span className={dogInside ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                            {dogInside ? 'Inne i område' : 'Ute ur område'}
+                        </span>
+                    </div>
+                    {currentGeofences.length > 0 && (
+                        <div className="text-sm text-gray-600">
+                            I: {currentGeofences.map(g => g.name).join(', ')}
+                        </div>
+                    )}
+                </div>
 
                 {/* Snabbknapp för spårning när meny är stängd */}
                 {!menuOpen && (
@@ -1453,93 +1449,93 @@ const GeofenceEditor = () => {
                         )}
                     </div>
 
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => {
-                            setIsAddingCircle(!isAddingCircle)
-                            setIsAddingPolygon(false)
-                            setPolygonPoints([])
-                        }}
-                        className={`px-4 py-2 rounded font-medium ${isAddingCircle
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => {
+                                setIsAddingCircle(!isAddingCircle)
+                                setIsAddingPolygon(false)
+                                setPolygonPoints([])
+                            }}
+                            className={`px-4 py-2 rounded font-medium ${isAddingCircle
                                 ? 'bg-red-500 text-white'
                                 : 'bg-blue-500 text-white hover:bg-blue-600'
-                            }`}
-                    >
-                        {isAddingCircle ? 'Avbryt' : 'Cirkel'}
-                    </button>
-                    
-                    <button
-                        onClick={() => {
-                            setIsAddingPolygon(!isAddingPolygon)
-                            setIsAddingCircle(false)
-                            if (!isAddingPolygon) {
-                                setPolygonPoints([])
-                            }
-                        }}
-                        className={`px-4 py-2 rounded font-medium ${isAddingPolygon
+                                }`}
+                        >
+                            {isAddingCircle ? 'Avbryt' : 'Cirkel'}
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setIsAddingPolygon(!isAddingPolygon)
+                                setIsAddingCircle(false)
+                                if (!isAddingPolygon) {
+                                    setPolygonPoints([])
+                                }
+                            }}
+                            className={`px-4 py-2 rounded font-medium ${isAddingPolygon
                                 ? 'bg-red-500 text-white'
                                 : 'bg-green-500 text-white hover:bg-green-600'
-                            }`}
-                    >
-                        {isAddingPolygon ? 'Avbryt' : 'Polygon'}
-                    </button>
-                </div>
+                                }`}
+                        >
+                            {isAddingPolygon ? 'Avbryt' : 'Polygon'}
+                        </button>
+                    </div>
 
-                {isAddingCircle && (
-                    <p className="text-sm text-gray-600">
-                        Klicka på kartan för att placera en cirkel (50m radie)
-                    </p>
-                )}
-                
-                {isAddingPolygon && (
+                    {isAddingCircle && (
+                        <p className="text-sm text-gray-600">
+                            Klicka på kartan för att placera en cirkel (50m radie)
+                        </p>
+                    )}
+
+                    {isAddingPolygon && (
+                        <div>
+                            <p className="text-sm text-gray-600 mb-2">
+                                Klicka på kartan för att lägga till punkter. Klicka "Slutför" när du är klar.
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                Punkter: {polygonPoints.length} (minst 3 krävs)
+                            </p>
+                            {polygonPoints.length >= 3 && (
+                                <button
+                                    onClick={() => createPolygonGeofence(polygonPoints)}
+                                    className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                                >
+                                    Slutför polygon
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     <div>
-                        <p className="text-sm text-gray-600 mb-2">
-                            Klicka på kartan för att lägga till punkter. Klicka "Slutför" när du är klar.
-                        </p>
-                        <p className="text-xs text-gray-500">
-                            Punkter: {polygonPoints.length} (minst 3 krävs)
-                        </p>
-                        {polygonPoints.length >= 3 && (
-                            <button
-                                onClick={() => createPolygonGeofence(polygonPoints)}
-                                className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                            >
-                                Slutför polygon
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                <div>
-                    <h3 className="font-bold mb-2">Befintliga geofences:</h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {geofences.map(geofence => (
-                            <div key={geofence.id} className="bg-white p-2 rounded border">
-                                <div className="font-medium">{geofence.name}</div>
-                                <div className="text-sm text-gray-600">
-                                    {geofence.geofence.type === 'circle' ? 'Cirkel' : 'Polygon'}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 className="font-bold mb-2">Händelser:</h3>
-                    <div className="space-y-1 max-h-32 overflow-y-auto text-sm">
-                        {events.length === 0 ? (
-                            <p className="text-gray-500">Inga händelser än</p>
-                        ) : (
-                            events.map((event, index) => (
-                                    <div key={index} className={`p-2 rounded ${event.type === 'ENTER' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                }`}>
-                                    <div className="font-medium">
-                                        {event.type === 'ENTER' ? '→' : '←'} {event.geofence}
+                        <h3 className="font-bold mb-2">Befintliga geofences:</h3>
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {geofences.map(geofence => (
+                                <div key={geofence.id} className="bg-white p-2 rounded border">
+                                    <div className="font-medium">{geofence.name}</div>
+                                    <div className="text-sm text-gray-600">
+                                        {geofence.geofence.type === 'circle' ? 'Cirkel' : 'Polygon'}
                                     </div>
-                                    <div className="text-xs">{event.timestamp}</div>
                                 </div>
-                            ))
-                        )}
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="font-bold mb-2">Händelser:</h3>
+                        <div className="space-y-1 max-h-32 overflow-y-auto text-sm">
+                            {events.length === 0 ? (
+                                <p className="text-gray-500">Inga händelser än</p>
+                            ) : (
+                                events.map((event, index) => (
+                                    <div key={index} className={`p-2 rounded ${event.type === 'ENTER' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                        }`}>
+                                        <div className="font-medium">
+                                            {event.type === 'ENTER' ? '→' : '←'} {event.geofence}
+                                        </div>
+                                        <div className="text-xs">{event.timestamp}</div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
