@@ -114,11 +114,11 @@ const GeofenceEditor = () => {
             created_at: new Date().toISOString(),
             positions: []
         }
-        
+
         // Spara lokalt direkt
         localStorage.setItem(`track_${localId}`, JSON.stringify(tempTrack))
         localStorage.setItem(`track_${localId}_positions`, JSON.stringify([]))
-        
+
         // Försök skapa på server (men fortsätt även om det misslyckas)
         if (navigator.onLine) {
             try {
@@ -136,7 +136,7 @@ const GeofenceEditor = () => {
                     localStorage.removeItem(`track_${localId}`)
                     localStorage.removeItem(`track_${localId}_positions`)
                     // Uppdatera offline queue med rätt ID
-                    offlineQueueRef.current = offlineQueueRef.current.map(item => 
+                    offlineQueueRef.current = offlineQueueRef.current.map(item =>
                         item.trackId === localId ? { ...item, trackId: serverTrack.id } : item
                     )
                 }
@@ -361,46 +361,85 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Enkel online-detektering - bara navigator.onLine (bästa indikatorn)
+    // Stabil online-detektering med debounce för att undvika flippning
+    const lastOnlineStatusRef = useRef(navigator.onLine)
+    const onlineStatusTimeoutRef = useRef(null)
+    
     const checkOnlineStatus = () => {
-        // Använd bara navigator.onLine - den är tillförlitlig för internet-anslutning
-        const online = navigator.onLine
-        setIsOnline(online)
+        const currentOnline = navigator.onLine
         
-        // Om vi blir online igen, synka queue
-        if (online && offlineQueueRef.current.length > 0) {
-            syncOfflineQueue()
+        // Bara ändra status om den faktiskt ändrats och vänta lite (debounce)
+        if (currentOnline !== lastOnlineStatusRef.current) {
+            // Rensa eventuell tidigare timeout
+            if (onlineStatusTimeoutRef.current) {
+                clearTimeout(onlineStatusTimeoutRef.current)
+            }
+            
+            // Vänta 2 sekunder innan vi ändrar status (för att undvika flippning)
+            onlineStatusTimeoutRef.current = setTimeout(() => {
+                lastOnlineStatusRef.current = currentOnline
+                setIsOnline(currentOnline)
+                
+                // Om vi blir online igen, synka queue
+                if (currentOnline && offlineQueueRef.current.length > 0) {
+                    syncOfflineQueue()
+                }
+            }, 2000)
         }
         
-        return online
+        // Om statusen är densamma, uppdatera bara om den inte är satt
+        if (lastOnlineStatusRef.current === currentOnline) {
+            setIsOnline(currentOnline)
+        }
+        
+        return currentOnline
     }
 
-    // Nätverksdetektering - enkel och tillförlitlig
+    // Nätverksdetektering - stabil med debounce
     useEffect(() => {
-        // Kontrollera status vid start
-        checkOnlineStatus()
+        // Kontrollera status vid start (utan debounce första gången)
+        const initialOnline = navigator.onLine
+        lastOnlineStatusRef.current = initialOnline
+        setIsOnline(initialOnline)
 
         const handleOnline = () => {
-            setIsOnline(true)
-            syncOfflineQueue()
+            // Vänta lite innan vi ändrar status (debounce)
+            if (onlineStatusTimeoutRef.current) {
+                clearTimeout(onlineStatusTimeoutRef.current)
+            }
+            onlineStatusTimeoutRef.current = setTimeout(() => {
+                lastOnlineStatusRef.current = true
+                setIsOnline(true)
+                syncOfflineQueue()
+            }, 1000)
         }
 
         const handleOffline = () => {
-            setIsOnline(false)
+            // Vänta lite innan vi ändrar status (debounce)
+            if (onlineStatusTimeoutRef.current) {
+                clearTimeout(onlineStatusTimeoutRef.current)
+            }
+            onlineStatusTimeoutRef.current = setTimeout(() => {
+                lastOnlineStatusRef.current = false
+                setIsOnline(false)
+            }, 3000) // Vänta längre för offline (3 sek) för att undvika flippning
         }
 
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
 
-        // Kontrollera status var 5:e sekund (för att fånga upp ändringar)
+        // Kontrollera status var 10:e sekund (minskad frekvens)
         const interval = setInterval(() => {
             checkOnlineStatus()
-        }, 5000)
+        }, 10000)
 
         return () => {
             window.removeEventListener('online', handleOnline)
             window.removeEventListener('offline', handleOffline)
             clearInterval(interval)
+            if (onlineStatusTimeoutRef.current) {
+                clearTimeout(onlineStatusTimeoutRef.current)
+            }
         }
     }, [])
 
