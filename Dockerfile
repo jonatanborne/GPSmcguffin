@@ -17,9 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY backend/ ./backend/
 
-# Create entrypoint script
-RUN echo '#!/bin/sh\nuvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}' > /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose port (Railway will set PORT env var)
 EXPOSE 8000
