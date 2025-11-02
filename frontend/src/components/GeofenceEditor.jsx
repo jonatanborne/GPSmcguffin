@@ -52,12 +52,15 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Ladda tracks från API
+    // Ladda tracks från API och localStorage (kombinera båda)
     const loadTracks = async () => {
+        let apiTracks = []
+        
+        // Försök ladda från API om vi är online
         try {
-            const response = await axios.get(`${API_BASE}/tracks`)
+            const response = await axios.get(`${API_BASE}/tracks`, { timeout: 5000 })
             // Hämta fullständiga tracks med positioner för varje
-            const fullTracks = await Promise.all(
+            apiTracks = await Promise.all(
                 response.data.map(async (track) => {
                     try {
                         const fullTrack = await axios.get(`${API_BASE}/tracks/${track.id}`)
@@ -68,12 +71,35 @@ const GeofenceEditor = () => {
                     }
                 })
             )
-            setTracks(fullTracks)
-            return fullTracks
         } catch (error) {
-            console.error('Fel vid laddning av tracks:', error)
-            return []
+            console.error('Fel vid laddning av tracks från API:', error)
+            // Fortsätt med localStorage-tracks
         }
+
+        // Ladda även tracks från localStorage (fallback och för lokala tracks)
+        const localTracks = []
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            if (key && key.startsWith('track_') && !key.includes('_positions')) {
+                const trackId = key.replace('track_', '')
+                // Hoppa över om track redan finns från API (via ID)
+                if (apiTracks.some(t => t.id.toString() === trackId)) continue
+                
+                const track = JSON.parse(localStorage.getItem(key) || '{}')
+                const positions = JSON.parse(localStorage.getItem(`track_${trackId}_positions`) || '[]')
+                track.positions = positions.map(p => ({
+                    position: p.position,
+                    timestamp: p.timestamp,
+                    accuracy: p.accuracy
+                }))
+                localTracks.push(track)
+            }
+        }
+
+        // Kombinera tracks från API och localStorage
+        const allTracks = [...apiTracks, ...localTracks]
+        setTracks(allTracks)
+        return allTracks
     }
 
     // Skapa nytt track
@@ -871,8 +897,12 @@ const GeofenceEditor = () => {
             // Ladda befintliga geofences
             loadGeofences()
 
-            // Ladda tracks och rita dem
-            loadTracks().then(drawTracks)
+            // Ladda tracks och rita dem (både från API och localStorage)
+            loadTracks().then(drawTracks).catch(err => {
+                console.error('Fel vid initial laddning av tracks:', err)
+                // Fallback: ladda från localStorage
+                loadLocalTracks()
+            })
         }
 
         return () => {
