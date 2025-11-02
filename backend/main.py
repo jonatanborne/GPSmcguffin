@@ -21,7 +21,10 @@ app.add_middleware(
 )
 
 # SQLite Database setup
-DB_PATH = os.getenv("DB_PATH", "data.db")
+# Använd absolut sökväg eller Railway's persistent volume om det finns
+# På Railway, spara i projekt-roten för persistent storage
+DB_DIR = os.getenv("DB_DIR", os.getcwd())
+DB_PATH = os.path.join(DB_DIR, "data.db")
 
 def get_db():
     """Hämta databas-anslutning"""
@@ -334,26 +337,36 @@ def evaluate_position(payload: Position):
 # Track endpoints
 @app.post("/tracks", response_model=Track)
 def create_track(payload: TrackCreate):
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Räkna befintliga tracks för att ge ett bra default-namn
-    cursor.execute("SELECT COUNT(*) as count FROM tracks WHERE track_type = ?", (payload.track_type,))
-    count = cursor.fetchone()["count"]
-    
-    now = datetime.now().isoformat()
-    name = payload.name or f"{payload.track_type.capitalize()} Track {count + 1}"
-    
-    cursor.execute("""
-        INSERT INTO tracks (name, track_type, created_at)
-        VALUES (?, ?, ?)
-    """, (name, payload.track_type, now))
-    
-    track_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    
-    return Track(id=track_id, name=name, track_type=payload.track_type, created_at=now, positions=[])
+    try:
+        # Se till att databasen är initierad
+        init_db()
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Räkna befintliga tracks för att ge ett bra default-namn
+        cursor.execute("SELECT COUNT(*) as count FROM tracks WHERE track_type = ?", (payload.track_type,))
+        count_result = cursor.fetchone()
+        count = count_result["count"] if count_result else 0
+        
+        now = datetime.now().isoformat()
+        name = payload.name or f"{payload.track_type.capitalize()} Track {count + 1}"
+        
+        cursor.execute("""
+            INSERT INTO tracks (name, track_type, created_at)
+            VALUES (?, ?, ?)
+        """, (name, payload.track_type, now))
+        
+        track_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return Track(id=track_id, name=name, track_type=payload.track_type, created_at=now, positions=[])
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error creating track: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Kunde inte skapa track: {str(e)}")
 
 
 @app.get("/tracks", response_model=List[Track])

@@ -84,6 +84,22 @@ const GeofenceEditor = () => {
             return response.data
         } catch (error) {
             console.error('Fel vid skapande av track:', error)
+            console.error('Error details:', error.response?.data || error.message)
+            console.error('API_BASE:', API_BASE)
+            // Om offline, spara i localStorage för senare synkning
+            if (!error.response || error.code === 'ERR_NETWORK') {
+                const tempTrack = {
+                    id: Date.now(), // Temporärt ID
+                    track_type: type,
+                    name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
+                    created_at: new Date().toISOString(),
+                    positions: []
+                }
+                offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+                setIsOnline(false)
+                return tempTrack
+            }
+            alert(`Kunde inte skapa track: ${error.response?.data?.detail || error.message}`)
             return null
         }
     }
