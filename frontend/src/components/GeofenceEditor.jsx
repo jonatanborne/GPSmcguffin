@@ -55,7 +55,7 @@ const GeofenceEditor = () => {
     // Ladda tracks från API och localStorage (kombinera båda)
     const loadTracks = async () => {
         let apiTracks = []
-        
+
         // Försök ladda från API om vi är online
         try {
             const response = await axios.get(`${API_BASE}/tracks`, { timeout: 5000 })
@@ -84,7 +84,7 @@ const GeofenceEditor = () => {
                 const trackId = key.replace('track_', '')
                 // Hoppa över om track redan finns från API (via ID)
                 if (apiTracks.some(t => t.id.toString() === trackId)) continue
-                
+
                 const track = JSON.parse(localStorage.getItem(key) || '{}')
                 const positions = JSON.parse(localStorage.getItem(`track_${trackId}_positions`) || '[]')
                 track.positions = positions.map(p => ({
@@ -340,8 +340,15 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Kontrollera faktisk connectivity till backend
+    // Kontrollera faktisk connectivity
     const checkOnlineStatus = async () => {
+        // Först kontrollera navigator.onLine (snabb kontroll)
+        if (!navigator.onLine) {
+            setIsOnline(false)
+            return false
+        }
+
+        // Sedan försök pinga backend (men tänk på att backend kan vara nere även om vi har internet)
         try {
             const response = await axios.get(`${API_BASE}/ping`, { timeout: 3000 })
             if (response.data.status === 'ok') {
@@ -349,10 +356,21 @@ const GeofenceEditor = () => {
                 return true
             }
         } catch (error) {
-            // Verkligt nätverksfel, vi är offline
-            setIsOnline(false)
-            return false
+            // Om backend inte svarar, kontrollera om det är ett verkligt nätverksfel
+            // eller om det bara är backend som är nere
+            if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED') {
+                // Verkligt nätverksfel - vi är offline
+                setIsOnline(false)
+                return false
+            } else {
+                // Backend kanske är nere, men vi har internet - markera som online ändå
+                // Men sätt en varning eller meddela användaren
+                console.warn('Backend svarar inte, men internet finns:', error.message)
+                setIsOnline(true) // Vi har internet även om backend inte svarar
+                return true
+            }
         }
+        return false
     }
 
     // Nätverksdetektering
@@ -1036,19 +1054,19 @@ const GeofenceEditor = () => {
                             ) : (
                                 <div className="flex flex-col items-center gap-3">
                                     <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={stopTracking}
-                                        className="px-6 py-3 bg-red-600 text-white rounded font-medium hover:bg-red-700 flex items-center gap-2"
-                                    >
-                                        <span>⏹</span>
-                                        <span>Stoppa</span>
-                                    </button>
-                                    <div className="text-sm">
-                                        <div className="font-medium">{trackType === 'human' ? '🚶 Människa' : '🐕 Hund'}</div>
-                                        <div className="text-xs text-gray-500">
-                                            {currentTrack?.positions?.length || 0} positioner
+                                        <button
+                                            onClick={stopTracking}
+                                            className="px-6 py-3 bg-red-600 text-white rounded font-medium hover:bg-red-700 flex items-center gap-2"
+                                        >
+                                            <span>⏹</span>
+                                            <span>Stoppa</span>
+                                        </button>
+                                        <div className="text-sm">
+                                            <div className="font-medium">{trackType === 'human' ? '🚶 Människa' : '🐕 Hund'}</div>
+                                            <div className="text-xs text-gray-500">
+                                                {currentTrack?.positions?.length || 0} positioner
+                                            </div>
                                         </div>
-                                    </div>
                                     </div>
                                     {/* Knapp för att lägga till gömställe (bara för människaspår) */}
                                     {trackType === 'human' && (
