@@ -39,6 +39,8 @@ const GeofenceEditor = () => {
     const [selectedTrackForHidingSpots, setSelectedTrackForHidingSpots] = useState(null)
     const [humanTrackForDog, setHumanTrackForDog] = useState(null) // Vilket människaspår hundens spår är baserat på
     const hidingSpotMarkersRef = useRef([]) // Referenser till hiding spot markörer på kartan
+    const [nearestHidingSpot, setNearestHidingSpot] = useState(null) // Närmaste gömställe när hund spårar
+    const [currentPosition, setCurrentPosition] = useState(null) // Nuvarande GPS-position
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -86,8 +88,10 @@ const GeofenceEditor = () => {
             console.error('Fel vid skapande av track:', error)
             console.error('Error details:', error.response?.data || error.message)
             console.error('API_BASE:', API_BASE)
-            // Om offline, spara i localStorage för senare synkning
-            if (!error.response || error.code === 'ERR_NETWORK') {
+            // Endast markera som offline om det verkligen är ett nätverksfel
+            if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED' || !error.response) {
+                // Verkligt nätverksfel - vi är offline
+                setIsOnline(false)
                 const tempTrack = {
                     id: Date.now(), // Temporärt ID
                     track_type: type,
@@ -96,9 +100,9 @@ const GeofenceEditor = () => {
                     positions: []
                 }
                 offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
-                setIsOnline(false)
                 return tempTrack
             }
+            // Annat fel (t.ex. serverfel, validering) - vi är fortfarande online
             alert(`Kunde inte skapa track: ${error.response?.data?.detail || error.message}`)
             return null
         }
@@ -173,11 +177,12 @@ const GeofenceEditor = () => {
             }
         } catch (error) {
             console.error('Fel vid läggning till position:', error)
-            // Om felet är nätverksfel, lägg i offline queue
-            if (!error.response || error.code === 'ERR_NETWORK') {
+            // Endast markera som offline om det verkligen är ett nätverksfel
+            if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED' || !error.response) {
                 offlineQueueRef.current.push({ trackId, position, accuracy })
                 setIsOnline(false)
             }
+            // Annat fel - vi är fortfarande online, data är redan sparad lokalt
         }
     }
 
@@ -276,20 +281,84 @@ const GeofenceEditor = () => {
         }
     }
 
+    // Beräkna avstånd mellan två positioner (Haversine-formel)
+    const haversineDistance = (pos1, pos2) => {
+        const R = 6371000 // Jordens radie i meter
+        const dLat = (pos2.lat - pos1.lat) * Math.PI / 180
+        const dLon = (pos2.lng - pos1.lng) * Math.PI / 180
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c
+    }
+
+    // Lägg till gömställe på nuvarande position (när man spårar som människa)
+    const addHidingSpotAtCurrentPosition = async () => {
+        if (!currentPosition || !currentTrack || currentTrack.track_type !== 'human') {
+            alert('Du måste spåra som människa för att lägga till gömställen')
+            return
+        }
+
+        try {
+            const response = await axios.post(`${API_BASE}/tracks/${currentTrack.id}/hiding-spots`, {
+                position: currentPosition,
+                name: `Gömställe ${(hidingSpots.length || 0) + 1}`
+            })
+            // Ladda om gömställen för att få alla
+            await loadHidingSpots(currentTrack.id)
+            alert('Gömställe tillagt!')
+        } catch (error) {
+            console.error('Fel vid skapande av gömställe:', error)
+            alert('Kunde inte skapa gömställe')
+        }
+    }
+
+    // Kontrollera faktisk connectivity till backend
+    const checkOnlineStatus = async () => {
+        try {
+            const response = await axios.get(`${API_BASE}/ping`, { timeout: 3000 })
+            if (response.data.status === 'ok') {
+                setIsOnline(true)
+                return true
+            }
+        } catch (error) {
+            // Verkligt nätverksfel, vi är offline
+            setIsOnline(false)
+            return false
+        }
+    }
+
     // Nätverksdetektering
     useEffect(() => {
-        const handleOnline = () => {
-            setIsOnline(true)
-            syncOfflineQueue()
+        // Kontrollera status vid start
+        checkOnlineStatus()
+
+        const handleOnline = async () => {
+            // Vänta lite och verifiera att vi faktiskt är online
+            await new Promise(resolve => setTimeout(resolve, 500))
+            const isReallyOnline = await checkOnlineStatus()
+            if (isReallyOnline) {
+                syncOfflineQueue()
+            }
         }
-        const handleOffline = () => setIsOnline(false)
+
+        const handleOffline = () => {
+            setIsOnline(false)
+        }
 
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
 
+        // Kontrollera connectivity var 10:e sekund
+        const interval = setInterval(() => {
+            checkOnlineStatus()
+        }, 10000)
+
         return () => {
             window.removeEventListener('online', handleOnline)
             window.removeEventListener('offline', handleOffline)
+            clearInterval(interval)
         }
     }, [])
 
@@ -341,6 +410,18 @@ const GeofenceEditor = () => {
             maximumAge: 0
         }
 
+        // Om hundspår, ladda gömställen från människans spår
+        if (trackType === 'dog') {
+            // Hitta människans spår om det inte redan är valt
+            const allTracks = await loadTracks()
+            const humanTracks = allTracks.filter(t => t.track_type === 'human')
+            if (humanTracks.length > 0) {
+                const selectedHumanTrack = humanTrackForDog || humanTracks[0]
+                setHumanTrackForDog(selectedHumanTrack)
+                await loadHidingSpots(selectedHumanTrack.id)
+            }
+        }
+
         gpsWatchIdRef.current = navigator.geolocation.watchPosition(
             (position) => {
                 const pos = {
@@ -348,8 +429,30 @@ const GeofenceEditor = () => {
                     lng: position.coords.longitude
                 }
 
+                setCurrentPosition(pos)
+
                 // Lägg till position till track
                 addPositionToTrack(track.id, pos, position.coords.accuracy)
+
+                // Om hundspår, kontrollera avstånd till gömställen
+                if (trackType === 'dog' && humanTrackForDog && hidingSpots.length > 0) {
+                    const PROXIMITY_DISTANCE = 20 // 20 meter
+                    let nearest = null
+                    let nearestDistance = Infinity
+
+                    hidingSpots.forEach(spot => {
+                        // Hoppa över redan markerade spots
+                        if (spot.found !== null) return
+
+                        const distance = haversineDistance(pos, spot.position)
+                        if (distance < nearestDistance && distance < PROXIMITY_DISTANCE) {
+                            nearestDistance = distance
+                            nearest = spot
+                        }
+                    })
+
+                    setNearestHidingSpot(nearest)
+                }
 
                 // Uppdatera karta om vi spårar som hund (ersätt simulerad hund)
                 if (trackType === 'dog' && mapInstanceRef.current) {
@@ -383,6 +486,8 @@ const GeofenceEditor = () => {
             gpsWatchIdRef.current = null
         }
         setIsTracking(false)
+        setNearestHidingSpot(null)
+        setCurrentPosition(null)
 
         // Om offline, försök skapa track på server när online
         if (!isOnline && currentTrack) {
@@ -899,7 +1004,8 @@ const GeofenceEditor = () => {
                                     <span>Starta spårning</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="flex items-center gap-3">
                                     <button
                                         onClick={stopTracking}
                                         className="px-6 py-3 bg-red-600 text-white rounded font-medium hover:bg-red-700 flex items-center gap-2"
@@ -913,6 +1019,43 @@ const GeofenceEditor = () => {
                                             {currentTrack?.positions?.length || 0} positioner
                                         </div>
                                     </div>
+                                    </div>
+                                    {/* Knapp för att lägga till gömställe (bara för människaspår) */}
+                                    {trackType === 'human' && (
+                                        <button
+                                            onClick={addHidingSpotAtCurrentPosition}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 flex items-center gap-2"
+                                        >
+                                            <span>📦</span>
+                                            <span>Lägg till gömställe</span>
+                                        </button>
+                                    )}
+                                    {/* Knappar för att markera gömställe när hund spårar */}
+                                    {trackType === 'dog' && nearestHidingSpot && (
+                                        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-3">
+                                            <p className="text-sm font-medium mb-2">Nära gömställe: {nearestHidingSpot.name}</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        updateHidingSpotStatus(nearestHidingSpot.id, true)
+                                                        setNearestHidingSpot(null)
+                                                    }}
+                                                    className="flex-1 px-3 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700"
+                                                >
+                                                    ✅ Hittade
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        updateHidingSpotStatus(nearestHidingSpot.id, false)
+                                                        setNearestHidingSpot(null)
+                                                    }}
+                                                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700"
+                                                >
+                                                    ❌ Hittade inte
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <div className={`text-xs px-2 py-1 rounded ${isOnline ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
