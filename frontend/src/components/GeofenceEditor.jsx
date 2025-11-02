@@ -34,6 +34,7 @@ const GeofenceEditor = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine)
     const offlineQueueRef = useRef([]) // Queue för positioner som ska skickas när online
     const [menuOpen, setMenuOpen] = useState(false) // För att visa/gömma meny
+    const onlineCheckFailuresRef = useRef(0) // Räkna antal misslyckade kontroller innan vi markerar som offline
     const [hidingSpots, setHidingSpots] = useState([]) // Gömställen för aktuellt valt spår
     const [isAddingHidingSpot, setIsAddingHidingSpot] = useState(false)
     const [selectedTrackForHidingSpots, setSelectedTrackForHidingSpots] = useState(null)
@@ -340,10 +341,11 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Kontrollera faktisk connectivity
+    // Kontrollera faktisk connectivity (med debounce för att undvika flippning)
     const checkOnlineStatus = async () => {
         // Först kontrollera navigator.onLine (snabb kontroll)
         if (!navigator.onLine) {
+            onlineCheckFailuresRef.current = 0
             setIsOnline(false)
             return false
         }
@@ -352,22 +354,31 @@ const GeofenceEditor = () => {
         try {
             const response = await axios.get(`${API_BASE}/ping`, { timeout: 3000 })
             if (response.data.status === 'ok') {
+                // Framgång - återställ räknare och markera som online
+                onlineCheckFailuresRef.current = 0
                 setIsOnline(true)
                 return true
             }
         } catch (error) {
             // Om backend inte svarar, kontrollera om det är ett verkligt nätverksfel
-            // eller om det bara är backend som är nere
             if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED') {
-                // Verkligt nätverksfel - vi är offline
+                // Verkligt nätverksfel - markera som offline direkt
+                onlineCheckFailuresRef.current = 0
                 setIsOnline(false)
                 return false
             } else {
-                // Backend kanske är nere, men vi har internet - markera som online ändå
-                // Men sätt en varning eller meddela användaren
-                console.warn('Backend svarar inte, men internet finns:', error.message)
-                setIsOnline(true) // Vi har internet även om backend inte svarar
-                return true
+                // Backend kanske är långsam eller nere temporärt
+                // Kräv 3 misslyckade försök innan vi markerar som offline
+                onlineCheckFailuresRef.current += 1
+                if (onlineCheckFailuresRef.current >= 3) {
+                    console.warn('Backend svarar inte efter flera försök')
+                    setIsOnline(false)
+                    return false
+                } else {
+                    // Fortfarande online, bara backend som är långsam
+                    setIsOnline(true)
+                    return true
+                }
             }
         }
         return false
@@ -541,13 +552,12 @@ const GeofenceEditor = () => {
 
         setCurrentTrack(null)
 
-        // Ladda om alla tracks
-        if (isOnline) {
-            loadTracks().then(refreshTrackLayers)
-        } else {
-            // Ladda lokala tracks istället
+        // Ladda om alla tracks (alltid från både API och localStorage)
+        loadTracks().then(refreshTrackLayers).catch(err => {
+            console.error('Fel vid laddning av tracks:', err)
+            // Fallback: ladda från localStorage
             loadLocalTracks()
-        }
+        })
     }
 
     // Ladda lokala tracks (när offline)
