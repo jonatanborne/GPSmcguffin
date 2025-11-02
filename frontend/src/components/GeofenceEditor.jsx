@@ -364,34 +364,34 @@ const GeofenceEditor = () => {
     // Stabil online-detektering med debounce för att undvika flippning
     const lastOnlineStatusRef = useRef(navigator.onLine)
     const onlineStatusTimeoutRef = useRef(null)
-    
+
     const checkOnlineStatus = () => {
         const currentOnline = navigator.onLine
-        
+
         // Bara ändra status om den faktiskt ändrats och vänta lite (debounce)
         if (currentOnline !== lastOnlineStatusRef.current) {
             // Rensa eventuell tidigare timeout
             if (onlineStatusTimeoutRef.current) {
                 clearTimeout(onlineStatusTimeoutRef.current)
             }
-            
+
             // Vänta 2 sekunder innan vi ändrar status (för att undvika flippning)
             onlineStatusTimeoutRef.current = setTimeout(() => {
                 lastOnlineStatusRef.current = currentOnline
                 setIsOnline(currentOnline)
-                
+
                 // Om vi blir online igen, synka queue
                 if (currentOnline && offlineQueueRef.current.length > 0) {
                     syncOfflineQueue()
                 }
             }, 2000)
         }
-        
+
         // Om statusen är densamma, uppdatera bara om den inte är satt
         if (lastOnlineStatusRef.current === currentOnline) {
             setIsOnline(currentOnline)
         }
-        
+
         return currentOnline
     }
 
@@ -457,15 +457,12 @@ const GeofenceEditor = () => {
             return
         }
 
-        let track
-        if (isOnline) {
-            track = await createTrack(trackType)
-            if (!track) {
-                alert('Kunde inte skapa track')
-                return
-            }
-        } else {
-            // Om offline, skapa track lokalt
+        // createTrack sparar alltid lokalt först, så vi kan alltid spåra
+        let track = await createTrack(trackType)
+        
+        // Om createTrack misslyckades helt (mycket ovanligt), skapa lokalt ändå
+        if (!track) {
+            console.warn('createTrack returnerade null, skapar lokalt track ändå')
             const localId = Date.now()
             track = {
                 id: localId,
@@ -477,8 +474,6 @@ const GeofenceEditor = () => {
             // Spara lokalt
             localStorage.setItem(`track_${localId}`, JSON.stringify(track))
             localStorage.setItem(`track_${localId}_positions`, JSON.stringify([]))
-
-            // Försök skapa på server senare när online
             offlineQueueRef.current.push({ type: 'create_track', track })
         }
 
