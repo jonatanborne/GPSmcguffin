@@ -31,7 +31,7 @@ def get_db():
 
 def init_db():
     """Initialisera databasen med tabeller"""
-    conn = get_db()
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     
     # Geofences tabell
@@ -169,6 +169,11 @@ class HidingSpot(HidingSpotCreate):
 
 @app.get("/ping")
 def ping():
+    # Se till att databasen är initierad
+    try:
+        init_db()
+    except:
+        pass
     return {"status": "ok"}
 
 
