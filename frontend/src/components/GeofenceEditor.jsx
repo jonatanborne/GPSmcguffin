@@ -43,6 +43,7 @@ const GeofenceEditor = () => {
     const [nearestHidingSpot, setNearestHidingSpot] = useState(null) // Närmaste gömställe när hund spårar
     const [currentPosition, setCurrentPosition] = useState(null) // Nuvarande GPS-position
     const hasCenteredMapRef = useRef(false) // Om vi har centrerat kartan för första gången
+    const [comparisonData, setComparisonData] = useState(null) // Jämförelsedata för ett hundspår
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -96,7 +97,7 @@ const GeofenceEditor = () => {
 
     // Skapa nytt track (fungerar alltid - sparar lokalt om API misslyckas)
     // skipQueue: om true, lägg inte till i offline queue (används vid synkning)
-    const createTrack = async (type, skipQueue = false) => {
+    const createTrack = async (type, skipQueue = false, humanTrackId = null) => {
         // Skapa track lokalt först (fungerar alltid)
         const localId = Date.now()
         const tempTrack = {
@@ -104,7 +105,8 @@ const GeofenceEditor = () => {
             track_type: type,
             name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
             created_at: new Date().toISOString(),
-            positions: []
+            positions: [],
+            human_track_id: humanTrackId
         }
 
         // Spara lokalt direkt
@@ -116,7 +118,8 @@ const GeofenceEditor = () => {
             try {
                 const response = await axios.post(`${API_BASE}/tracks`, {
                     track_type: type,
-                    name: tempTrack.name
+                    name: tempTrack.name,
+                    human_track_id: humanTrackId
                 }, { timeout: 10000 })
                 // Om det lyckades, uppdatera med serverns ID
                 const serverTrack = response.data
@@ -283,7 +286,7 @@ const GeofenceEditor = () => {
         for (const item of trackCreations) {
             try {
                 // Använd skipQueue=true för att undvika rekursiv loop
-                const created = await createTrack(item.track.track_type, skipQueue = true)
+                const created = await createTrack(item.track.track_type, true, item.track.human_track_id)
                 if (created) {
                     // Uppdatera alla positioner med nytt track ID
                     const oldId = item.track.id
@@ -458,7 +461,9 @@ const GeofenceEditor = () => {
         }
 
         // createTrack sparar alltid lokalt först, så vi kan alltid spåra
-        let track = await createTrack(trackType)
+        // Om hundspår, skicka human_track_id
+        const humanTrackId = trackType === 'dog' && humanTrackForDog ? humanTrackForDog.id : null
+        let track = await createTrack(trackType, false, humanTrackId)
 
         // Om createTrack misslyckades helt (mycket ovanligt), skapa lokalt ändå
         if (!track) {
@@ -469,7 +474,8 @@ const GeofenceEditor = () => {
                 name: `${trackType === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
                 track_type: trackType,
                 created_at: new Date().toISOString(),
-                positions: []
+                positions: [],
+                human_track_id: humanTrackId
             }
             // Spara lokalt
             localStorage.setItem(`track_${localId}`, JSON.stringify(track))
@@ -695,6 +701,17 @@ const GeofenceEditor = () => {
         } catch (error) {
             console.error('Fel vid skapande av gömställe:', error)
             alert('Kunde inte skapa gömställe')
+        }
+    }
+
+    // Ladda jämförelsedata för ett hundspår
+    const loadComparisonData = async (dogTrackId) => {
+        try {
+            const response = await axios.get(`${API_BASE}/tracks/${dogTrackId}/compare`)
+            setComparisonData(response.data)
+        } catch (error) {
+            console.error('Fel vid laddning av jämförelsedata:', error)
+            alert('Kunde inte ladda jämförelsedata')
         }
     }
 
@@ -1312,19 +1329,30 @@ const GeofenceEditor = () => {
                                                         {track.positions?.length || 0} positioner
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        const trackToDelete = tracks.find(t => t.id === track.id)
-                                                        if (trackToDelete && window.confirm('Ta bort detta spår?')) {
-                                                            axios.delete(`${API_BASE}/tracks/${track.id}`)
-                                                                .then(() => refreshTrackLayers())
-                                                        }
-                                                    }}
-                                                    className="text-red-500 hover:text-red-700 text-lg leading-none"
-                                                    disabled={isActiveTrack}
-                                                >
-                                                    ×
-                                                </button>
+                                                <div className="flex gap-1">
+                                                    {track.track_type === 'dog' && track.human_track_id && (
+                                                        <button
+                                                            onClick={() => loadComparisonData(track.id)}
+                                                            className="text-xs px-2 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
+                                                            title="Visa statistik"
+                                                        >
+                                                            📊
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            const trackToDelete = tracks.find(t => t.id === track.id)
+                                                            if (trackToDelete && window.confirm('Ta bort detta spår?')) {
+                                                                axios.delete(`${API_BASE}/tracks/${track.id}`)
+                                                                    .then(() => refreshTrackLayers())
+                                                            }
+                                                        }}
+                                                        className="text-red-500 hover:text-red-700 text-lg leading-none"
+                                                        disabled={isActiveTrack}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     )
@@ -1332,6 +1360,93 @@ const GeofenceEditor = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* Jämförelsedata modal */}
+                    {comparisonData && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold">📊 Jämförelse</h2>
+                                    <button
+                                        onClick={() => setComparisonData(null)}
+                                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {/* Matchningsprocent */}
+                                    <div className="bg-purple-50 p-4 rounded">
+                                        <div className="text-sm text-gray-600 mb-1">Matchning</div>
+                                        <div className="text-3xl font-bold text-purple-600">
+                                            {comparisonData.match_percentage}%
+                                        </div>
+                                    </div>
+
+                                    {/* Avståndsstatistik */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-blue-50 p-3 rounded">
+                                            <div className="text-xs text-gray-600 mb-1">Genomsnitt</div>
+                                            <div className="text-lg font-bold text-blue-600">
+                                                {comparisonData.distance_stats.average_meters}m
+                                            </div>
+                                        </div>
+                                        <div className="bg-orange-50 p-3 rounded">
+                                            <div className="text-xs text-gray-600 mb-1">Max</div>
+                                            <div className="text-lg font-bold text-orange-600">
+                                                {comparisonData.distance_stats.max_meters}m
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Gömställen statistik */}
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <div className="bg-green-50 p-2 rounded text-center">
+                                            <div className="text-sm">✅</div>
+                                            <div className="text-lg font-bold text-green-600">{comparisonData.hiding_spots.found}</div>
+                                            <div className="text-xs text-gray-600">Hittade</div>
+                                        </div>
+                                        <div className="bg-red-50 p-2 rounded text-center">
+                                            <div className="text-sm">❌</div>
+                                            <div className="text-lg font-bold text-red-600">{comparisonData.hiding_spots.missed}</div>
+                                            <div className="text-xs text-gray-600">Missade</div>
+                                        </div>
+                                        <div className="bg-yellow-50 p-2 rounded text-center">
+                                            <div className="text-sm">⚠️</div>
+                                            <div className="text-lg font-bold text-yellow-600">{comparisonData.hiding_spots.unchecked}</div>
+                                            <div className="text-xs text-gray-600">Ej kontroll</div>
+                                        </div>
+                                        <div className="bg-gray-50 p-2 rounded text-center">
+                                            <div className="text-sm">📦</div>
+                                            <div className="text-lg font-bold text-gray-600">{comparisonData.hiding_spots.total}</div>
+                                            <div className="text-xs text-gray-600">Totalt</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Track info */}
+                                    <div className="border-t pt-4 space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">🚶 Människaspår:</span>
+                                            <span className="font-medium">{comparisonData.human_track.name}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Positioner:</span>
+                                            <span>{comparisonData.human_track.position_count}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">🐕 Hundspår:</span>
+                                            <span className="font-medium">{comparisonData.dog_track.name}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Positioner:</span>
+                                            <span>{comparisonData.dog_track.position_count}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex gap-2">
                         <button
