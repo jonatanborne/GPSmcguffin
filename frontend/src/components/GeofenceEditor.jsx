@@ -701,11 +701,21 @@ const GeofenceEditor = () => {
     // Uppdatera status för gömställe (hittade/ej hittade)
     const updateHidingSpotStatus = async (spotId, found) => {
         try {
-            // För hundspår, använd människaspårets ID (där gömställena tillhör)
-            // För människaspår, använd det valda spåret
-            const trackId = selectedTrackForHidingSpots?.track_type === 'dog' && humanTrackForDog
-                ? humanTrackForDog.id
-                : selectedTrackForHidingSpots?.id
+            // Bestäm vilken track ID att använda för gömställena
+            let trackId = null
+
+            // Om vi spårar som hund, använd människaspårets ID (där gömställena tillhör)
+            if (trackType === 'dog' && humanTrackForDog) {
+                trackId = humanTrackForDog.id
+            }
+            // Om vi spårar som människa, använd aktuellt spår
+            else if (trackType === 'human' && currentTrack) {
+                trackId = currentTrack.id
+            }
+            // Annars använd selectedTrackForHidingSpots om det finns
+            else if (selectedTrackForHidingSpots) {
+                trackId = selectedTrackForHidingSpots.id
+            }
 
             if (!trackId) return
 
