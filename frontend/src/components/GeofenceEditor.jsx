@@ -11,7 +11,7 @@ L.Icon.Default.mergeOptions({
 })
 
 // Använd miljövariabel för production, annars lokalt /api
-const API_BASE = import.meta.env.VITE_API_URL || '/api'
+const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 
 const GeofenceEditor = () => {
     const mapRef = useRef(null)
@@ -863,12 +863,12 @@ const GeofenceEditor = () => {
 
             const currentInside = response.data.results.filter(r => r.inside)
             const currentInsideIds = currentInside.map(r => r.geofence_id)
-            const previousInsideIds = previousInside.map(r => r.geofence_id)
+            const previousInsideIds = Array.isArray(previousInside) ? previousInside.map(r => r.geofence_id) : []
 
             // Hitta ENTER events (nya geofences)
             const entered = currentInside.filter(r => !previousInsideIds.includes(r.geofence_id))
             // Hitta EXIT events (försvunna geofences)
-            const exited = previousInside.filter(r => !currentInsideIds.includes(r.geofence_id))
+            const exited = Array.isArray(previousInside) ? previousInside.filter(r => !currentInsideIds.includes(r.geofence_id)) : []
 
             // Lägg till events
             const newEvents = []
@@ -936,13 +936,12 @@ const GeofenceEditor = () => {
 
                     // Lägg till temporär markör
                     L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
-                } else if (isAddingHidingSpot && selectedTrackForHidingSpots) {
-                    // Lägg till gömställe vid klickad position
-                    createHidingSpot(selectedTrackForHidingSpots.id, {
+                } else if (isTracking && currentTrack && currentTrack.track_type === 'human') {
+                    // Lägg till gömställe direkt när man spårar som människa
+                    createHidingSpot(currentTrack.id, {
                         lat: e.latlng.lat,
                         lng: e.latlng.lng
                     })
-                    setIsAddingHidingSpot(false)
                 }
             })
 
@@ -1193,10 +1192,35 @@ const GeofenceEditor = () => {
                             </select>
                         </div>
 
+                        {trackType === 'dog' && !isTracking && (
+                            <div className="mb-3">
+                                <label className="block text-sm font-medium mb-1">Gå spåret:</label>
+                                <select
+                                    value={humanTrackForDog?.id || ''}
+                                    onChange={(e) => {
+                                        const selectedTrack = tracks.find(t => t.id.toString() === e.target.value && t.track_type === 'human')
+                                        setHumanTrackForDog(selectedTrack)
+                                    }}
+                                    className="w-full px-3 py-2 border rounded"
+                                >
+                                    <option value="">Välj människaspår...</option>
+                                    {tracks
+                                        .filter(t => t.track_type === 'human')
+                                        .map(track => (
+                                            <option key={track.id} value={track.id}>
+                                                🚶 {track.name} ({track.positions?.length || 0} pos)
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+                        )}
+
                         {!isTracking ? (
                             <button
                                 onClick={startTracking}
-                                className="w-full px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700"
+                                disabled={trackType === 'dog' && !humanTrackForDog}
+                                className="w-full px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
                                 ▶ Starta spårning
                             </button>
@@ -1208,12 +1232,34 @@ const GeofenceEditor = () => {
                                 >
                                     ⏹ Stoppa spårning
                                 </button>
+                                {trackType === 'human' && (
+                                    <button
+                                        onClick={addHidingSpotAtCurrentPosition}
+                                        className="w-full px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 mb-2"
+                                        disabled={!currentPosition}
+                                    >
+                                        📍 Lägg till gömställe här
+                                    </button>
+                                )}
+                                {trackType === 'dog' && nearestHidingSpot && (
+                                    <button
+                                        onClick={() => updateHidingSpotStatus(nearestHidingSpot.id, true)}
+                                        className="w-full px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700 mb-2"
+                                    >
+                                        ✅ Markera gömställe som hittat
+                                    </button>
+                                )}
                                 <p className="text-sm text-gray-600">
                                     Spårar: {trackType === 'human' ? 'Människa' : 'Hund'}
                                 </p>
                                 {currentTrack && (
                                     <p className="text-xs text-gray-500">
                                         Positioner: {currentTrack.positions?.length || 0}
+                                    </p>
+                                )}
+                                {trackType === 'dog' && nearestHidingSpot && (
+                                    <p className="text-xs text-green-600 font-medium">
+                                        Nära gömställe: {nearestHidingSpot.name}
                                     </p>
                                 )}
                             </div>
@@ -1275,215 +1321,6 @@ const GeofenceEditor = () => {
                                 })
                             )}
                         </div>
-                    </div>
-
-                    {/* Gömställen */}
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-bold">Gömställen:</h3>
-                            {selectedTrackForHidingSpots && (
-                                <button
-                                    onClick={() => {
-                                        setSelectedTrackForHidingSpots(null)
-                                        setHidingSpots([])
-                                        setIsAddingHidingSpot(false)
-                                        setHumanTrackForDog(null)
-                                        // Ta bort hiding spot markörer från kartan
-                                        hidingSpotMarkersRef.current.forEach(marker => {
-                                            if (mapInstanceRef.current) {
-                                                mapInstanceRef.current.removeLayer(marker)
-                                            }
-                                        })
-                                        hidingSpotMarkersRef.current = []
-                                    }}
-                                    className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                                >
-                                    Avbryt
-                                </button>
-                            )}
-                        </div>
-
-                        {!selectedTrackForHidingSpots ? (
-                            <div>
-                                <p className="text-sm text-gray-600 mb-2">
-                                    Välj ett spår för att hantera gömställen
-                                </p>
-                                <div className="space-y-1 max-h-32 overflow-y-auto">
-                                    {tracks.map(track => (
-                                        <button
-                                            key={track.id}
-                                            onClick={() => {
-                                                setSelectedTrackForHidingSpots(track)
-                                                if (track.track_type === 'human') {
-                                                    loadHidingSpots(track.id)
-                                                } else {
-                                                    // För hundspår, behöver vi välja vilket människaspår det är baserat på
-                                                    setHumanTrackForDog(null)
-                                                }
-                                            }}
-                                            className="w-full text-left p-2 rounded border bg-white hover:bg-gray-50 text-sm"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <span>{track.track_type === 'human' ? '🚶' : '🐕'}</span>
-                                                <span className="font-medium">{track.name}</span>
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {track.positions?.length || 0} positioner
-                                            </div>
-                                        </button>
-                                    ))}
-                                    {tracks.length === 0 && (
-                                        <p className="text-sm text-gray-500">Inga spår än</p>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div>
-                                <div className="mb-2 p-2 bg-white rounded border">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span>{selectedTrackForHidingSpots.track_type === 'human' ? '🚶' : '🐕'}</span>
-                                        <span className="font-medium text-sm">{selectedTrackForHidingSpots.name}</span>
-                                    </div>
-                                </div>
-
-                                {selectedTrackForHidingSpots.track_type === 'dog' && !humanTrackForDog && (
-                                    <div className="mb-3 p-2 bg-yellow-50 rounded border border-yellow-200">
-                                        <p className="text-xs text-gray-700 mb-2">
-                                            Välj vilket människaspår detta hundspår är baserat på:
-                                        </p>
-                                        <div className="space-y-1 max-h-24 overflow-y-auto">
-                                            {tracks.filter(t => t.track_type === 'human').map(track => (
-                                                <button
-                                                    key={track.id}
-                                                    onClick={() => {
-                                                        setHumanTrackForDog(track)
-                                                        loadHidingSpots(track.id)
-                                                    }}
-                                                    className="w-full text-left p-2 rounded border bg-white hover:bg-gray-50 text-xs"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <span>🚶</span>
-                                                        <span className="font-medium">{track.name}</span>
-                                                    </div>
-                                                </button>
-                                            ))}
-                                            {tracks.filter(t => t.track_type === 'human').length === 0 && (
-                                                <p className="text-xs text-gray-500">Inga människospår tillgängliga</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {selectedTrackForHidingSpots.track_type === 'human' && (
-                                    <div className="mb-3">
-                                        <button
-                                            onClick={() => setIsAddingHidingSpot(!isAddingHidingSpot)}
-                                            className={`w-full px-3 py-2 rounded font-medium text-sm ${isAddingHidingSpot
-                                                ? 'bg-red-500 text-white'
-                                                : 'bg-blue-500 text-white hover:bg-blue-600'
-                                                }`}
-                                        >
-                                            {isAddingHidingSpot ? 'Avbryt' : '➕ Lägg till gömställe'}
-                                        </button>
-                                        {isAddingHidingSpot && (
-                                            <p className="text-xs text-gray-600 mt-1">
-                                                Klicka på kartan för att placera ett gömställe
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-
-                                {selectedTrackForHidingSpots.track_type === 'dog' && humanTrackForDog && (
-                                    <div className="mb-2 p-2 bg-blue-50 rounded border border-blue-200">
-                                        <p className="text-xs text-gray-700">
-                                            <strong>Människaspår:</strong> {humanTrackForDog.name}
-                                        </p>
-                                        <button
-                                            onClick={() => setHumanTrackForDog(null)}
-                                            className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-                                        >
-                                            Välj annat spår
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Lista över gömställen */}
-                                <div className="space-y-2 max-h-48 overflow-y-auto">
-                                    {hidingSpots.length === 0 ? (
-                                        <p className="text-sm text-gray-500">Inga gömställen än</p>
-                                    ) : (
-                                        hidingSpots.map(spot => (
-                                            <div
-                                                key={spot.id}
-                                                className={`p-2 rounded border text-sm ${spot.found === true
-                                                    ? 'bg-green-50 border-green-200'
-                                                    : spot.found === false
-                                                        ? 'bg-red-50 border-red-200'
-                                                        : 'bg-white'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span>
-                                                        {spot.found === true
-                                                            ? '✅'
-                                                            : spot.found === false
-                                                                ? '❌'
-                                                                : '📦'}
-                                                    </span>
-                                                    <span className="font-medium flex-1">{spot.name}</span>
-                                                </div>
-                                                {spot.found !== null && (
-                                                    <div className="text-xs text-gray-600">
-                                                        {spot.found ? 'Hittade' : 'Hittade inte'}
-                                                    </div>
-                                                )}
-                                                {selectedTrackForHidingSpots.track_type === 'dog' && humanTrackForDog && spot.found === null && (
-                                                    <div className="flex gap-1 mt-2">
-                                                        <button
-                                                            onClick={() => updateHidingSpotStatus(spot.id, true)}
-                                                            className="flex-1 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                                                        >
-                                                            ✅ Hittade
-                                                        </button>
-                                                        <button
-                                                            onClick={() => updateHidingSpotStatus(spot.id, false)}
-                                                            className="flex-1 px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-                                                        >
-                                                            ❌ Hittade inte
-                                                        </button>
-                                                    </div>
-                                                )}
-                                                {selectedTrackForHidingSpots.track_type === 'human' && (
-                                                    <button
-                                                        onClick={() => {
-                                                            if (window.confirm('Ta bort detta gömställe?')) {
-                                                                axios.delete(`${API_BASE}/tracks/${selectedTrackForHidingSpots.id}/hiding-spots/${spot.id}`)
-                                                                    .then(() => {
-                                                                        setHidingSpots(hidingSpots.filter(s => s.id !== spot.id))
-                                                                        loadHidingSpots(selectedTrackForHidingSpots.id)
-                                                                    })
-                                                            }
-                                                        }}
-                                                        className="mt-1 text-xs text-red-500 hover:text-red-700"
-                                                    >
-                                                        Ta bort
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                {/* För hundspår: instruktioner */}
-                                {selectedTrackForHidingSpots.track_type === 'dog' && humanTrackForDog && hidingSpots.length > 0 && (
-                                    <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
-                                        <p className="text-xs text-gray-600 mb-2">
-                                            Klicka på gömställen på kartan eller i listan för att markera om hunden hittade dem
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
 
                     <div className="flex gap-2">
