@@ -62,7 +62,7 @@ const GeofenceEditor = () => {
         try {
             const response = await axios.get(`${API_BASE}/tracks`, { timeout: 5000 })
             // Backend returnerar redan fullständiga tracks med positioner
-            apiTracks = response.data
+            apiTracks = Array.isArray(response.data) ? response.data : []
         } catch (error) {
             console.error('Fel vid laddning av tracks från API:', error)
             // Fortsätt med localStorage-tracks
