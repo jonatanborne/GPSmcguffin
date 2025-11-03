@@ -61,18 +61,8 @@ const GeofenceEditor = () => {
         // Försök ladda från API om vi är online
         try {
             const response = await axios.get(`${API_BASE}/tracks`, { timeout: 5000 })
-            // Hämta fullständiga tracks med positioner för varje
-            apiTracks = await Promise.all(
-                response.data.map(async (track) => {
-                    try {
-                        const fullTrack = await axios.get(`${API_BASE}/tracks/${track.id}`)
-                        return fullTrack.data
-                    } catch (error) {
-                        console.error(`Fel vid hämtning av track ${track.id}:`, error)
-                        return track // Fallback till minimal track
-                    }
-                })
-            )
+            // Backend returnerar redan fullständiga tracks med positioner
+            apiTracks = response.data
         } catch (error) {
             console.error('Fel vid laddning av tracks från API:', error)
             // Fortsätt med localStorage-tracks
