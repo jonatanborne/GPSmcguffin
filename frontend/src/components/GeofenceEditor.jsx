@@ -293,7 +293,7 @@ const GeofenceEditor = () => {
         for (const item of trackCreations) {
             try {
                 // Använd skipQueue=true för att undvika rekursiv loop
-                const created = await createTrack(item.track.track_type, skipQueue=true)
+                const created = await createTrack(item.track.track_type, skipQueue = true)
                 if (created) {
                     // Uppdatera alla positioner med nytt track ID
                     const oldId = item.track.id
@@ -400,11 +400,6 @@ const GeofenceEditor = () => {
                     syncOfflineQueue()
                 }
             }, 2000)
-        }
-
-        // Om statusen är densamma, uppdatera bara om den inte är satt
-        if (lastOnlineStatusRef.current === currentOnline) {
-            setIsOnline(currentOnline)
         }
 
         return currentOnline
