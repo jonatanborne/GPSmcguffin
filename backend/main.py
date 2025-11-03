@@ -597,6 +597,128 @@ def compare_tracks(track_id: int):
     }
 
 
+@app.get("/tracks/compare")
+def compare_tracks_custom(human_track_id: int, dog_track_id: int):
+    """Jämför ett valt människaspår med ett valt hundspår och returnera statistik"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Hämta människans track
+    cursor.execute("SELECT * FROM tracks WHERE id = ?", (human_track_id,))
+    human_track_row = cursor.fetchone()
+    if human_track_row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Human track not found")
+    
+    # Kontrollera att det är ett människaspår
+    if human_track_row["track_type"] != "human":
+        conn.close()
+        raise HTTPException(status_code=400, detail="First track must be a human track")
+    
+    # Hämta hundens track
+    cursor.execute("SELECT * FROM tracks WHERE id = ?", (dog_track_id,))
+    dog_track_row = cursor.fetchone()
+    if dog_track_row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Dog track not found")
+    
+    # Kontrollera att det är ett hundspår
+    if dog_track_row["track_type"] != "dog":
+        conn.close()
+        raise HTTPException(status_code=400, detail="Second track must be a dog track")
+    
+    # Hämta människans positioner
+    cursor.execute("""
+        SELECT position_lat, position_lng, timestamp
+        FROM track_positions
+        WHERE track_id = ?
+        ORDER BY timestamp
+    """, (human_track_id,))
+    human_positions = cursor.fetchall()
+    
+    # Hämta hundens positioner
+    cursor.execute("""
+        SELECT position_lat, position_lng, timestamp
+        FROM track_positions
+        WHERE track_id = ?
+        ORDER BY timestamp
+    """, (dog_track_id,))
+    dog_positions = cursor.fetchall()
+    
+    # Hämta hiding spots från människans track
+    cursor.execute("""
+        SELECT id, position_lat, position_lng, found
+        FROM hiding_spots
+        WHERE track_id = ?
+    """, (human_track_id,))
+    hiding_spots = cursor.fetchall()
+    
+    conn.close()
+    
+    # Beräkna avståndsstatistik
+    # Matcha varje människposition med närmaste hundposition baserat på tidsstämpel
+    distances = []
+    for hp in human_positions:
+        human_pos = LatLng(lat=hp["position_lat"], lng=hp["position_lng"])
+        human_time = datetime.fromisoformat(hp["timestamp"])
+        
+        # Hitta närmaste hundposition baserat på tidsstämpel
+        min_distance = float('inf')
+        for dp in dog_positions:
+            dog_time = datetime.fromisoformat(dp["timestamp"])
+            time_diff = abs((human_time - dog_time).total_seconds())
+            # Ta den hundposition som ligger inom 60 sekunder (forage time)
+            if time_diff <= 60:
+                dog_pos = LatLng(lat=dp["position_lat"], lng=dp["position_lng"])
+                dist = haversine_meters(human_pos, dog_pos)
+                if dist < min_distance:
+                    min_distance = dist
+        
+        if min_distance != float('inf'):
+            distances.append(min_distance)
+    
+    avg_distance = sum(distances) / len(distances) if distances else 0
+    max_distance = max(distances) if distances else 0
+    
+    # Beräkna procentuell matchning (baserat på avstånd)
+    # 100 meter = 100% avvikelse, 0 meter = 0% avvikelse
+    # Procent avvikelse = (avg_distance / 100) * 100, men max 100%
+    percent_deviation = min((avg_distance / 100) * 100, 100) if avg_distance else 0
+    match_percentage = max(100 - percent_deviation, 0)
+    
+    # Räkna hiding spots statistik
+    total_spots = len(hiding_spots)
+    found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
+    missed_spots = sum(1 for spot in hiding_spots if spot["found"] is False)
+    unchecked_spots = total_spots - found_spots - missed_spots
+    
+    return {
+        "human_track": {
+            "id": human_track_row["id"],
+            "name": human_track_row["name"],
+            "created_at": human_track_row["created_at"],
+            "position_count": len(human_positions)
+        },
+        "dog_track": {
+            "id": dog_track_row["id"],
+            "name": dog_track_row["name"],
+            "created_at": dog_track_row["created_at"],
+            "position_count": len(dog_positions)
+        },
+        "distance_stats": {
+            "average_meters": round(avg_distance, 2),
+            "max_meters": round(max_distance, 2)
+        },
+        "match_percentage": round(match_percentage, 1),
+        "hiding_spots": {
+            "total": total_spots,
+            "found": found_spots,
+            "missed": missed_spots,
+            "unchecked": unchecked_spots
+        }
+    }
+
+
 @app.post("/tracks/{track_id}/positions", response_model=Track)
 def add_position_to_track(track_id: int, payload: TrackPositionAdd):
     conn = get_db()

@@ -44,6 +44,9 @@ const GeofenceEditor = () => {
     const [currentPosition, setCurrentPosition] = useState(null) // Nuvarande GPS-position
     const hasCenteredMapRef = useRef(false) // Om vi har centrerat kartan för första gången
     const [comparisonData, setComparisonData] = useState(null) // Jämförelsedata för ett hundspår
+    const [showManualCompare, setShowManualCompare] = useState(false) // Visa manuell jämförelse-vy
+    const [selectedHumanTrack, setSelectedHumanTrack] = useState(null) // Valt människaspår för jämförelse
+    const [selectedDogTrack, setSelectedDogTrack] = useState(null) // Valt hundspår för jämförelse
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -715,6 +718,27 @@ const GeofenceEditor = () => {
         }
     }
 
+    // Ladda manuell jämförelsedata
+    const loadManualComparison = async () => {
+        if (!selectedHumanTrack || !selectedDogTrack) {
+            alert('Välj både ett människaspår och ett hundspår')
+            return
+        }
+        try {
+            const response = await axios.get(`${API_BASE}/tracks/compare`, {
+                params: {
+                    human_track_id: selectedHumanTrack.id,
+                    dog_track_id: selectedDogTrack.id
+                }
+            })
+            setComparisonData(response.data)
+            setShowManualCompare(false)
+        } catch (error) {
+            console.error('Fel vid manuell jämförelse:', error)
+            alert('Kunde inte jämföra spåren')
+        }
+    }
+
     // Uppdatera status för gömställe (hittade/ej hittade)
     const updateHidingSpotStatus = async (spotId, found) => {
         try {
@@ -1297,12 +1321,21 @@ const GeofenceEditor = () => {
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="font-bold">Befintliga spår:</h3>
-                            <button
-                                onClick={refreshTrackLayers}
-                                className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                                Uppdatera
-                            </button>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => setShowManualCompare(true)}
+                                    className="text-xs px-2 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
+                                    title="Jämför spår manuellt"
+                                >
+                                    🔍
+                                </button>
+                                <button
+                                    onClick={refreshTrackLayers}
+                                    className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                                >
+                                    Uppdatera
+                                </button>
+                            </div>
                         </div>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                             {tracks.length === 0 ? (
@@ -1374,7 +1407,7 @@ const GeofenceEditor = () => {
                                         ×
                                     </button>
                                 </div>
-                                
+
                                 <div className="space-y-4">
                                     {/* Matchningsprocent */}
                                     <div className="bg-purple-50 p-4 rounded">
@@ -1443,6 +1476,80 @@ const GeofenceEditor = () => {
                                             <span>{comparisonData.dog_track.position_count}</span>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Manuell jämförelse modal */}
+                    {showManualCompare && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold">🔍 Jämför spår</h2>
+                                    <button
+                                        onClick={() => setShowManualCompare(false)}
+                                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {/* Välj människaspår */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">🚶 Välj människaspår:</label>
+                                        <select
+                                            value={selectedHumanTrack?.id || ''}
+                                            onChange={(e) => {
+                                                const track = tracks.find(t => t.id.toString() === e.target.value && t.track_type === 'human')
+                                                setSelectedHumanTrack(track)
+                                            }}
+                                            className="w-full px-3 py-2 border rounded"
+                                        >
+                                            <option value="">Välj...</option>
+                                            {tracks
+                                                .filter(t => t.track_type === 'human')
+                                                .map(track => (
+                                                    <option key={track.id} value={track.id}>
+                                                        {track.name} ({track.positions?.length || 0} pos)
+                                                    </option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+
+                                    {/* Välj hundspår */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">🐕 Välj hundspår:</label>
+                                        <select
+                                            value={selectedDogTrack?.id || ''}
+                                            onChange={(e) => {
+                                                const track = tracks.find(t => t.id.toString() === e.target.value && t.track_type === 'dog')
+                                                setSelectedDogTrack(track)
+                                            }}
+                                            className="w-full px-3 py-2 border rounded"
+                                        >
+                                            <option value="">Välj...</option>
+                                            {tracks
+                                                .filter(t => t.track_type === 'dog')
+                                                .map(track => (
+                                                    <option key={track.id} value={track.id}>
+                                                        {track.name} ({track.positions?.length || 0} pos)
+                                                    </option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+
+                                    {/* Jämför-knapp */}
+                                    <button
+                                        onClick={loadManualComparison}
+                                        disabled={!selectedHumanTrack || !selectedDogTrack}
+                                        className="w-full px-4 py-2 bg-purple-600 text-white rounded font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    >
+                                        Jämför spåren
+                                    </button>
                                 </div>
                             </div>
                         </div>
