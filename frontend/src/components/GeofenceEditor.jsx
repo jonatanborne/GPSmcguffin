@@ -42,6 +42,7 @@ const GeofenceEditor = () => {
     const hidingSpotMarkersRef = useRef([]) // Referenser till hiding spot markörer på kartan
     const [nearestHidingSpot, setNearestHidingSpot] = useState(null) // Närmaste gömställe när hund spårar
     const [currentPosition, setCurrentPosition] = useState(null) // Nuvarande GPS-position
+    const hasCenteredMapRef = useRef(false) // Om vi har centrerat kartan för första gången
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -104,7 +105,8 @@ const GeofenceEditor = () => {
     }
 
     // Skapa nytt track (fungerar alltid - sparar lokalt om API misslyckas)
-    const createTrack = async (type) => {
+    // skipQueue: om true, lägg inte till i offline queue (används vid synkning)
+    const createTrack = async (type, skipQueue = false) => {
         // Skapa track lokalt först (fungerar alltid)
         const localId = Date.now()
         const tempTrack = {
@@ -120,12 +122,12 @@ const GeofenceEditor = () => {
         localStorage.setItem(`track_${localId}_positions`, JSON.stringify([]))
 
         // Försök skapa på server (men fortsätt även om det misslyckas)
-        if (navigator.onLine) {
+        if (isOnline || navigator.onLine) {
             try {
                 const response = await axios.post(`${API_BASE}/tracks`, {
                     track_type: type,
                     name: tempTrack.name
-                })
+                }, { timeout: 10000 })
                 // Om det lyckades, uppdatera med serverns ID
                 const serverTrack = response.data
                 // Spara både lokalt och på server (använd serverns ID framåt)
@@ -143,14 +145,22 @@ const GeofenceEditor = () => {
                 return serverTrack
             } catch (error) {
                 console.error('Kunde inte skapa track på server:', error)
-                // Spara i queue för senare synkning
-                offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+                // Markera som offline om nätverksfel
+                if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED' || !error.response) {
+                    setIsOnline(false)
+                }
+                // Spara i queue för senare synkning (bara om inte skipQueue)
+                if (!skipQueue) {
+                    offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+                }
                 // Men returnera track ändå så spårning kan fortsätta
                 return tempTrack
             }
         } else {
-            // Offline - spara i queue för senare
-            offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+            // Offline - spara i queue för senare (bara om inte skipQueue)
+            if (!skipQueue) {
+                offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+            }
             return tempTrack
         }
     }
@@ -187,7 +197,7 @@ const GeofenceEditor = () => {
             const response = await axios.post(`${API_BASE}/tracks/${trackId}/positions`, {
                 position: position,
                 accuracy: accuracy
-            })
+            }, { timeout: 10000 })
             // Uppdatera currentTrack lokalt för realtidsvisning
             if (currentTrack && currentTrack.id === trackId) {
                 setCurrentTrack(response.data)
@@ -272,7 +282,7 @@ const GeofenceEditor = () => {
     const syncOfflineQueue = async () => {
         if (offlineQueueRef.current.length === 0) return
 
-        console.log(`Synkar ${offlineQueueRef.current.length} positioner...`)
+        console.log(`Synkar ${offlineQueueRef.current.length} objekt...`)
         const queue = [...offlineQueueRef.current]
         offlineQueueRef.current = []
 
@@ -282,7 +292,8 @@ const GeofenceEditor = () => {
 
         for (const item of trackCreations) {
             try {
-                const created = await createTrack(item.track.track_type)
+                // Använd skipQueue=true för att undvika rekursiv loop
+                const created = await createTrack(item.track.track_type, skipQueue=true)
                 if (created) {
                     // Uppdatera alla positioner med nytt track ID
                     const oldId = item.track.id
@@ -301,7 +312,9 @@ const GeofenceEditor = () => {
                     localStorage.removeItem(`track_${oldId}_positions`)
                 }
             } catch (error) {
-                console.error('Kunde inte skapa track:', error)
+                console.error('Kunde inte skapa track vid synkning:', error)
+                // Lägg tillbaka i queue
+                offlineQueueRef.current.push(item)
             }
         }
 
@@ -311,20 +324,22 @@ const GeofenceEditor = () => {
                 await axios.post(`${API_BASE}/tracks/${item.trackId}/positions`, {
                     position: item.position,
                     accuracy: item.accuracy
-                })
+                }, { timeout: 10000 })
             } catch (error) {
                 // Om det fortfarande misslyckas, lägg tillbaka i queue
                 offlineQueueRef.current.push(item)
-                if (!error.response || error.code === 'ERR_NETWORK') {
+                if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED' || !error.response) {
                     setIsOnline(false)
                 }
             }
         }
 
         if (offlineQueueRef.current.length === 0) {
-            console.log('Alla positioner synkade!')
+            console.log('Alla objekt synkade!')
             // Ladda om tracks
             loadTracks().then(refreshTrackLayers)
+        } else {
+            console.log(`${offlineQueueRef.current.length} objekt kvar att synka`)
         }
     }
 
@@ -459,7 +474,7 @@ const GeofenceEditor = () => {
 
         // createTrack sparar alltid lokalt först, så vi kan alltid spåra
         let track = await createTrack(trackType)
-        
+
         // Om createTrack misslyckades helt (mycket ovanligt), skapa lokalt ändå
         if (!track) {
             console.warn('createTrack returnerade null, skapar lokalt track ändå')
@@ -479,6 +494,7 @@ const GeofenceEditor = () => {
 
         setCurrentTrack(track)
         setIsTracking(true)
+        hasCenteredMapRef.current = false // Reset för nytt spår
 
         const options = {
             enableHighAccuracy: true,
@@ -542,8 +558,9 @@ const GeofenceEditor = () => {
                 }
 
                 // Centrera karta på första positionen (första gången)
-                if (currentTrack && currentTrack.positions.length === 0 && mapInstanceRef.current) {
+                if (!hasCenteredMapRef.current && mapInstanceRef.current) {
                     mapInstanceRef.current.setView([pos.lat, pos.lng], 17)
+                    hasCenteredMapRef.current = true
                 }
             },
             (error) => {
@@ -564,6 +581,7 @@ const GeofenceEditor = () => {
         setIsTracking(false)
         setNearestHidingSpot(null)
         setCurrentPosition(null)
+        hasCenteredMapRef.current = false // Reset för nästa spår
 
         // Om offline, försök skapa track på server när online
         if (!isOnline && currentTrack) {

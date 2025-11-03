@@ -106,3 +106,4 @@ uvicorn main:app --reload
 Öppna `http://localhost:8000/docs` för interaktiv dokumentation (Swagger UI).
 
 
+
