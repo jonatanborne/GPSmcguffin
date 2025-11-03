@@ -75,7 +75,7 @@ const GeofenceEditor = () => {
             if (key && key.startsWith('track_') && !key.includes('_positions')) {
                 const trackId = key.replace('track_', '')
                 // Hoppa över om track redan finns från API (via ID)
-                if (apiTracks.some(t => t.id.toString() === trackId)) continue
+                if (Array.isArray(apiTracks) && apiTracks.some(t => t.id.toString() === trackId)) continue
 
                 const track = JSON.parse(localStorage.getItem(key) || '{}')
                 const positions = JSON.parse(localStorage.getItem(`track_${trackId}_positions`) || '[]')
