@@ -513,7 +513,9 @@ def list_tracks():
                 track_type=row["track_type"],
                 created_at=row["created_at"],
                 positions=positions,
-                human_track_id=row.get("human_track_id"),
+                human_track_id=row["human_track_id"]
+                if "human_track_id" in row.keys()
+                else None,
             )
         )
 
@@ -563,7 +565,9 @@ def get_track(track_id: int):
         track_type=row["track_type"],
         created_at=row["created_at"],
         positions=positions,
-        human_track_id=row.get("human_track_id"),
+        human_track_id=row["human_track_id"]
+        if "human_track_id" in row.keys()
+        else None,
     )
 
 
@@ -599,7 +603,11 @@ def compare_tracks(track_id: int):
         raise HTTPException(status_code=400, detail="Track must be a dog track")
 
     # Hämta människans track
-    human_track_id = dog_track_row.get("human_track_id")
+    human_track_id = (
+        dog_track_row["human_track_id"]
+        if "human_track_id" in dog_track_row.keys()
+        else None
+    )
     if not human_track_id:
         conn.close()
         raise HTTPException(
