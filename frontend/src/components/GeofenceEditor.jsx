@@ -12,6 +12,7 @@ L.Icon.Default.mergeOptions({
 
 // Använd miljövariabel för production, annars lokalt /api
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
+const OFFLINE_QUEUE_STORAGE_KEY = 'offline_queue'
 
 const GeofenceEditor = () => {
     const mapRef = useRef(null)
@@ -47,6 +48,9 @@ const GeofenceEditor = () => {
     const [showManualCompare, setShowManualCompare] = useState(false) // Visa manuell jämförelse-vy
     const [selectedHumanTrack, setSelectedHumanTrack] = useState(null) // Valt människaspår för jämförelse
     const [selectedDogTrack, setSelectedDogTrack] = useState(null) // Valt hundspår för jämförelse
+    const [pendingSyncItems, setPendingSyncItems] = useState(0) // Antal objekt som väntar på synk
+    const [isSyncingOfflineData, setIsSyncingOfflineData] = useState(false) // Om synkning pågår
+    const [forceSyncMessage, setForceSyncMessage] = useState(null) // Statusmeddelande för tvångssynk
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -109,7 +113,8 @@ const GeofenceEditor = () => {
             name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
             created_at: new Date().toISOString(),
             positions: [],
-            human_track_id: humanTrackId
+            human_track_id: humanTrackId,
+            needsServerSync: true
         }
 
         // Spara lokalt direkt
@@ -138,6 +143,7 @@ const GeofenceEditor = () => {
                         item.trackId === localId ? { ...item, trackId: serverTrack.id } : item
                     )
                 }
+                updateOfflineQueueState()
                 return serverTrack
             } catch (error) {
                 console.error('Kunde inte skapa track på server:', error)
@@ -148,6 +154,7 @@ const GeofenceEditor = () => {
                 // Spara i queue för senare synkning (bara om inte skipQueue)
                 if (!skipQueue) {
                     offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+                    updateOfflineQueueState()
                 }
                 // Men returnera track ändå så spårning kan fortsätta
                 return tempTrack
@@ -156,6 +163,7 @@ const GeofenceEditor = () => {
             // Offline - spara i queue för senare (bara om inte skipQueue)
             if (!skipQueue) {
                 offlineQueueRef.current.push({ type: 'create_track', track: tempTrack })
+                updateOfflineQueueState()
             }
             return tempTrack
         }
@@ -172,6 +180,7 @@ const GeofenceEditor = () => {
         // Om offline, lägg i queue för senare synkning
         if (!isOnline) {
             offlineQueueRef.current.push({ trackId, position, accuracy })
+            updateOfflineQueueState()
             // Uppdatera visuellt så användaren ser att spåret sparas lokalt
             if (currentTrack && currentTrack.id === trackId) {
                 setCurrentTrack(prev => ({
@@ -234,6 +243,7 @@ const GeofenceEditor = () => {
             if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED' || !error.response) {
                 offlineQueueRef.current.push({ trackId, position, accuracy })
                 setIsOnline(false)
+                updateOfflineQueueState()
             }
             // Annat fel - vi är fortfarande online, data är redan sparad lokalt
         }
@@ -275,12 +285,29 @@ const GeofenceEditor = () => {
     }
 
     // Synka offline-queue när online igen
+    const updateOfflineQueueState = () => {
+        const queue = offlineQueueRef.current
+        setPendingSyncItems(queue.length)
+        try {
+            if (queue.length > 0) {
+                localStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(queue))
+            } else {
+                localStorage.removeItem(OFFLINE_QUEUE_STORAGE_KEY)
+            }
+        } catch (error) {
+            console.error('Kunde inte spara offline-kön:', error)
+        }
+    }
+
     const syncOfflineQueue = async () => {
+        if (isSyncingOfflineData) return
         if (offlineQueueRef.current.length === 0) return
 
+        setIsSyncingOfflineData(true)
         console.log(`Synkar ${offlineQueueRef.current.length} objekt...`)
         const queue = [...offlineQueueRef.current]
         offlineQueueRef.current = []
+        updateOfflineQueueState()
 
         // Först, skapa tracks som skapades offline
         const trackCreations = queue.filter(item => item.type === 'create_track')
@@ -337,7 +364,188 @@ const GeofenceEditor = () => {
         } else {
             console.log(`${offlineQueueRef.current.length} objekt kvar att synka`)
         }
+        setIsSyncingOfflineData(false)
+        updateOfflineQueueState()
     }
+
+    const forceSyncAllLocalTracks = async () => {
+        if (isSyncingOfflineData) return
+
+        setIsSyncingOfflineData(true)
+        setForceSyncMessage('Synkar lokala spår…')
+
+        try {
+            const serverTracksResp = await axios.get(`${API_BASE}/tracks`, { timeout: 10000 })
+            const serverTracks = Array.isArray(serverTracksResp.data) ? serverTracksResp.data : []
+            const serverIds = new Set(serverTracks.map(track => track.id?.toString()).filter(Boolean))
+            const idMapping = new Map()
+            serverTracks.forEach(track => {
+                if (track?.id != null) {
+                    idMapping.set(track.id.toString(), track.id.toString())
+                }
+            })
+
+            const localEntries = []
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i)
+                if (!key || !key.startsWith('track_') || key.includes('_positions')) continue
+
+                const track = JSON.parse(localStorage.getItem(key) || '{}')
+                if (!track || !track.track_type) continue
+
+                const trackId = track.id != null ? track.id.toString() : null
+                const isServerTrack = trackId && serverIds.has(trackId) && track.needsServerSync !== true
+                if (isServerTrack) {
+                    // Redan synkat, hoppa över
+                    continue
+                }
+
+                const positions = JSON.parse(localStorage.getItem(`track_${track.id}_positions`) || '[]')
+                localEntries.push({
+                    key,
+                    track,
+                    positions,
+                })
+            }
+
+            if (localEntries.length === 0) {
+                setForceSyncMessage('Inga lokala spår hittades – allt verkar redan uppladdat.')
+                setIsSyncingOfflineData(false)
+                return
+            }
+
+            // Se till att människaspår synkas före hundspår
+            localEntries.sort((a, b) => {
+                if (a.track.track_type === b.track.track_type) return 0
+                return a.track.track_type === 'human' ? -1 : 1
+            })
+
+            const skippedTracks = []
+
+            for (const entry of localEntries) {
+                const originalIdStr = entry.track.id != null ? entry.track.id.toString() : null
+                let humanTrackId = entry.track.human_track_id
+
+                if (humanTrackId != null) {
+                    const mapped = idMapping.get(humanTrackId.toString())
+                    if (mapped) {
+                        humanTrackId = Number(mapped)
+                    } else if (entry.track.track_type === 'dog') {
+                        skippedTracks.push({
+                            track: entry.track,
+                            reason: 'Hittade inget motsvarande människaspår – synka det först.',
+                        })
+                        continue
+                    }
+                }
+
+                try {
+                    const createdTrackResp = await axios.post(`${API_BASE}/tracks`, {
+                        track_type: entry.track.track_type,
+                        name: entry.track.name || `${entry.track.track_type}-${originalIdStr || 'lokalt'}`,
+                        human_track_id: humanTrackId ?? null,
+                    }, { timeout: 10000 })
+
+                    const serverTrack = createdTrackResp.data
+                    if (!serverTrack || serverTrack.id == null) {
+                        throw new Error('Servern returnerade inget track-id')
+                    }
+
+                    const serverIdStr = serverTrack.id.toString()
+                    serverIds.add(serverIdStr)
+                    if (originalIdStr) {
+                        idMapping.set(originalIdStr, serverIdStr)
+                    }
+                    idMapping.set(serverIdStr, serverIdStr)
+
+                    for (const pos of entry.positions) {
+                        try {
+                            await axios.post(`${API_BASE}/tracks/${serverTrack.id}/positions`, {
+                                position: pos.position,
+                                accuracy: pos.accuracy ?? null,
+                            }, { timeout: 10000 })
+                        } catch (positionError) {
+                            console.error('Kunde inte ladda upp position', positionError)
+                        }
+                    }
+
+                    // Uppdatera localStorage med serverns ID
+                    localStorage.setItem(
+                        `track_${serverTrack.id}`,
+                        JSON.stringify({
+                            ...serverTrack,
+                            human_track_id: serverTrack.human_track_id,
+                        })
+                    )
+                    localStorage.setItem(
+                        `track_${serverTrack.id}_positions`,
+                        JSON.stringify(entry.positions)
+                    )
+
+                    if (serverTrack.id !== entry.track.id) {
+                        localStorage.removeItem(`track_${entry.track.id}`)
+                        localStorage.removeItem(`track_${entry.track.id}_positions`)
+                    }
+                } catch (error) {
+                    console.error('Tvångssynk misslyckades för ett spår:', error)
+                    skippedTracks.push({
+                        track: entry.track,
+                        reason: error?.message || 'Okänt fel',
+                    })
+                }
+            }
+
+            await refreshTrackLayers()
+
+            if (skippedTracks.length > 0) {
+                const skippedInfo = skippedTracks
+                    .map(item => `${item.track.name || item.track.id}: ${item.reason}`)
+                    .join('; ')
+                setForceSyncMessage(`Synk klar delvis – vissa spår hoppades över: ${skippedInfo}`)
+            } else {
+                setForceSyncMessage('Synk klar! Alla lokala spår laddades upp.')
+            }
+        } catch (error) {
+            console.error('Tvångssynk misslyckades:', error)
+            setForceSyncMessage(`Synk misslyckades: ${error?.message || 'Okänt fel'}`)
+        } finally {
+            setIsSyncingOfflineData(false)
+            updateOfflineQueueState()
+        }
+    }
+
+    // Ladda offline-kö från localStorage vid start
+    useEffect(() => {
+        try {
+            const storedQueueRaw = localStorage.getItem(OFFLINE_QUEUE_STORAGE_KEY)
+            const storedQueue = storedQueueRaw ? JSON.parse(storedQueueRaw) : []
+            if (Array.isArray(storedQueue)) {
+                offlineQueueRef.current = storedQueue
+            }
+
+            // Säkerställ att lokalt sparade spår som behöver synkas ligger i kön
+            const queuedTrackIds = new Set(
+                offlineQueueRef.current
+                    .filter(item => item.type === 'create_track' && item.track?.id)
+                    .map(item => item.track.id)
+            )
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i)
+                if (!key || !key.startsWith('track_') || key.includes('_positions')) continue
+                const track = JSON.parse(localStorage.getItem(key) || '{}')
+                if (track && track.needsServerSync && !queuedTrackIds.has(track.id)) {
+                    offlineQueueRef.current.push({ type: 'create_track', track })
+                    queuedTrackIds.add(track.id)
+                }
+            }
+
+            updateOfflineQueueState()
+        } catch (error) {
+            console.error('Kunde inte läsa offline-kön:', error)
+        }
+    }, [])
 
     // Beräkna avstånd mellan två positioner (Haversine-formel)
     const haversineDistance = (pos1, pos2) => {
@@ -478,12 +686,14 @@ const GeofenceEditor = () => {
                 track_type: trackType,
                 created_at: new Date().toISOString(),
                 positions: [],
-                human_track_id: humanTrackId
+                human_track_id: humanTrackId,
+                needsServerSync: true
             }
             // Spara lokalt
             localStorage.setItem(`track_${localId}`, JSON.stringify(track))
             localStorage.setItem(`track_${localId}_positions`, JSON.stringify([]))
             offlineQueueRef.current.push({ type: 'create_track', track })
+            updateOfflineQueueState()
         }
 
         setCurrentTrack(track)
@@ -1230,6 +1440,41 @@ const GeofenceEditor = () => {
                             </p>
                         )}
 
+                        {pendingSyncItems > 0 && (
+                            <div className="mb-3 text-xs bg-yellow-100 border border-yellow-300 text-yellow-900 rounded p-2">
+                                <p className="font-medium">
+                                    {pendingSyncItems} objekt väntar på att synkas till servern.
+                                </p>
+                                <button
+                                    onClick={syncOfflineQueue}
+                                    disabled={!isOnline || isSyncingOfflineData}
+                                    className={`mt-2 w-full px-3 py-1 rounded font-medium ${isOnline && !isSyncingOfflineData
+                                        ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                        }`}
+                                >
+                                    {isSyncingOfflineData ? 'Synkar...' : 'Synka nu'}
+                                </button>
+                            </div>
+                        )}
+                        <div className="mt-3">
+                            <button
+                                onClick={forceSyncAllLocalTracks}
+                                disabled={isSyncingOfflineData}
+                                className={`w-full px-3 py-2 rounded font-medium text-xs ${isSyncingOfflineData
+                                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                    : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                                    }`}
+                            >
+                                🔁 Tvångssynka lokala spår
+                            </button>
+                            {forceSyncMessage && (
+                                <p className="mt-2 text-xs text-gray-600">
+                                    {forceSyncMessage}
+                                </p>
+                            )}
+                        </div>
+
                         <div className="mb-3">
                             <label className="block text-sm font-medium mb-1">Spåra som:</label>
                             <select
@@ -1494,7 +1739,7 @@ const GeofenceEditor = () => {
                                         ×
                                     </button>
                                 </div>
-                                
+
                                 <div className="space-y-4">
                                     {/* Välj människaspår */}
                                     <div>
