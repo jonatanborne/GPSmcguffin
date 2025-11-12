@@ -378,10 +378,13 @@ const GeofenceEditor = () => {
             const serverTracksResp = await axios.get(`${API_BASE}/tracks`, { timeout: 10000 })
             const serverTracks = Array.isArray(serverTracksResp.data) ? serverTracksResp.data : []
             const serverIds = new Set(serverTracks.map(track => track.id?.toString()).filter(Boolean))
+            const serverTrackMap = new Map()
             const idMapping = new Map()
             serverTracks.forEach(track => {
                 if (track?.id != null) {
-                    idMapping.set(track.id.toString(), track.id.toString())
+                    const idStr = track.id.toString()
+                    idMapping.set(idStr, idStr)
+                    serverTrackMap.set(idStr, track)
                 }
             })
 
@@ -395,17 +398,15 @@ const GeofenceEditor = () => {
                 if (!track || !track.track_type) continue
 
                 const trackId = track.id != null ? track.id.toString() : null
-                const isServerTrack = trackId && serverIds.has(trackId) && track.needsServerSync !== true
-                if (isServerTrack) {
-                    // Redan synkat, hoppa över
-                    continue
-                }
+                const isServerTrack = trackId && serverIds.has(trackId)
 
                 const positions = JSON.parse(localStorage.getItem(`track_${track.id}_positions`) || '[]')
                 localEntries.push({
                     key,
                     track,
                     positions,
+                    isServerTrack,
+                    serverTrack: trackId ? serverTrackMap.get(trackId) : null,
                 })
             }
 
@@ -441,51 +442,84 @@ const GeofenceEditor = () => {
                 }
 
                 try {
-                    const createdTrackResp = await axios.post(`${API_BASE}/tracks`, {
-                        track_type: entry.track.track_type,
-                        name: entry.track.name || `${entry.track.track_type}-${originalIdStr || 'lokalt'}`,
-                        human_track_id: humanTrackId ?? null,
-                    }, { timeout: 10000 })
+                    let targetTrackId = null
+                    let serverTrack = null
 
-                    const serverTrack = createdTrackResp.data
-                    if (!serverTrack || serverTrack.id == null) {
-                        throw new Error('Servern returnerade inget track-id')
+                    if (entry.isServerTrack && originalIdStr && serverTrackMap.has(originalIdStr)) {
+                        serverTrack = serverTrackMap.get(originalIdStr)
+                        targetTrackId = serverTrack.id
                     }
 
-                    const serverIdStr = serverTrack.id.toString()
-                    serverIds.add(serverIdStr)
-                    if (originalIdStr) {
-                        idMapping.set(originalIdStr, serverIdStr)
-                    }
-                    idMapping.set(serverIdStr, serverIdStr)
+                    if (!targetTrackId) {
+                        const createdTrackResp = await axios.post(`${API_BASE}/tracks`, {
+                            track_type: entry.track.track_type,
+                            name: entry.track.name || `${entry.track.track_type}-${originalIdStr || 'lokalt'}`,
+                            human_track_id: humanTrackId ?? null,
+                        }, { timeout: 10000 })
 
-                    for (const pos of entry.positions) {
-                        try {
-                            await axios.post(`${API_BASE}/tracks/${serverTrack.id}/positions`, {
-                                position: pos.position,
-                                accuracy: pos.accuracy ?? null,
-                            }, { timeout: 10000 })
-                        } catch (positionError) {
-                            console.error('Kunde inte ladda upp position', positionError)
+                        serverTrack = createdTrackResp.data
+                        if (!serverTrack || serverTrack.id == null) {
+                            throw new Error('Servern returnerade inget track-id')
+                        }
+
+                        targetTrackId = serverTrack.id
+
+                        const serverIdStr = targetTrackId.toString()
+                        serverIds.add(serverIdStr)
+                        if (originalIdStr) {
+                            idMapping.set(originalIdStr, serverIdStr)
+                        }
+                        idMapping.set(serverIdStr, serverIdStr)
+                        serverTrackMap.set(serverIdStr, serverTrack)
+                    }
+
+                    const existingPositionCount = serverTrack?.positions?.length || 0
+                    const shouldUploadPositions = entry.positions.length > existingPositionCount
+
+                    if (shouldUploadPositions) {
+                        const positionsToUpload = entry.positions.slice(existingPositionCount)
+
+                        for (const pos of positionsToUpload) {
+                            try {
+                                await axios.post(`${API_BASE}/tracks/${targetTrackId}/positions`, {
+                                    position: pos.position,
+                                    accuracy: pos.accuracy ?? null,
+                                }, { timeout: 10000 })
+                            } catch (positionError) {
+                                console.error('Kunde inte ladda upp position', positionError)
+                            }
                         }
                     }
 
-                    // Uppdatera localStorage med serverns ID
-                    localStorage.setItem(
-                        `track_${serverTrack.id}`,
-                        JSON.stringify({
-                            ...serverTrack,
-                            human_track_id: serverTrack.human_track_id,
-                        })
-                    )
-                    localStorage.setItem(
-                        `track_${serverTrack.id}_positions`,
-                        JSON.stringify(entry.positions)
-                    )
+                    let refreshedTrack = serverTrack
 
-                    if (serverTrack.id !== entry.track.id) {
-                        localStorage.removeItem(`track_${entry.track.id}`)
-                        localStorage.removeItem(`track_${entry.track.id}_positions`)
+                    try {
+                        const refreshedResp = await axios.get(`${API_BASE}/tracks/${targetTrackId}`, { timeout: 10000 })
+                        refreshedTrack = refreshedResp.data
+                        if (refreshedTrack?.id != null) {
+                            serverTrackMap.set(refreshedTrack.id.toString(), refreshedTrack)
+                        }
+                    } catch (refreshError) {
+                        console.error('Kunde inte hämta uppdaterat spår efter synk:', refreshError)
+                    }
+
+                    if (refreshedTrack) {
+                        localStorage.setItem(
+                            `track_${targetTrackId}`,
+                            JSON.stringify({
+                                ...refreshedTrack,
+                                human_track_id: refreshedTrack.human_track_id,
+                            })
+                        )
+                        localStorage.setItem(
+                            `track_${targetTrackId}_positions`,
+                            JSON.stringify(refreshedTrack.positions || [])
+                        )
+
+                        if (targetTrackId !== entry.track.id) {
+                            localStorage.removeItem(`track_${entry.track.id}`)
+                            localStorage.removeItem(`track_${entry.track.id}_positions`)
+                        }
                     }
                 } catch (error) {
                     console.error('Tvångssynk misslyckades för ett spår:', error)
