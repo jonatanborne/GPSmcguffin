@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Any
 from datetime import datetime
 import math
 import sqlite3
 import json
 import os
+import csv
+from io import StringIO
 
 
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
@@ -68,7 +71,7 @@ def init_db():
     # Lägg till kolumn om den inte finns (för migrations av existerande databaser)
     try:
         cursor.execute("ALTER TABLE tracks ADD COLUMN human_track_id INTEGER")
-    except:
+    except sqlite3.OperationalError:
         pass  # Kolumnen finns redan
 
     # Track positions tabell
@@ -80,6 +83,11 @@ def init_db():
             position_lng REAL NOT NULL,
             timestamp TEXT NOT NULL,
             accuracy REAL,
+            verified_status TEXT DEFAULT 'pending',
+            corrected_lat REAL,
+            corrected_lng REAL,
+            corrected_at TEXT,
+            annotation_notes TEXT,
             FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
         )
     """)
@@ -98,6 +106,35 @@ def init_db():
             found_at TEXT,
             FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
         )
+    """)
+
+    # Lägg till kolumner för annoteringar och korrigeringar om de saknas
+    try:
+        cursor.execute(
+            "ALTER TABLE track_positions ADD COLUMN verified_status TEXT DEFAULT 'pending'"
+        )
+    except sqlite3.OperationalError:
+        pass
+
+    for column_name in [
+        "corrected_lat",
+        "corrected_lng",
+        "corrected_at",
+        "annotation_notes",
+    ]:
+        try:
+            cursor.execute(
+                f"ALTER TABLE track_positions ADD COLUMN {column_name} REAL"
+                if "lat" in column_name or "lng" in column_name
+                else f"ALTER TABLE track_positions ADD COLUMN {column_name} TEXT"
+            )
+        except sqlite3.OperationalError:
+            pass
+
+    # Säkerställ defaultvärde för verified_status
+    cursor.execute("""
+        UPDATE track_positions
+        SET verified_status = COALESCE(verified_status, 'pending')
     """)
 
     conn.commit()
@@ -143,9 +180,15 @@ class Position(BaseModel):
 
 
 class TrackPosition(BaseModel):
+    id: Optional[int] = None
+    track_id: Optional[int] = None
     position: LatLng
     timestamp: str  # ISO format datetime string
     accuracy: Optional[float] = None  # GPS accuracy in meters
+    verified_status: Optional[Literal["pending", "correct", "incorrect"]] = "pending"
+    corrected_position: Optional[LatLng] = None
+    corrected_at: Optional[str] = None
+    annotation_notes: Optional[str] = None
 
 
 class TrackCreate(BaseModel):
@@ -163,6 +206,13 @@ class Track(TrackCreate):
 class TrackPositionAdd(BaseModel):
     position: LatLng
     accuracy: Optional[float] = None
+
+
+class TrackPositionUpdate(BaseModel):
+    verified_status: Optional[Literal["pending", "correct", "incorrect"]] = None
+    corrected_position: Optional[LatLng] = None
+    clear_correction: bool = False
+    annotation_notes: Optional[str] = None
 
 
 class HidingSpotCreate(BaseModel):
@@ -189,7 +239,7 @@ def ping():
     # Se till att databasen är initierad
     try:
         init_db()
-    except:
+    except sqlite3.Error:
         pass
     return {"status": "ok"}
 
@@ -279,6 +329,30 @@ def row_to_geofence(row):
         )
 
     return Geofence(id=row["id"], name=row["name"], geofence=geofence_shape)
+
+
+def row_to_track_position(row):
+    """Konvertera databas-rad till TrackPosition-objekt"""
+    corrected_position = None
+    if row["corrected_lat"] is not None and row["corrected_lng"] is not None:
+        corrected_position = LatLng(
+            lat=row["corrected_lat"],
+            lng=row["corrected_lng"],
+        )
+
+    verified_status = row["verified_status"] if row["verified_status"] else "pending"
+
+    return TrackPosition(
+        id=row["id"],
+        track_id=row["track_id"] if "track_id" in row.keys() else None,
+        position=LatLng(lat=row["position_lat"], lng=row["position_lng"]),
+        timestamp=row["timestamp"],
+        accuracy=row["accuracy"],
+        verified_status=verified_status,
+        corrected_position=corrected_position,
+        corrected_at=row["corrected_at"],
+        annotation_notes=row["annotation_notes"],
+    )
 
 
 def haversine_meters(a: LatLng, b: LatLng) -> float:
@@ -409,7 +483,18 @@ def list_tracks():
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT position_lat, position_lng, timestamp, accuracy
+            SELECT
+                id,
+                track_id,
+                position_lat,
+                position_lng,
+                timestamp,
+                accuracy,
+                verified_status,
+                corrected_lat,
+                corrected_lng,
+                corrected_at,
+                annotation_notes
             FROM track_positions
             WHERE track_id = ?
             ORDER BY timestamp
@@ -419,14 +504,7 @@ def list_tracks():
         position_rows = cursor.fetchall()
         conn.close()
 
-        positions = [
-            TrackPosition(
-                position=LatLng(lat=p["position_lat"], lng=p["position_lng"]),
-                timestamp=p["timestamp"],
-                accuracy=p["accuracy"],
-            )
-            for p in position_rows
-        ]
+        positions = [row_to_track_position(p) for p in position_rows]
 
         tracks.append(
             Track(
@@ -456,7 +534,18 @@ def get_track(track_id: int):
     # Hämta positioner
     cursor.execute(
         """
-        SELECT position_lat, position_lng, timestamp, accuracy
+        SELECT
+            id,
+            track_id,
+            position_lat,
+            position_lng,
+            timestamp,
+            accuracy,
+            verified_status,
+            corrected_lat,
+            corrected_lng,
+            corrected_at,
+            annotation_notes
         FROM track_positions
         WHERE track_id = ?
         ORDER BY timestamp
@@ -466,14 +555,7 @@ def get_track(track_id: int):
     position_rows = cursor.fetchall()
     conn.close()
 
-    positions = [
-        TrackPosition(
-            position=LatLng(lat=p["position_lat"], lng=p["position_lng"]),
-            timestamp=p["timestamp"],
-            accuracy=p["accuracy"],
-        )
-        for p in position_rows
-    ]
+    positions = [row_to_track_position(p) for p in position_rows]
 
     return Track(
         id=row["id"],
@@ -789,6 +871,176 @@ def add_position_to_track(track_id: int, payload: TrackPositionAdd):
 
     # Returnera uppdaterat track
     return get_track(track_id)
+
+
+@app.put("/track-positions/{position_id}", response_model=TrackPosition)
+def update_track_position(position_id: int, payload: TrackPositionUpdate):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM track_positions WHERE id = ?", (position_id,))
+    row = cursor.fetchone()
+
+    if row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Track position not found")
+
+    update_fields = []
+    params: List[Any] = []
+
+    if payload.verified_status is not None:
+        update_fields.append("verified_status = ?")
+        params.append(payload.verified_status)
+
+    if payload.corrected_position is not None:
+        update_fields.extend(
+            ["corrected_lat = ?", "corrected_lng = ?", "corrected_at = ?"]
+        )
+        params.extend(
+            [
+                payload.corrected_position.lat,
+                payload.corrected_position.lng,
+                datetime.now().isoformat(),
+            ]
+        )
+    elif payload.clear_correction:
+        update_fields.append("corrected_lat = NULL")
+        update_fields.append("corrected_lng = NULL")
+        update_fields.append("corrected_at = NULL")
+
+    if payload.annotation_notes is not None:
+        if payload.annotation_notes == "":
+            update_fields.append("annotation_notes = NULL")
+        else:
+            update_fields.append("annotation_notes = ?")
+            params.append(payload.annotation_notes)
+
+    if not update_fields:
+        conn.close()
+        return row_to_track_position(row)
+
+    params.append(position_id)
+    cursor.execute(
+        f"UPDATE track_positions SET {', '.join(update_fields)} WHERE id = ?", params
+    )
+
+    conn.commit()
+    cursor.execute("SELECT * FROM track_positions WHERE id = ?", (position_id,))
+    updated_row = cursor.fetchone()
+    conn.close()
+
+    return row_to_track_position(updated_row)
+
+
+def fetch_track_positions(
+    track_id: Optional[int] = None,
+    verified_status: Optional[Literal["pending", "correct", "incorrect"]] = None,
+    include_uncorrected: bool = True,
+):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT
+            id,
+            track_id,
+            position_lat,
+            position_lng,
+            timestamp,
+            accuracy,
+            verified_status,
+            corrected_lat,
+            corrected_lng,
+            corrected_at,
+            annotation_notes
+        FROM track_positions
+    """
+    conditions = []
+    params: List[Any] = []
+
+    if track_id is not None:
+        conditions.append("track_id = ?")
+        params.append(track_id)
+
+    if verified_status is not None:
+        conditions.append("verified_status = ?")
+        params.append(verified_status)
+
+    if not include_uncorrected:
+        conditions.append("corrected_lat IS NOT NULL AND corrected_lng IS NOT NULL")
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    query += " ORDER BY timestamp"
+
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
+
+
+@app.get("/track-positions", response_model=List[TrackPosition])
+def list_track_positions(
+    track_id: Optional[int] = None,
+    verified_status: Optional[Literal["pending", "correct", "incorrect"]] = None,
+    include_uncorrected: bool = True,
+):
+    rows = fetch_track_positions(track_id, verified_status, include_uncorrected)
+    return [row_to_track_position(row) for row in rows]
+
+
+@app.get("/track-positions/export")
+def export_track_positions(
+    track_id: Optional[int] = None,
+    verified_status: Optional[Literal["pending", "correct", "incorrect"]] = None,
+    include_uncorrected: bool = True,
+):
+    rows = fetch_track_positions(track_id, verified_status, include_uncorrected)
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "id",
+            "track_id",
+            "timestamp",
+            "position_lat",
+            "position_lng",
+            "accuracy",
+            "verified_status",
+            "corrected_lat",
+            "corrected_lng",
+            "corrected_at",
+            "annotation_notes",
+        ]
+    )
+
+    for row in rows:
+        writer.writerow(
+            [
+                row["id"],
+                row["track_id"],
+                row["timestamp"],
+                row["position_lat"],
+                row["position_lng"],
+                row["accuracy"],
+                row["verified_status"],
+                row["corrected_lat"],
+                row["corrected_lng"],
+                row["corrected_at"],
+                row["annotation_notes"] or "",
+            ]
+        )
+
+    output.seek(0)
+    filename = "track_positions.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # Hiding spots endpoints
