@@ -30,10 +30,13 @@ app.add_middleware(
 # Om Postgres inte är länkad, försök använda publika URL:en eller manuellt satt POSTGRES_URL
 # Prioritering: DATABASE_URL (automatisk) -> DATABASE_PUBLIC_URL (publika) -> POSTGRES_URL (manuell)
 DATABASE_URL = (
-    os.getenv("DATABASE_URL")
-    or os.getenv("DATABASE_PUBLIC_URL")
+    os.getenv("DATABASE_URL") 
+    or os.getenv("DATABASE_PUBLIC_URL") 
     or os.getenv("POSTGRES_URL")
 )
+# Ta bort whitespace och nyrader från connection string
+if DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.strip()
 
 # Namnlistor för automatisk namngivning
 SUPERHEROES_AND_ATHLETES = [
