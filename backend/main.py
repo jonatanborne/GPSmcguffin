@@ -26,8 +26,14 @@ app.add_middleware(
 )
 
 # Postgres Database setup
-# Railway ger POSTGRES_URL, annars använd DATABASE_URL eller fallback till SQLite för lokal utveckling
-DATABASE_URL = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL")
+# Railway skapar automatiskt DATABASE_URL när Postgres är länkad till servicen
+# Om Postgres inte är länkad, försök använda publika URL:en eller manuellt satt POSTGRES_URL
+# Prioritering: DATABASE_URL (automatisk) -> DATABASE_PUBLIC_URL (publika) -> POSTGRES_URL (manuell)
+DATABASE_URL = (
+    os.getenv("DATABASE_URL")
+    or os.getenv("DATABASE_PUBLIC_URL")
+    or os.getenv("POSTGRES_URL")
+)
 
 # Namnlistor för automatisk namngivning
 SUPERHEROES_AND_ATHLETES = [
@@ -152,11 +158,11 @@ ANIMALS = [
 def get_db():
     """Hämta databas-anslutning"""
     if DATABASE_URL:
-        # Postgres
-        conn = psycopg2.connect(DATABASE_URL)
+        # Postgres - på Railway ska vi alltid använda Postgres
+        conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
         return conn
     else:
-        # Fallback till SQLite för lokal utveckling
+        # Fallback till SQLite endast för lokal utveckling (när DATABASE_URL inte är satt)
         import sqlite3
 
         DB_PATH = os.path.join(os.getcwd(), "data.db")
@@ -410,10 +416,13 @@ def init_db():
     conn.close()
 
 
-# Initiera databas vid startup
+# Initiera databas vid startup (lazy init - försök bara om Postgres är tillgänglig)
 @app.on_event("startup")
 def startup_event():
-    init_db()
+    # Databasen initieras när den faktiskt behövs (t.ex. i /ping eller /tracks)
+    # Detta gör att appen kan starta även om Postgres inte är tillgänglig direkt vid startup
+    # eller om den interna nätverket inte är klart än
+    pass
 
 
 class LatLng(BaseModel):
