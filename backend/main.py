@@ -5,11 +5,13 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Any
 from datetime import datetime
 import math
-import sqlite3
 import json
 import os
 import csv
+import random
 from io import StringIO
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
@@ -23,118 +25,385 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# SQLite Database setup
-# Använd absolut sökväg eller Railway's persistent volume om det finns
-# På Railway, spara i projekt-roten för persistent storage
-DB_DIR = os.getenv("DB_DIR", os.getcwd())
-DB_PATH = os.path.join(DB_DIR, "data.db")
+# Postgres Database setup
+# Railway ger POSTGRES_URL, annars använd DATABASE_URL eller fallback till SQLite för lokal utveckling
+DATABASE_URL = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL")
+
+# Namnlistor för automatisk namngivning
+SUPERHEROES_AND_ATHLETES = [
+    "Batman",
+    "Superman",
+    "Wonder Woman",
+    "Spider-Man",
+    "Iron Man",
+    "Captain America",
+    "Thor",
+    "Black Widow",
+    "Hulk",
+    "Wolverine",
+    "Flash",
+    "Green Lantern",
+    "Aquaman",
+    "Black Panther",
+    "Doctor Strange",
+    "Zelda",
+    "Link",
+    "Mario",
+    "Lara Croft",
+    "Master Chief",
+    "Messi",
+    "Ronaldo",
+    "Zlatan",
+    "LeBron James",
+    "Serena Williams",
+    "Usain Bolt",
+    "Michael Phelps",
+    "Tiger Woods",
+    "Roger Federer",
+    "Rafael Nadal",
+    "Kobe Bryant",
+    "Michael Jordan",
+    "Cristiano Ronaldo",
+    "Lionel Messi",
+    "Tom Brady",
+    # Ytterligare 20 superhjältar/idrottsstjärnor (totalt 55)
+    "Deadpool",
+    "Captain Marvel",
+    "Storm",
+    "Jean Grey",
+    "Cyclops",
+    "Magneto",
+    "Professor X",
+    "Gambit",
+    "Rogue",
+    "Nightcrawler",
+    "Colossus",
+    "Iceman",
+    "Beast",
+    "Moon Knight",
+    "Daredevil",
+    "Punisher",
+    "Ghost Rider",
+    "Blade",
+    "Mo Salah",
+    "Kevin De Bruyne",
+]
+
+ANIMALS = [
+    "Varg",
+    "Björn",
+    "Räv",
+    "Örn",
+    "Havsörn",
+    "Lo",
+    "Järv",
+    "Hare",
+    "Älg",
+    "Rådjur",
+    "Uggla",
+    "Falk",
+    "Kråka",
+    "Ekorre",
+    "Mård",
+    "Bäver",
+    "Utter",
+    "Mink",
+    "Hermelin",
+    "Lodjur",
+    "Hund",
+    "Katt",
+    "Häst",
+    "Get",
+    "Får",
+    # Ytterligare 30 djur (inklusive insekter, fiskar, fåglar, etc.) - totalt 55
+    "Gris",
+    "Ko",
+    "Noshörning",
+    "Giraff",
+    "Zebra",
+    "Lejon",
+    "Tiger",
+    "Panter",
+    "Jaguar",
+    "Gepard",
+    "Hyena",
+    "Schakal",
+    "Sengångare",
+    "Känguru",
+    "Koala",
+    "Panda",
+    "Surikat",
+    "Myra",
+    "Bi",
+    "Fjäril",
+    "Humla",
+    "Gräshoppa",
+    "Syrsa",
+    "Kackerlacka",
+    "Torsk",
+    "Lax",
+    "Gädda",
+    "Mört",
+    "Asp",
+    "Braxen",
+]
 
 
 def get_db():
     """Hämta databas-anslutning"""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row  # Gör rows accessbara som dicts
-    return conn
+    if DATABASE_URL:
+        # Postgres
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    else:
+        # Fallback till SQLite för lokal utveckling
+        import sqlite3
+
+        DB_PATH = os.path.join(os.getcwd(), "data.db")
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+
+def get_cursor(conn):
+    """Hämta cursor med rätt factory för Postgres eller SQLite"""
+    if DATABASE_URL:
+        return conn.cursor(cursor_factory=RealDictCursor)
+    else:
+        return conn.cursor()
+
+
+def get_last_insert_id(cursor, table_name="id"):
+    """Hämta ID från senaste INSERT - fungerar för både Postgres och SQLite"""
+    if DATABASE_URL:
+        # Postgres: cursor.fetchone()[0] efter RETURNING id
+        return cursor.fetchone()[0] if cursor.rowcount > 0 else None
+    else:
+        # SQLite: lastrowid
+        return cursor.lastrowid
+
+
+def execute_query(cursor, query, params=None):
+    """Kör query med rätt placeholders för Postgres eller SQLite"""
+    if DATABASE_URL:
+        # Postgres använder %s - konvertera ? till %s (men bara i SQL, inte i strängar)
+        # Enkel lösning: ersätt ? med %s (fungerar för våra queries)
+        query = query.replace("?", "%s")
+    # SQLite använder ? (ingen ändring behövs)
+    if params:
+        cursor.execute(query, params)
+    else:
+        cursor.execute(query)
 
 
 def init_db():
     """Initialisera databasen med tabeller"""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cursor = conn.cursor()
+    conn = get_db()
+    is_postgres = DATABASE_URL is not None
+    cursor = get_cursor(conn)
 
     # Geofences tabell
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS geofences (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            type TEXT NOT NULL,
-            center_lat REAL,
-            center_lng REAL,
-            radius_m REAL,
-            vertices_json TEXT,
-            created_at TEXT NOT NULL
-        )
-    """)
+    if is_postgres:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS geofences (
+                id SERIAL PRIMARY KEY,
+                name TEXT,
+                type TEXT NOT NULL,
+                center_lat DOUBLE PRECISION,
+                center_lng DOUBLE PRECISION,
+                radius_m DOUBLE PRECISION,
+                vertices_json TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS geofences (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                type TEXT NOT NULL,
+                center_lat REAL,
+                center_lng REAL,
+                radius_m REAL,
+                vertices_json TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
 
     # Tracks tabell
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tracks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            track_type TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            human_track_id INTEGER,
-            FOREIGN KEY (human_track_id) REFERENCES tracks(id) ON DELETE CASCADE
-        )
-    """)
+    if is_postgres:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tracks (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                track_type TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                human_track_id INTEGER,
+                FOREIGN KEY (human_track_id) REFERENCES tracks(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tracks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                track_type TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                human_track_id INTEGER,
+                FOREIGN KEY (human_track_id) REFERENCES tracks(id) ON DELETE CASCADE
+            )
+        """)
 
     # Lägg till kolumn om den inte finns (för migrations av existerande databaser)
-    try:
-        cursor.execute("ALTER TABLE tracks ADD COLUMN human_track_id INTEGER")
-    except sqlite3.OperationalError:
-        pass  # Kolumnen finns redan
+    if is_postgres:
+        cursor.execute("""
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name='tracks' AND column_name='human_track_id'
+                ) THEN
+                    ALTER TABLE tracks ADD COLUMN human_track_id INTEGER;
+                END IF;
+            END $$;
+        """)
+    else:
+        try:
+            cursor.execute("ALTER TABLE tracks ADD COLUMN human_track_id INTEGER")
+        except Exception:
+            pass  # Kolumnen finns redan
 
     # Track positions tabell
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS track_positions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            track_id INTEGER NOT NULL,
-            position_lat REAL NOT NULL,
-            position_lng REAL NOT NULL,
-            timestamp TEXT NOT NULL,
-            accuracy REAL,
-            verified_status TEXT DEFAULT 'pending',
-            corrected_lat REAL,
-            corrected_lng REAL,
-            corrected_at TEXT,
-            annotation_notes TEXT,
-            FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
-        )
-    """)
+    if is_postgres:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS track_positions (
+                id SERIAL PRIMARY KEY,
+                track_id INTEGER NOT NULL,
+                position_lat DOUBLE PRECISION NOT NULL,
+                position_lng DOUBLE PRECISION NOT NULL,
+                timestamp TEXT NOT NULL,
+                accuracy DOUBLE PRECISION,
+                verified_status TEXT DEFAULT 'pending',
+                corrected_lat DOUBLE PRECISION,
+                corrected_lng DOUBLE PRECISION,
+                corrected_at TEXT,
+                annotation_notes TEXT,
+                FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS track_positions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                track_id INTEGER NOT NULL,
+                position_lat REAL NOT NULL,
+                position_lng REAL NOT NULL,
+                timestamp TEXT NOT NULL,
+                accuracy REAL,
+                verified_status TEXT DEFAULT 'pending',
+                corrected_lat REAL,
+                corrected_lng REAL,
+                corrected_at TEXT,
+                annotation_notes TEXT,
+                FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+            )
+        """)
 
     # Hiding spots tabell
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS hiding_spots (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            track_id INTEGER NOT NULL,
-            position_lat REAL NOT NULL,
-            position_lng REAL NOT NULL,
-            name TEXT,
-            description TEXT,
-            created_at TEXT NOT NULL,
-            found INTEGER,  -- NULL, 0 (False), eller 1 (True)
-            found_at TEXT,
-            FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
-        )
-    """)
+    if is_postgres:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hiding_spots (
+                id SERIAL PRIMARY KEY,
+                track_id INTEGER NOT NULL,
+                position_lat DOUBLE PRECISION NOT NULL,
+                position_lng DOUBLE PRECISION NOT NULL,
+                name TEXT,
+                description TEXT,
+                created_at TEXT NOT NULL,
+                found INTEGER,
+                found_at TEXT,
+                FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hiding_spots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                track_id INTEGER NOT NULL,
+                position_lat REAL NOT NULL,
+                position_lng REAL NOT NULL,
+                name TEXT,
+                description TEXT,
+                created_at TEXT NOT NULL,
+                found INTEGER,
+                found_at TEXT,
+                FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+            )
+        """)
 
     # Lägg till kolumner för annoteringar och korrigeringar om de saknas
-    try:
-        cursor.execute(
-            "ALTER TABLE track_positions ADD COLUMN verified_status TEXT DEFAULT 'pending'"
-        )
-    except sqlite3.OperationalError:
-        pass
-
-    for column_name in [
-        "corrected_lat",
-        "corrected_lng",
-        "corrected_at",
-        "annotation_notes",
-    ]:
+    if is_postgres:
+        cursor.execute("""
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name='track_positions' AND column_name='verified_status'
+                ) THEN
+                    ALTER TABLE track_positions ADD COLUMN verified_status TEXT DEFAULT 'pending';
+                END IF;
+            END $$;
+        """)
+        for column_name in [
+            "corrected_lat",
+            "corrected_lng",
+            "corrected_at",
+            "annotation_notes",
+        ]:
+            col_type = (
+                "DOUBLE PRECISION"
+                if "lat" in column_name or "lng" in column_name
+                else "TEXT"
+            )
+            cursor.execute(f"""
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='track_positions' AND column_name='{column_name}'
+                    ) THEN
+                        ALTER TABLE track_positions ADD COLUMN {column_name} {col_type};
+                    END IF;
+                END $$;
+            """)
+    else:
         try:
             cursor.execute(
-                f"ALTER TABLE track_positions ADD COLUMN {column_name} REAL"
-                if "lat" in column_name or "lng" in column_name
-                else f"ALTER TABLE track_positions ADD COLUMN {column_name} TEXT"
+                "ALTER TABLE track_positions ADD COLUMN verified_status TEXT DEFAULT 'pending'"
             )
-        except sqlite3.OperationalError:
+        except Exception:
             pass
+        for column_name in [
+            "corrected_lat",
+            "corrected_lng",
+            "corrected_at",
+            "annotation_notes",
+        ]:
+            try:
+                col_type = (
+                    "REAL" if "lat" in column_name or "lng" in column_name else "TEXT"
+                )
+                cursor.execute(
+                    f"ALTER TABLE track_positions ADD COLUMN {column_name} {col_type}"
+                )
+            except Exception:
+                pass
 
     # Säkerställ defaultvärde för verified_status
     cursor.execute("""
         UPDATE track_positions
         SET verified_status = COALESCE(verified_status, 'pending')
+        WHERE verified_status IS NULL
     """)
 
     conn.commit()
@@ -239,24 +508,29 @@ def ping():
     # Se till att databasen är initierad
     try:
         init_db()
-    except sqlite3.Error:
-        pass
+    except Exception:
+        pass  # Ignorera fel vid init (tabeller kan redan finnas)
     return {"status": "ok"}
 
 
 @app.post("/geofences", response_model=Geofence)
 def create_geofence(payload: GeofenceCreate):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
     now = datetime.now().isoformat()
 
     geofence = payload.geofence
+    is_postgres = DATABASE_URL is not None
+    placeholder = "%s" if is_postgres else "?"
+    returning = " RETURNING id" if is_postgres else ""
+
     if geofence.type == "circle":
-        cursor.execute(
-            """
+        query = f"""
             INSERT INTO geofences (name, type, center_lat, center_lng, radius_m, vertices_json, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
+            VALUES ({", ".join([placeholder] * 7)}){returning}
+        """
+        cursor.execute(
+            query,
             (
                 payload.name,
                 "circle",
@@ -271,19 +545,24 @@ def create_geofence(payload: GeofenceCreate):
         vertices_json = json.dumps(
             [{"lat": v.lat, "lng": v.lng} for v in geofence.vertices]
         )
-        cursor.execute(
-            """
+        query = f"""
             INSERT INTO geofences (name, type, center_lat, center_lng, radius_m, vertices_json, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
+            VALUES ({", ".join([placeholder] * 7)}){returning}
+        """
+        cursor.execute(
+            query,
             (payload.name, "polygon", None, None, None, vertices_json, now),
         )
 
-    geofence_id = cursor.lastrowid
+    if is_postgres:
+        geofence_id = cursor.fetchone()[0]
+    else:
+        geofence_id = cursor.lastrowid
     conn.commit()
 
     # Hämta tillbaka det skapade geofencet
-    cursor.execute("SELECT * FROM geofences WHERE id = ?", (geofence_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    cursor.execute(f"SELECT * FROM geofences WHERE id = {placeholder}", (geofence_id,))
     row = cursor.fetchone()
     conn.close()
 
@@ -293,8 +572,8 @@ def create_geofence(payload: GeofenceCreate):
 @app.get("/geofences", response_model=List[Geofence])
 def list_geofences():
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM geofences ORDER BY id")
+    cursor = get_cursor(conn)
+    execute_query(cursor, "SELECT * FROM geofences ORDER BY id")
     rows = cursor.fetchall()
     conn.close()
     return [row_to_geofence(row) for row in rows]
@@ -303,8 +582,11 @@ def list_geofences():
 @app.delete("/geofences/{geofence_id}")
 def delete_geofence(geofence_id: int):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM geofences WHERE id = ?", (geofence_id,))
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(
+        cursor, f"DELETE FROM geofences WHERE id = {placeholder}", (geofence_id,)
+    )
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Geofence not found")
@@ -395,8 +677,8 @@ def evaluate_position(payload: Position):
 
     # Hämta alla geofences från databas
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM geofences")
+    cursor = get_cursor(conn)
+    execute_query(cursor, "SELECT * FROM geofences")
     rows = cursor.fetchall()
     conn.close()
 
@@ -426,28 +708,87 @@ def create_track(payload: TrackCreate):
         init_db()
 
         conn = get_db()
-        cursor = conn.cursor()
-
-        # Räkna befintliga tracks för att ge ett bra default-namn
-        cursor.execute(
-            "SELECT COUNT(*) as count FROM tracks WHERE track_type = ?",
-            (payload.track_type,),
-        )
-        count_result = cursor.fetchone()
-        count = count_result["count"] if count_result else 0
+        cursor = get_cursor(conn)
+        is_postgres = DATABASE_URL is not None
+        placeholder = "%s" if is_postgres else "?"
 
         now = datetime.now().isoformat()
-        name = payload.name or f"{payload.track_type.capitalize()} Track {count + 1}"
 
-        cursor.execute(
-            """
+        # Automatisk namngivning
+        if payload.name:
+            # Använd det angivna namnet
+            name = payload.name
+        elif payload.track_type == "human":
+            # Människospår: välj från superhjältar/idrottsstjärnor
+            # Hämta alla befintliga namn för att undvika dubbletter
+            execute_query(cursor, "SELECT name FROM tracks WHERE track_type = 'human'")
+            existing_names = {row["name"] for row in cursor.fetchall()}
+
+            # Välj ett namn som inte redan används
+            available_names = [
+                n for n in SUPERHEROES_AND_ATHLETES if n not in existing_names
+            ]
+            if available_names:
+                name = random.choice(available_names)
+            else:
+                # Om alla namn är använda, lägg till nummer
+                name = f"{random.choice(SUPERHEROES_AND_ATHLETES)} {len(existing_names) + 1}"
+        elif payload.track_type == "dog" and payload.human_track_id:
+            # Hundspår kopplat till människospår: "batmans hund" eller "batman hund"
+            execute_query(
+                cursor,
+                f"SELECT name FROM tracks WHERE id = {placeholder}",
+                (payload.human_track_id,),
+            )
+            human_track = cursor.fetchone()
+            if human_track:
+                human_name = human_track["name"]
+                # Lägg till "s hund" om namnet inte slutar på s, annars bara " hund"
+                if human_name.lower().endswith("s"):
+                    name = f"{human_name} hund"
+                else:
+                    name = f"{human_name}s hund"
+            else:
+                # Om människospåret inte hittas, använd djur (separata hundspår)
+                execute_query(
+                    cursor,
+                    "SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL",
+                )
+                existing_names = {row["name"] for row in cursor.fetchall()}
+                available_names = [n for n in ANIMALS if n not in existing_names]
+                name = (
+                    random.choice(available_names)
+                    if available_names
+                    else f"{random.choice(ANIMALS)} {len(existing_names) + 1}"
+                )
+        else:
+            # Hundspår utan koppling: välj från djur
+            # Hämta bara separata hundspår (utan human_track_id)
+            execute_query(
+                cursor,
+                "SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL",
+            )
+            existing_names = {row["name"] for row in cursor.fetchall()}
+            available_names = [n for n in ANIMALS if n not in existing_names]
+            if available_names:
+                name = random.choice(available_names)
+            else:
+                name = f"{random.choice(ANIMALS)} {len(existing_names) + 1}"
+
+        returning = " RETURNING id" if is_postgres else ""
+        execute_query(
+            cursor,
+            f"""
             INSERT INTO tracks (name, track_type, created_at, human_track_id)
-            VALUES (?, ?, ?, ?)
+            VALUES ({", ".join([placeholder] * 4)}){returning}
         """,
             (name, payload.track_type, now, payload.human_track_id),
         )
 
-        track_id = cursor.lastrowid
+        if is_postgres:
+            track_id = cursor.fetchone()[0]
+        else:
+            track_id = cursor.lastrowid
         conn.commit()
         conn.close()
 
@@ -470,8 +811,8 @@ def create_track(payload: TrackCreate):
 @app.get("/tracks", response_model=List[Track])
 def list_tracks():
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tracks ORDER BY id")
+    cursor = get_cursor(conn)
+    execute_query(cursor, "SELECT * FROM tracks ORDER BY id")
     rows = cursor.fetchall()
     conn.close()
 
@@ -479,10 +820,12 @@ def list_tracks():
     for row in rows:
         track_id = row["id"]
         # Hämta positioner för detta track
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
+        conn2 = get_db()
+        cursor2 = get_cursor(conn2)
+        placeholder = "%s" if DATABASE_URL else "?"
+        execute_query(
+            cursor2,
+            f"""
             SELECT
                 id,
                 track_id,
@@ -496,13 +839,13 @@ def list_tracks():
                 corrected_at,
                 annotation_notes
             FROM track_positions
-            WHERE track_id = ?
+            WHERE track_id = {placeholder}
             ORDER BY timestamp
         """,
             (track_id,),
         )
-        position_rows = cursor.fetchall()
-        conn.close()
+        position_rows = cursor2.fetchall()
+        conn2.close()
 
         positions = [row_to_track_position(p) for p in position_rows]
 
@@ -522,11 +865,149 @@ def list_tracks():
     return tracks
 
 
+@app.post("/tracks/rename-generic")
+def rename_generic_tracks():
+    """
+    Uppdatera befintliga spår med generiska namn (t.ex. "Människospår 1", "Hundspår 2")
+    till unika namn baserat på deras track_type.
+    """
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+
+    # Hitta alla tracks med generiska namn
+    # Generiska namn innehåller "Track", "Människospår", "Hundspår", eller liknande
+    execute_query(
+        cursor,
+        """
+        SELECT id, name, track_type, human_track_id
+        FROM tracks
+        WHERE name LIKE '%Track%' 
+           OR name LIKE '%Människospår%'
+           OR name LIKE '%Hundspår%'
+           OR name LIKE '%track%'
+        ORDER BY id
+        """,
+    )
+    generic_tracks = cursor.fetchall()
+
+    if not generic_tracks:
+        conn.close()
+        return {"message": "Inga spår med generiska namn hittades", "updated": 0}
+
+    updated_count = 0
+    updated_tracks = []
+
+    for track in generic_tracks:
+        track_id = track["id"]
+        track_type = track["track_type"]
+        human_track_id = track.get("human_track_id")
+
+        # Generera nytt namn baserat på track_type
+        if track_type == "human":
+            # Hämta alla befintliga namn för människospår (exkludera det nuvarande spåret)
+            execute_query(
+                cursor,
+                f"SELECT name FROM tracks WHERE track_type = 'human' AND id != {placeholder}",
+                (track_id,),
+            )
+            existing_names = {row["name"] for row in cursor.fetchall()}
+
+            # Välj ett namn som inte redan används
+            available_names = [
+                n for n in SUPERHEROES_AND_ATHLETES if n not in existing_names
+            ]
+            if available_names:
+                new_name = random.choice(available_names)
+            else:
+                # Om alla namn är använda, lägg till nummer
+                counter = 1
+                while True:
+                    base_name = random.choice(SUPERHEROES_AND_ATHLETES)
+                    new_name = f"{base_name} {counter}"
+                    if new_name not in existing_names:
+                        break
+                    counter += 1
+        elif track_type == "dog" and human_track_id:
+            # Hundspår kopplat till människospår
+            execute_query(
+                cursor,
+                f"SELECT name FROM tracks WHERE id = {placeholder}",
+                (human_track_id,),
+            )
+            human_track = cursor.fetchone()
+            if human_track:
+                human_name = human_track["name"]
+                if human_name.lower().endswith("s"):
+                    new_name = f"{human_name} hund"
+                else:
+                    new_name = f"{human_name}s hund"
+            else:
+                # Om människospåret inte hittas, använd djur (exkludera det nuvarande spåret)
+                execute_query(
+                    cursor,
+                    f"SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL AND id != {placeholder}",
+                    (track_id,),
+                )
+                existing_names = {row["name"] for row in cursor.fetchall()}
+                available_names = [n for n in ANIMALS if n not in existing_names]
+                if available_names:
+                    new_name = random.choice(available_names)
+                else:
+                    counter = 1
+                    while True:
+                        base_name = random.choice(ANIMALS)
+                        new_name = f"{base_name} {counter}"
+                        if new_name not in existing_names:
+                            break
+                        counter += 1
+        else:
+            # Separata hundspår (exkludera det nuvarande spåret)
+            execute_query(
+                cursor,
+                f"SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL AND id != {placeholder}",
+                (track_id,),
+            )
+            existing_names = {row["name"] for row in cursor.fetchall()}
+            available_names = [n for n in ANIMALS if n not in existing_names]
+            if available_names:
+                new_name = random.choice(available_names)
+            else:
+                counter = 1
+                while True:
+                    base_name = random.choice(ANIMALS)
+                    new_name = f"{base_name} {counter}"
+                    if new_name not in existing_names:
+                        break
+                    counter += 1
+
+        # Uppdatera namnet
+        execute_query(
+            cursor,
+            f"UPDATE tracks SET name = {placeholder} WHERE id = {placeholder}",
+            (new_name, track_id),
+        )
+        updated_count += 1
+        updated_tracks.append(
+            {"id": track_id, "old_name": track["name"], "new_name": new_name}
+        )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "message": f"Uppdaterade {updated_count} spår",
+        "updated": updated_count,
+        "tracks": updated_tracks,
+    }
+
+
 @app.get("/tracks/{track_id}", response_model=Track)
 def get_track(track_id: int):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     row = cursor.fetchone()
 
     if row is None:
@@ -534,8 +1015,9 @@ def get_track(track_id: int):
         raise HTTPException(status_code=404, detail="Track not found")
 
     # Hämta positioner
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT
             id,
             track_id,
@@ -549,7 +1031,7 @@ def get_track(track_id: int):
             corrected_at,
             annotation_notes
         FROM track_positions
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
         ORDER BY timestamp
     """,
         (track_id,),
@@ -574,8 +1056,9 @@ def get_track(track_id: int):
 @app.delete("/tracks/{track_id}")
 def delete_track(track_id: int):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM tracks WHERE id = ?", (track_id,))
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"DELETE FROM tracks WHERE id = {placeholder}", (track_id,))
     if cursor.rowcount == 0:
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
@@ -588,10 +1071,11 @@ def delete_track(track_id: int):
 def compare_tracks(track_id: int):
     """Jämför ett hundspår med sitt människaspår och returnera statistik"""
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     # Hämta hundens track
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     dog_track_row = cursor.fetchone()
     if dog_track_row is None:
         conn.close()
@@ -614,18 +1098,21 @@ def compare_tracks(track_id: int):
             status_code=400, detail="Dog track has no associated human track"
         )
 
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (human_track_id,))
+    execute_query(
+        cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (human_track_id,)
+    )
     human_track_row = cursor.fetchone()
     if human_track_row is None:
         conn.close()
         raise HTTPException(status_code=404, detail="Human track not found")
 
     # Hämta hundens positioner
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT position_lat, position_lng, timestamp
         FROM track_positions
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
         ORDER BY timestamp
     """,
         (track_id,),
@@ -633,11 +1120,12 @@ def compare_tracks(track_id: int):
     dog_positions = cursor.fetchall()
 
     # Hämta människans positioner
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT position_lat, position_lng, timestamp
         FROM track_positions
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
         ORDER BY timestamp
     """,
         (human_track_id,),
@@ -645,11 +1133,12 @@ def compare_tracks(track_id: int):
     human_positions = cursor.fetchall()
 
     # Hämta hiding spots och deras status
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT id, position_lat, position_lng, found
         FROM hiding_spots
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
     """,
         (human_track_id,),
     )
@@ -661,13 +1150,13 @@ def compare_tracks(track_id: int):
     # Förbättrad algoritm: matcha varje människposition med närmaste hundposition
     # baserat på geografiskt avstånd (inte bara tidsstämplar)
     # Detta hanterar bättre när hundens spår är förskjutet i tid eller har annan hastighet
-    
+
     distances = []
     unmatched_human_positions = 0
-    
+
     for hp in human_positions:
         human_pos = LatLng(lat=hp["position_lat"], lng=hp["position_lng"])
-        
+
         # Hitta närmaste hundposition baserat på geografiskt avstånd
         min_distance = float("inf")
         for dp in dog_positions:
@@ -675,7 +1164,7 @@ def compare_tracks(track_id: int):
             dist = haversine_meters(human_pos, dog_pos)
             if dist < min_distance:
                 min_distance = dist
-        
+
         # Om närmaste hundposition är för långt bort (>200m), räkna som omatchad
         # Annars lägg till avståndet
         if min_distance <= 200:
@@ -684,14 +1173,11 @@ def compare_tracks(track_id: int):
             unmatched_human_positions += 1
             # Räkna stora avvikelser som 200m för att straffa omatchade positioner
             distances.append(200.0)
-    
+
     # Beräkna statistik
-    total_positions = len(human_positions)
-    matched_positions = len(distances) - unmatched_human_positions
-    
     avg_distance = sum(distances) / len(distances) if distances else 0
     max_distance = max(distances) if distances else 0
-    
+
     # Beräkna procentuell matchning
     # 0-10m = 100%, 10-50m = 90-50%, 50-100m = 50-0%, >100m = 0%
     if avg_distance <= 10:
@@ -702,7 +1188,7 @@ def compare_tracks(track_id: int):
         match_percentage = 20 - ((avg_distance - 50) * 0.4)  # 50-100m: 20-0%
     else:
         match_percentage = 0
-    
+
     match_percentage = max(0, min(100, match_percentage))
 
     # Räkna hiding spots statistik
@@ -742,10 +1228,13 @@ def compare_tracks(track_id: int):
 def compare_tracks_custom(human_track_id: int, dog_track_id: int):
     """Jämför ett valt människaspår med ett valt hundspår och returnera statistik"""
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     # Hämta människans track
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (human_track_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(
+        cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (human_track_id,)
+    )
     human_track_row = cursor.fetchone()
     if human_track_row is None:
         conn.close()
@@ -757,7 +1246,9 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
         raise HTTPException(status_code=400, detail="First track must be a human track")
 
     # Hämta hundens track
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (dog_track_id,))
+    execute_query(
+        cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (dog_track_id,)
+    )
     dog_track_row = cursor.fetchone()
     if dog_track_row is None:
         conn.close()
@@ -769,11 +1260,12 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
         raise HTTPException(status_code=400, detail="Second track must be a dog track")
 
     # Hämta människans positioner
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT position_lat, position_lng, timestamp
         FROM track_positions
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
         ORDER BY timestamp
     """,
         (human_track_id,),
@@ -781,11 +1273,12 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
     human_positions = cursor.fetchall()
 
     # Hämta hundens positioner
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT position_lat, position_lng, timestamp
         FROM track_positions
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
         ORDER BY timestamp
     """,
         (dog_track_id,),
@@ -793,11 +1286,12 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
     dog_positions = cursor.fetchall()
 
     # Hämta hiding spots från människans track
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         SELECT id, position_lat, position_lng, found
         FROM hiding_spots
-        WHERE track_id = ?
+        WHERE track_id = {placeholder}
     """,
         (human_track_id,),
     )
@@ -809,13 +1303,13 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
     # Förbättrad algoritm: matcha varje människposition med närmaste hundposition
     # baserat på geografiskt avstånd (inte bara tidsstämplar)
     # Detta hanterar bättre när hundens spår är förskjutet i tid eller har annan hastighet
-    
+
     distances = []
     unmatched_human_positions = 0
-    
+
     for hp in human_positions:
         human_pos = LatLng(lat=hp["position_lat"], lng=hp["position_lng"])
-        
+
         # Hitta närmaste hundposition baserat på geografiskt avstånd
         min_distance = float("inf")
         for dp in dog_positions:
@@ -823,7 +1317,7 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
             dist = haversine_meters(human_pos, dog_pos)
             if dist < min_distance:
                 min_distance = dist
-        
+
         # Om närmaste hundposition är för långt bort (>200m), räkna som omatchad
         # Annars lägg till avståndet
         if min_distance <= 200:
@@ -832,14 +1326,11 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
             unmatched_human_positions += 1
             # Räkna stora avvikelser som 200m för att straffa omatchade positioner
             distances.append(200.0)
-    
+
     # Beräkna statistik
-    total_positions = len(human_positions)
-    matched_positions = len(distances) - unmatched_human_positions
-    
     avg_distance = sum(distances) / len(distances) if distances else 0
     max_distance = max(distances) if distances else 0
-    
+
     # Beräkna procentuell matchning
     # 0-10m = 100%, 10-50m = 90-50%, 50-100m = 50-0%, >100m = 0%
     if avg_distance <= 10:
@@ -850,7 +1341,7 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
         match_percentage = 20 - ((avg_distance - 50) * 0.4)  # 50-100m: 20-0%
     else:
         match_percentage = 0
-    
+
     match_percentage = max(0, min(100, match_percentage))
 
     # Räkna hiding spots statistik
@@ -889,10 +1380,12 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
 @app.post("/tracks/{track_id}/positions", response_model=Track)
 def add_position_to_track(track_id: int, payload: TrackPositionAdd):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
+    is_postgres = DATABASE_URL is not None
+    placeholder = "%s" if is_postgres else "?"
 
     # Kontrollera att track finns
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     track_row = cursor.fetchone()
     if track_row is None:
         conn.close()
@@ -900,10 +1393,12 @@ def add_position_to_track(track_id: int, payload: TrackPositionAdd):
 
     # Lägg till position
     now = datetime.now().isoformat()
-    cursor.execute(
-        """
+    returning = " RETURNING id" if is_postgres else ""
+    execute_query(
+        cursor,
+        f"""
         INSERT INTO track_positions (track_id, position_lat, position_lng, timestamp, accuracy)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES ({", ".join([placeholder] * 5)}){returning}
     """,
         (track_id, payload.position.lat, payload.position.lng, now, payload.accuracy),
     )
@@ -918,8 +1413,13 @@ def add_position_to_track(track_id: int, payload: TrackPositionAdd):
 @app.put("/track-positions/{position_id}", response_model=TrackPosition)
 def update_track_position(position_id: int, payload: TrackPositionUpdate):
     conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM track_positions WHERE id = ?", (position_id,))
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(
+        cursor,
+        f"SELECT * FROM track_positions WHERE id = {placeholder}",
+        (position_id,),
+    )
     row = cursor.fetchone()
 
     if row is None:
@@ -930,12 +1430,16 @@ def update_track_position(position_id: int, payload: TrackPositionUpdate):
     params: List[Any] = []
 
     if payload.verified_status is not None:
-        update_fields.append("verified_status = ?")
+        update_fields.append(f"verified_status = {placeholder}")
         params.append(payload.verified_status)
 
     if payload.corrected_position is not None:
         update_fields.extend(
-            ["corrected_lat = ?", "corrected_lng = ?", "corrected_at = ?"]
+            [
+                f"corrected_lat = {placeholder}",
+                f"corrected_lng = {placeholder}",
+                f"corrected_at = {placeholder}",
+            ]
         )
         params.extend(
             [
@@ -953,7 +1457,7 @@ def update_track_position(position_id: int, payload: TrackPositionUpdate):
         if payload.annotation_notes == "":
             update_fields.append("annotation_notes = NULL")
         else:
-            update_fields.append("annotation_notes = ?")
+            update_fields.append(f"annotation_notes = {placeholder}")
             params.append(payload.annotation_notes)
 
     if not update_fields:
@@ -961,12 +1465,18 @@ def update_track_position(position_id: int, payload: TrackPositionUpdate):
         return row_to_track_position(row)
 
     params.append(position_id)
-    cursor.execute(
-        f"UPDATE track_positions SET {', '.join(update_fields)} WHERE id = ?", params
+    execute_query(
+        cursor,
+        f"UPDATE track_positions SET {', '.join(update_fields)} WHERE id = {placeholder}",
+        params,
     )
 
     conn.commit()
-    cursor.execute("SELECT * FROM track_positions WHERE id = ?", (position_id,))
+    execute_query(
+        cursor,
+        f"SELECT * FROM track_positions WHERE id = {placeholder}",
+        (position_id,),
+    )
     updated_row = cursor.fetchone()
     conn.close()
 
@@ -979,7 +1489,7 @@ def fetch_track_positions(
     include_uncorrected: bool = True,
 ):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     query = """
         SELECT
@@ -999,12 +1509,14 @@ def fetch_track_positions(
     conditions = []
     params: List[Any] = []
 
+    placeholder = "%s" if DATABASE_URL else "?"
+
     if track_id is not None:
-        conditions.append("track_id = ?")
+        conditions.append(f"track_id = {placeholder}")
         params.append(track_id)
 
     if verified_status is not None:
-        conditions.append("verified_status = ?")
+        conditions.append(f"verified_status = {placeholder}")
         params.append(verified_status)
 
     if not include_uncorrected:
@@ -1015,7 +1527,7 @@ def fetch_track_positions(
 
     query += " ORDER BY timestamp"
 
-    cursor.execute(query, params)
+    execute_query(cursor, query, params)
     rows = cursor.fetchall()
     conn.close()
 
@@ -1089,28 +1601,34 @@ def export_track_positions(
 @app.post("/tracks/{track_id}/hiding-spots", response_model=HidingSpot)
 def create_hiding_spot(track_id: int, payload: HidingSpotCreate):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     # Kontrollera att track finns
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     track = cursor.fetchone()
     if track is None:
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
 
     # Räkna befintliga hiding spots för default-namn
-    cursor.execute(
-        "SELECT COUNT(*) as count FROM hiding_spots WHERE track_id = ?", (track_id,)
+    execute_query(
+        cursor,
+        f"SELECT COUNT(*) as count FROM hiding_spots WHERE track_id = {placeholder}",
+        (track_id,),
     )
     count = cursor.fetchone()["count"]
 
     now = datetime.now().isoformat()
     name = payload.name or f"Gömställe {count + 1}"
 
-    cursor.execute(
-        """
+    is_postgres = DATABASE_URL is not None
+    returning = " RETURNING id" if is_postgres else ""
+    execute_query(
+        cursor,
+        f"""
         INSERT INTO hiding_spots (track_id, position_lat, position_lng, name, description, created_at, found, found_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES ({", ".join([placeholder] * 8)}){returning}
     """,
         (
             track_id,
@@ -1124,7 +1642,10 @@ def create_hiding_spot(track_id: int, payload: HidingSpotCreate):
         ),
     )
 
-    spot_id = cursor.lastrowid
+    if is_postgres:
+        spot_id = cursor.fetchone()[0]
+    else:
+        spot_id = cursor.lastrowid
     conn.commit()
     conn.close()
 
@@ -1143,17 +1664,20 @@ def create_hiding_spot(track_id: int, payload: HidingSpotCreate):
 @app.get("/tracks/{track_id}/hiding-spots", response_model=List[HidingSpot])
 def list_hiding_spots(track_id: int):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     # Kontrollera att track finns
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     track = cursor.fetchone()
     if track is None:
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
 
-    cursor.execute(
-        "SELECT * FROM hiding_spots WHERE track_id = ? ORDER BY id", (track_id,)
+    execute_query(
+        cursor,
+        f"SELECT * FROM hiding_spots WHERE track_id = {placeholder} ORDER BY id",
+        (track_id,),
     )
     rows = cursor.fetchall()
     conn.close()
@@ -1182,18 +1706,21 @@ def update_hiding_spot_status(
     track_id: int, spot_id: int, payload: HidingSpotStatusUpdate
 ):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     # Kontrollera att track finns
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     track = cursor.fetchone()
     if track is None:
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
 
     # Kontrollera att hiding spot finns
-    cursor.execute(
-        "SELECT * FROM hiding_spots WHERE id = ? AND track_id = ?", (spot_id, track_id)
+    execute_query(
+        cursor,
+        f"SELECT * FROM hiding_spots WHERE id = {placeholder} AND track_id = {placeholder}",
+        (spot_id, track_id),
     )
     spot = cursor.fetchone()
     if spot is None:
@@ -1202,11 +1729,12 @@ def update_hiding_spot_status(
 
     # Uppdatera status
     now = datetime.now().isoformat()
-    cursor.execute(
-        """
+    execute_query(
+        cursor,
+        f"""
         UPDATE hiding_spots
-        SET found = ?, found_at = ?
-        WHERE id = ? AND track_id = ?
+        SET found = {placeholder}, found_at = {placeholder}
+        WHERE id = {placeholder} AND track_id = {placeholder}
     """,
         (1 if payload.found else 0, now, spot_id, track_id),
     )
@@ -1214,7 +1742,9 @@ def update_hiding_spot_status(
     conn.commit()
 
     # Hämta uppdaterat spot
-    cursor.execute("SELECT * FROM hiding_spots WHERE id = ?", (spot_id,))
+    execute_query(
+        cursor, f"SELECT * FROM hiding_spots WHERE id = {placeholder}", (spot_id,)
+    )
     updated_row = cursor.fetchone()
     conn.close()
 
@@ -1235,17 +1765,20 @@ def update_hiding_spot_status(
 @app.delete("/tracks/{track_id}/hiding-spots/{spot_id}")
 def delete_hiding_spot(track_id: int, spot_id: int):
     conn = get_db()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn)
 
     # Kontrollera att track finns
-    cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     track = cursor.fetchone()
     if track is None:
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
 
-    cursor.execute(
-        "DELETE FROM hiding_spots WHERE id = ? AND track_id = ?", (spot_id, track_id)
+    execute_query(
+        cursor,
+        f"DELETE FROM hiding_spots WHERE id = {placeholder} AND track_id = {placeholder}",
+        (spot_id, track_id),
     )
     if cursor.rowcount == 0:
         conn.close()
