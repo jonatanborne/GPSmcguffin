@@ -397,16 +397,20 @@ const GeofenceEditor = () => {
                 const track = JSON.parse(localStorage.getItem(key) || '{}')
                 if (!track || !track.track_type) continue
 
+                // Extrahera lokalt ID från nyckeln (t.ex. "track_123" -> "123")
+                const localTrackId = key.replace('track_', '')
                 const trackId = track.id != null ? track.id.toString() : null
                 const isServerTrack = trackId && serverIds.has(trackId)
 
-                const positions = JSON.parse(localStorage.getItem(`track_${track.id}_positions`) || '[]')
+                // Använd lokalt ID för att hämta positioner (fungerar även om track.id är null)
+                const positions = JSON.parse(localStorage.getItem(`track_${localTrackId}_positions`) || '[]')
                 localEntries.push({
                     key,
                     track,
                     positions,
                     isServerTrack,
                     serverTrack: trackId ? serverTrackMap.get(trackId) : null,
+                    localTrackId, // Spara lokalt ID för senare användning
                 })
             }
 
@@ -476,15 +480,28 @@ const GeofenceEditor = () => {
                         serverTrackMap.set(serverIdStr, serverTrack)
                     }
 
+                    // Kontrollera antal positioner på servern
                     const existingPositionCount = serverTrack?.positions?.length || 0
-                    const shouldUploadPositions = entry.positions.length > existingPositionCount
+                    const localPositionCount = entry.positions.length
+                    const shouldUploadPositions = localPositionCount > existingPositionCount
+
+                    console.log(`Track ${entry.track.name || entry.track.id}: Lokala positioner: ${localPositionCount}, Server positioner: ${existingPositionCount}, Ska ladda upp: ${shouldUploadPositions}`)
 
                     if (shouldUploadPositions) {
                         const positionsToUpload = entry.positions.slice(existingPositionCount)
                         const totalPositions = positionsToUpload.length
 
+                        console.log(`Laddar upp ${totalPositions} positioner för track ${targetTrackId}`)
+
                         for (let i = 0; i < positionsToUpload.length; i++) {
                             const pos = positionsToUpload[i]
+
+                            // Se till att position har rätt format
+                            if (!pos.position || !pos.position.lat || !pos.position.lng) {
+                                console.warn(`Skippar ogiltig position ${i}:`, pos)
+                                continue
+                            }
+
                             try {
                                 await axios.post(`${API_BASE}/tracks/${targetTrackId}/positions`, {
                                     position: pos.position,
