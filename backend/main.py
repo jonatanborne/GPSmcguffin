@@ -185,8 +185,9 @@ def get_cursor(conn):
 def get_last_insert_id(cursor, table_name="id"):
     """Hämta ID från senaste INSERT - fungerar för både Postgres och SQLite"""
     if DATABASE_URL:
-        # Postgres: cursor.fetchone()[0] efter RETURNING id
-        return cursor.fetchone()[0] if cursor.rowcount > 0 else None
+        # Postgres: cursor.fetchone() returnerar dict-row
+        result = cursor.fetchone()
+        return result["id"] if result and cursor.rowcount > 0 else None
     else:
         # SQLite: lastrowid
         return cursor.lastrowid
@@ -567,7 +568,8 @@ def create_geofence(payload: GeofenceCreate):
         )
 
     if is_postgres:
-        geofence_id = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        geofence_id = result["id"] if result else None
     else:
         geofence_id = cursor.lastrowid
     conn.commit()
@@ -798,7 +800,8 @@ def create_track(payload: TrackCreate):
         )
 
         if is_postgres:
-            track_id = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            track_id = result["id"] if result else None
         else:
             track_id = cursor.lastrowid
         conn.commit()
@@ -1679,7 +1682,8 @@ def create_hiding_spot(track_id: int, payload: HidingSpotCreate):
     )
 
     if is_postgres:
-        spot_id = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        spot_id = result["id"] if result else None
     else:
         spot_id = cursor.lastrowid
     conn.commit()
