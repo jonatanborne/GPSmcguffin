@@ -30,8 +30,8 @@ app.add_middleware(
 # Om Postgres inte är länkad, försök använda publika URL:en eller manuellt satt POSTGRES_URL
 # Prioritering: DATABASE_URL (automatisk) -> DATABASE_PUBLIC_URL (publika) -> POSTGRES_URL (manuell)
 DATABASE_URL = (
-    os.getenv("DATABASE_URL") 
-    or os.getenv("DATABASE_PUBLIC_URL") 
+    os.getenv("DATABASE_URL")
+    or os.getenv("DATABASE_PUBLIC_URL")
     or os.getenv("POSTGRES_URL")
 )
 # Ta bort whitespace och nyrader från connection string
@@ -887,21 +887,45 @@ def rename_generic_tracks():
     cursor = get_cursor(conn)
     placeholder = "%s" if DATABASE_URL else "?"
 
-    # Hitta alla tracks med generiska namn
-    # Generiska namn innehåller "Track", "Människospår", "Hundspår", eller liknande
+    # Hämta alla tracks för att kontrollera vilka som har generiska namn
     execute_query(
-        cursor,
-        """
-        SELECT id, name, track_type, human_track_id
-        FROM tracks
-        WHERE name LIKE '%Track%' 
-           OR name LIKE '%Människospår%'
-           OR name LIKE '%Hundspår%'
-           OR name LIKE '%track%'
-        ORDER BY id
-        """,
+        cursor, "SELECT id, name, track_type, human_track_id FROM tracks ORDER BY id"
     )
-    generic_tracks = cursor.fetchall()
+    all_tracks = cursor.fetchall()
+
+    # Kontrollera vilka tracks som har generiska namn
+    # Generiska namn innehåller "Track", "Människospår", "Hundspår", "MÃ¤nniska", datum/tid, etc.
+    generic_tracks = []
+    for track in all_tracks:
+        name = track["name"]
+        # Kontrollera om namnet är generiskt
+        is_generic = (
+            "Track" in name
+            or "track" in name
+            or "Människospår" in name
+            or "Hundspår" in name
+            or "MÃ¤nniska" in name
+            or "Människa" in name
+            or "Dog" in name
+            or "dog" in name
+            or "Hund" in name
+            or
+            # Om namnet innehåller datum/tid-format (t.ex. "12:44:46" eller "- 12:44")
+            (":" in name and any(char.isdigit() for char in name))
+        )
+
+        # Om namnet inte är från våra listor med superhjältar/idrottsstjärnor eller djur
+        # och inte slutar med "hund" (för kopplade hundspår), så är det generiskt
+        if track["track_type"] == "human":
+            if not any(hero in name for hero in SUPERHEROES_AND_ATHLETES):
+                is_generic = True
+        elif track["track_type"] == "dog" and not track.get("human_track_id"):
+            # Separata hundspår
+            if not any(animal in name for animal in ANIMALS):
+                is_generic = True
+
+        if is_generic:
+            generic_tracks.append(track)
 
     if not generic_tracks:
         conn.close()
