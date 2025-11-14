@@ -76,16 +76,27 @@ const GeofenceEditor = () => {
             // Fortsätt med localStorage-tracks
         }
 
+        // Skapa en Set med server-track IDs för snabb lookup
+        const serverTrackIds = new Set(apiTracks.map(t => t.id?.toString()).filter(Boolean))
+
         // Ladda även tracks från localStorage (fallback och för lokala tracks)
         const localTracks = []
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i)
             if (key && key.startsWith('track_') && !key.includes('_positions')) {
                 const trackId = key.replace('track_', '')
-                // Hoppa över om track redan finns från API (via ID)
-                if (Array.isArray(apiTracks) && apiTracks.some(t => t.id.toString() === trackId)) continue
-
                 const track = JSON.parse(localStorage.getItem(key) || '{}')
+
+                // Hoppa över om track redan finns från API (via faktiskt track.id, inte localStorage-nyckeln)
+                if (track.id && serverTrackIds.has(track.id.toString())) {
+                    continue
+                }
+
+                // Hoppa över om track inte har nödvändig data
+                if (!track || !track.track_type) {
+                    continue
+                }
+
                 const positions = JSON.parse(localStorage.getItem(`track_${trackId}_positions`) || '[]')
                 track.positions = positions.map(p => ({
                     position: p.position,
@@ -98,6 +109,7 @@ const GeofenceEditor = () => {
 
         // Kombinera tracks från API och localStorage
         const allTracks = [...apiTracks, ...localTracks]
+        console.log(`Laddade ${apiTracks.length} spår från server och ${localTracks.length} spår från localStorage. Totalt: ${allTracks.length} spår`)
         setTracks(allTracks)
         return allTracks
     }
@@ -536,8 +548,8 @@ const GeofenceEditor = () => {
                         // Behåll lokala positioner om servern inte har dem eller om de lokala är fler
                         const serverPositions = refreshedTrack.positions || []
                         const localPositions = entry.positions || []
-                        const finalPositions = serverPositions.length >= localPositions.length 
-                            ? serverPositions 
+                        const finalPositions = serverPositions.length >= localPositions.length
+                            ? serverPositions
                             : localPositions
 
                         console.log(`Track ${targetTrackId}: Server har ${serverPositions.length} positioner, Lokalt har ${localPositions.length} positioner, Sparar ${finalPositions.length} positioner`)
@@ -555,9 +567,14 @@ const GeofenceEditor = () => {
                         )
 
                         // Ta bort gamla lokala spår endast om ID:et ändrades OCH positionerna laddades upp korrekt
-                        if (targetTrackId !== entry.track.id && serverPositions.length >= localPositions.length) {
-                            localStorage.removeItem(`track_${entry.track.id}`)
-                            localStorage.removeItem(`track_${entry.track.id}_positions`)
+                        // Använd localTrackId (från localStorage-nyckeln) istället för track.id
+                        const oldLocalId = entry.localTrackId || entry.track.id?.toString()
+                        if (oldLocalId && targetTrackId.toString() !== oldLocalId && serverPositions.length >= localPositions.length) {
+                            console.log(`Tar bort gamla lokala spår: track_${oldLocalId} (nytt ID: ${targetTrackId})`)
+                            localStorage.removeItem(`track_${oldLocalId}`)
+                            localStorage.removeItem(`track_${oldLocalId}_positions`)
+                        } else {
+                            console.log(`Behåller lokalt spår: track_${oldLocalId} (server ID: ${targetTrackId}, server pos: ${serverPositions.length}, lokal pos: ${localPositions.length})`)
                         }
                     }
                 } catch (error) {
