@@ -533,6 +533,15 @@ const GeofenceEditor = () => {
                     }
 
                     if (refreshedTrack) {
+                        // Behåll lokala positioner om servern inte har dem eller om de lokala är fler
+                        const serverPositions = refreshedTrack.positions || []
+                        const localPositions = entry.positions || []
+                        const finalPositions = serverPositions.length >= localPositions.length 
+                            ? serverPositions 
+                            : localPositions
+
+                        console.log(`Track ${targetTrackId}: Server har ${serverPositions.length} positioner, Lokalt har ${localPositions.length} positioner, Sparar ${finalPositions.length} positioner`)
+
                         localStorage.setItem(
                             `track_${targetTrackId}`,
                             JSON.stringify({
@@ -542,10 +551,11 @@ const GeofenceEditor = () => {
                         )
                         localStorage.setItem(
                             `track_${targetTrackId}_positions`,
-                            JSON.stringify(refreshedTrack.positions || [])
+                            JSON.stringify(finalPositions)
                         )
 
-                        if (targetTrackId !== entry.track.id) {
+                        // Ta bort gamla lokala spår endast om ID:et ändrades OCH positionerna laddades upp korrekt
+                        if (targetTrackId !== entry.track.id && serverPositions.length >= localPositions.length) {
                             localStorage.removeItem(`track_${entry.track.id}`)
                             localStorage.removeItem(`track_${entry.track.id}_positions`)
                         }
