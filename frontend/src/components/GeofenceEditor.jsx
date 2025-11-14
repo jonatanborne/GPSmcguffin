@@ -375,7 +375,7 @@ const GeofenceEditor = () => {
         setForceSyncMessage('Synkar lokala spår…')
 
         try {
-            const serverTracksResp = await axios.get(`${API_BASE}/tracks`, { timeout: 10000 })
+            const serverTracksResp = await axios.get(`${API_BASE}/tracks`, { timeout: 30000 })
             const serverTracks = Array.isArray(serverTracksResp.data) ? serverTracksResp.data : []
             const serverIds = new Set(serverTracks.map(track => track.id?.toString()).filter(Boolean))
             const serverTrackMap = new Map()
@@ -423,8 +423,11 @@ const GeofenceEditor = () => {
             })
 
             const skippedTracks = []
+            let processedCount = 0
 
             for (const entry of localEntries) {
+                processedCount++
+                setForceSyncMessage(`Synkar spår ${processedCount}/${localEntries.length}: ${entry.track.name || entry.track.id}…`)
                 const originalIdStr = entry.track.id != null ? entry.track.id.toString() : null
                 let humanTrackId = entry.track.human_track_id
 
@@ -455,7 +458,7 @@ const GeofenceEditor = () => {
                             track_type: entry.track.track_type,
                             name: entry.track.name || `${entry.track.track_type}-${originalIdStr || 'lokalt'}`,
                             human_track_id: humanTrackId ?? null,
-                        }, { timeout: 10000 })
+                        }, { timeout: 30000 })
 
                         serverTrack = createdTrackResp.data
                         if (!serverTrack || serverTrack.id == null) {
@@ -478,13 +481,22 @@ const GeofenceEditor = () => {
 
                     if (shouldUploadPositions) {
                         const positionsToUpload = entry.positions.slice(existingPositionCount)
+                        const totalPositions = positionsToUpload.length
 
-                        for (const pos of positionsToUpload) {
+                        for (let i = 0; i < positionsToUpload.length; i++) {
+                            const pos = positionsToUpload[i]
                             try {
                                 await axios.post(`${API_BASE}/tracks/${targetTrackId}/positions`, {
                                     position: pos.position,
                                     accuracy: pos.accuracy ?? null,
-                                }, { timeout: 10000 })
+                                }, { timeout: 30000 })
+
+                                // Uppdatera progress var 10:e position för att inte spamma UI
+                                if ((i + 1) % 10 === 0 || i === totalPositions - 1) {
+                                    setForceSyncMessage(
+                                        `Synkar spår ${processedCount}/${localEntries.length}: ${entry.track.name || entry.track.id}… (${i + 1}/${totalPositions} positioner)`
+                                    )
+                                }
                             } catch (positionError) {
                                 console.error('Kunde inte ladda upp position', positionError)
                             }
@@ -494,7 +506,7 @@ const GeofenceEditor = () => {
                     let refreshedTrack = serverTrack
 
                     try {
-                        const refreshedResp = await axios.get(`${API_BASE}/tracks/${targetTrackId}`, { timeout: 10000 })
+                        const refreshedResp = await axios.get(`${API_BASE}/tracks/${targetTrackId}`, { timeout: 30000 })
                         refreshedTrack = refreshedResp.data
                         if (refreshedTrack?.id != null) {
                             serverTrackMap.set(refreshedTrack.id.toString(), refreshedTrack)
