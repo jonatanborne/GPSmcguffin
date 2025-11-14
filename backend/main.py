@@ -206,6 +206,17 @@ def execute_query(cursor, query, params=None):
         cursor.execute(query)
 
 
+def get_row_value(row, key):
+    """Hämta värde från row - fungerar för både Postgres (dict) och SQLite (tuple/list)"""
+    if DATABASE_URL:
+        # Postgres: row är en dict
+        return row[key]
+    else:
+        # SQLite: row är en tuple/list, vi behöver index
+        # För "name" kolumnen (första kolumnen i SELECT name) använd index 0
+        return row[0]
+
+
 def init_db():
     """Initialisera databasen med tabeller"""
     conn = get_db()
@@ -736,7 +747,7 @@ def create_track(payload: TrackCreate):
             # Människospår: välj från superhjältar/idrottsstjärnor
             # Hämta alla befintliga namn för att undvika dubbletter
             execute_query(cursor, "SELECT name FROM tracks WHERE track_type = 'human'")
-            existing_names = {row["name"] for row in cursor.fetchall()}
+            existing_names = {get_row_value(row, "name") for row in cursor.fetchall()}
 
             # Välj ett namn som inte redan används
             available_names = [
@@ -756,7 +767,7 @@ def create_track(payload: TrackCreate):
             )
             human_track = cursor.fetchone()
             if human_track:
-                human_name = human_track["name"]
+                human_name = get_row_value(human_track, "name")
                 # Lägg till "s hund" om namnet inte slutar på s, annars bara " hund"
                 if human_name.lower().endswith("s"):
                     name = f"{human_name} hund"
@@ -768,7 +779,9 @@ def create_track(payload: TrackCreate):
                     cursor,
                     "SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL",
                 )
-                existing_names = {row["name"] for row in cursor.fetchall()}
+                existing_names = {
+                    get_row_value(row, "name") for row in cursor.fetchall()
+                }
                 available_names = [n for n in ANIMALS if n not in existing_names]
                 name = (
                     random.choice(available_names)
@@ -782,7 +795,7 @@ def create_track(payload: TrackCreate):
                 cursor,
                 "SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL",
             )
-            existing_names = {row["name"] for row in cursor.fetchall()}
+            existing_names = {get_row_value(row, "name") for row in cursor.fetchall()}
             available_names = [n for n in ANIMALS if n not in existing_names]
             if available_names:
                 name = random.choice(available_names)
@@ -950,7 +963,7 @@ def rename_generic_tracks():
                 f"SELECT name FROM tracks WHERE track_type = 'human' AND id != {placeholder}",
                 (track_id,),
             )
-            existing_names = {row["name"] for row in cursor.fetchall()}
+            existing_names = {get_row_value(row, "name") for row in cursor.fetchall()}
 
             # Välj ett namn som inte redan används
             available_names = [
@@ -976,7 +989,7 @@ def rename_generic_tracks():
             )
             human_track = cursor.fetchone()
             if human_track:
-                human_name = human_track["name"]
+                human_name = get_row_value(human_track, "name")
                 if human_name.lower().endswith("s"):
                     new_name = f"{human_name} hund"
                 else:
@@ -988,7 +1001,9 @@ def rename_generic_tracks():
                     f"SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL AND id != {placeholder}",
                     (track_id,),
                 )
-                existing_names = {row["name"] for row in cursor.fetchall()}
+                existing_names = {
+                    get_row_value(row, "name") for row in cursor.fetchall()
+                }
                 available_names = [n for n in ANIMALS if n not in existing_names]
                 if available_names:
                     new_name = random.choice(available_names)
@@ -1007,7 +1022,7 @@ def rename_generic_tracks():
                 f"SELECT name FROM tracks WHERE track_type = 'dog' AND human_track_id IS NULL AND id != {placeholder}",
                 (track_id,),
             )
-            existing_names = {row["name"] for row in cursor.fetchall()}
+            existing_names = {get_row_value(row, "name") for row in cursor.fetchall()}
             available_names = [n for n in ANIMALS if n not in existing_names]
             if available_names:
                 new_name = random.choice(available_names)
