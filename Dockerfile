@@ -21,5 +21,6 @@ COPY backend/ ./backend/
 EXPOSE 8000
 
 # Run the application using Python script that reads PORT
-CMD python backend/run.py
+# Use absolute path and python3 explicitly
+CMD ["python3", "/app/backend/run.py"]
 
