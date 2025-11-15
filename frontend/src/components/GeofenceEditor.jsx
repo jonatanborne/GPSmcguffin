@@ -1664,7 +1664,10 @@ const GeofenceEditor = () => {
 
                         {trackType === 'dog' && !isTracking && (
                             <div className="mb-3">
-                                <label className="block text-sm font-medium mb-1">Gå spåret:</label>
+                                <label className="block text-sm font-medium mb-1">
+                                    Välj människaspår att följa:
+                                    <span className="text-xs text-gray-500 ml-2">Krävs för jämförelse</span>
+                                </label>
                                 <select
                                     value={humanTrackForDog?.id || ''}
                                     onChange={(e) => {
@@ -1672,8 +1675,9 @@ const GeofenceEditor = () => {
                                         setHumanTrackForDog(selectedTrack)
                                     }}
                                     className="w-full px-3 py-2 border rounded"
+                                    required
                                 >
-                                    <option value="">Välj människaspår...</option>
+                                    <option value="">-- Välj människaspår --</option>
                                     {tracks
                                         .filter(t => t.track_type === 'human')
                                         .map(track => (
@@ -1683,6 +1687,11 @@ const GeofenceEditor = () => {
                                         ))
                                     }
                                 </select>
+                                {tracks.filter(t => t.track_type === 'human').length === 0 && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        Inga människaspår finns. Skapa ett människaspår först!
+                                    </p>
+                                )}
                             </div>
                         )}
 
