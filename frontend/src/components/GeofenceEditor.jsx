@@ -499,6 +499,11 @@ const GeofenceEditor = () => {
 
                     console.log(`Track ${entry.track.name || entry.track.id}: Lokala positioner: ${localPositionCount}, Server positioner: ${existingPositionCount}, Ska ladda upp: ${shouldUploadPositions}`)
 
+                    // Variabler för att spåra uppladdningsresultat (definieras utanför if för att vara tillgängliga senare)
+                    let successfullyUploaded = 0
+                    let failedUploads = 0
+                    const invalidPositions = []
+
                     if (shouldUploadPositions) {
                         const positionsToUpload = entry.positions.slice(existingPositionCount)
                         const totalPositions = positionsToUpload.length
@@ -508,28 +513,85 @@ const GeofenceEditor = () => {
                         for (let i = 0; i < positionsToUpload.length; i++) {
                             const pos = positionsToUpload[i]
 
-                            // Se till att position har rätt format
-                            if (!pos.position || !pos.position.lat || !pos.position.lng) {
-                                console.warn(`Skippar ogiltig position ${i}:`, pos)
+                            // Validera position-format
+                            if (!pos || !pos.position) {
+                                console.warn(`Position ${i} saknar position-objekt:`, pos)
+                                invalidPositions.push({ index: i, reason: 'Saknar position-objekt', data: pos })
+                                continue
+                            }
+
+                            if (typeof pos.position.lat !== 'number' || typeof pos.position.lng !== 'number') {
+                                console.warn(`Position ${i} har ogiltiga koordinater:`, pos.position)
+                                invalidPositions.push({ index: i, reason: 'Ogiltiga koordinater', data: pos })
+                                continue
+                            }
+
+                            if (isNaN(pos.position.lat) || isNaN(pos.position.lng)) {
+                                console.warn(`Position ${i} har NaN-koordinater:`, pos.position)
+                                invalidPositions.push({ index: i, reason: 'NaN-koordinater', data: pos })
+                                continue
+                            }
+
+                            // Validera att koordinater är rimliga (lat: -90 till 90, lng: -180 till 180)
+                            if (pos.position.lat < -90 || pos.position.lat > 90 ||
+                                pos.position.lng < -180 || pos.position.lng > 180) {
+                                console.warn(`Position ${i} har koordinater utanför giltigt intervall:`, pos.position)
+                                invalidPositions.push({ index: i, reason: 'Koordinater utanför giltigt intervall', data: pos })
                                 continue
                             }
 
                             try {
-                                await axios.post(`${API_BASE}/tracks/${targetTrackId}/positions`, {
+                                const response = await axios.post(`${API_BASE}/tracks/${targetTrackId}/positions`, {
                                     position: pos.position,
                                     accuracy: pos.accuracy ?? null,
                                 }, { timeout: 30000 })
 
+                                if (response.status === 200 || response.status === 201) {
+                                    successfullyUploaded++
+                                } else {
+                                    failedUploads++
+                                    console.error(`Position ${i} returnerade status ${response.status}`)
+                                }
+
                                 // Uppdatera progress var 10:e position för att inte spamma UI
                                 if ((i + 1) % 10 === 0 || i === totalPositions - 1) {
                                     setForceSyncMessage(
-                                        `Synkar spår ${processedCount}/${localEntries.length}: ${entry.track.name || entry.track.id}… (${i + 1}/${totalPositions} positioner)`
+                                        `Synkar spår ${processedCount}/${localEntries.length}: ${entry.track.name || entry.track.id}… (${i + 1}/${totalPositions} positioner, ${successfullyUploaded} uppladdade)`
                                     )
                                 }
                             } catch (positionError) {
-                                console.error('Kunde inte ladda upp position', positionError)
+                                failedUploads++
+                                console.error(`Kunde inte ladda upp position ${i}:`, positionError.response?.data || positionError.message)
+
+                                // Om det är ett 400/500-fel, logga mer detaljer
+                                if (positionError.response) {
+                                    console.error(`Server svarade med status ${positionError.response.status}:`, positionError.response.data)
+                                }
                             }
                         }
+
+                        // Logga sammanfattning
+                        console.log(`Position-uppladdning klar för track ${targetTrackId}:`)
+                        console.log(`  - Totalt: ${totalPositions}`)
+                        console.log(`  - Framgångsrikt: ${successfullyUploaded}`)
+                        console.log(`  - Misslyckades: ${failedUploads}`)
+                        console.log(`  - Ogiltiga: ${invalidPositions.length}`)
+
+                        if (invalidPositions.length > 0) {
+                            console.warn('Ogiltiga positioner:', invalidPositions)
+                        }
+
+                        // Varning om många positioner misslyckades
+                        if (failedUploads > 0 || invalidPositions.length > 0) {
+                            const errorMsg = `Varning: ${failedUploads} positioner misslyckades och ${invalidPositions.length} var ogiltiga för spår ${entry.track.name || entry.track.id}`
+                            console.warn(errorMsg)
+                            skippedTracks.push({
+                                track: entry.track,
+                                reason: `${failedUploads} positioner misslyckades, ${invalidPositions.length} ogiltiga`
+                            })
+                        }
+                    } else {
+                        console.log(`Inga positioner att ladda upp för track ${targetTrackId} (lokal: ${localPositionCount}, server: ${existingPositionCount})`)
                     }
 
                     let refreshedTrack = serverTrack
@@ -548,6 +610,28 @@ const GeofenceEditor = () => {
                         // Behåll lokala positioner om servern inte har dem eller om de lokala är fler
                         const serverPositions = refreshedTrack.positions || []
                         const localPositions = entry.positions || []
+
+                        // Verifiera att positionerna faktiskt laddades upp
+                        if (shouldUploadPositions && successfullyUploaded > 0) {
+                            const expectedServerCount = existingPositionCount + successfullyUploaded
+                            if (serverPositions.length < expectedServerCount) {
+                                console.warn(`⚠️ VARNING: Förväntade ${expectedServerCount} positioner på servern, men hittade bara ${serverPositions.length} för track ${targetTrackId}`)
+                                console.warn(`   - Laddade upp ${successfullyUploaded} positioner`)
+                                console.warn(`   - Server hade ${existingPositionCount} positioner innan`)
+                                console.warn(`   - Server har nu ${serverPositions.length} positioner`)
+
+                                // Lägg till i skippedTracks om positionerna inte matchar
+                                if (!skippedTracks.some(st => st.track.id === entry.track.id)) {
+                                    skippedTracks.push({
+                                        track: entry.track,
+                                        reason: `Positioner laddades inte upp korrekt: förväntade ${expectedServerCount}, fick ${serverPositions.length}`
+                                    })
+                                }
+                            } else {
+                                console.log(`✅ Verifiering OK: Server har ${serverPositions.length} positioner (förväntade ${expectedServerCount})`)
+                            }
+                        }
+
                         const finalPositions = serverPositions.length >= localPositions.length
                             ? serverPositions
                             : localPositions
