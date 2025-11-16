@@ -589,7 +589,7 @@ const TestLab = () => {
     }
 
     const handleCorrectionDragEnd = async () => {
-        if (!draggableMarkerRef.current || !selectedPosition) return
+        if (!draggableMarkerRef.current || !selectedPositionId || !selectedPositionTrackType) return
 
         // Ta bort snap-indikator
         if (snapIndicatorRef.current) {
@@ -610,7 +610,8 @@ const TestLab = () => {
             }
         }
 
-        await saveAnnotation(selectedPosition.id, {
+        // Använd selectedPositionId direkt för att säkerställa att vi sparar för rätt position
+        await saveAnnotation(selectedPositionId, {
             verified_status: 'incorrect',
             corrected_position: { lat, lng },
             annotation_notes: notes,
@@ -643,7 +644,7 @@ const TestLab = () => {
     }
 
     const handleMarkCorrect = async () => {
-        if (!selectedPosition) return
+        if (!selectedPositionId || !selectedPositionTrackType || !selectedPosition) return
 
         const payload = {
             verified_status: 'correct',
@@ -692,8 +693,8 @@ const TestLab = () => {
             payload.clear_correction = true
         }
 
-        // Spara korrigeringen
-        await saveAnnotation(selectedPosition.id, payload, 'Markerad som korrekt.')
+        // Spara korrigeringen - använd selectedPositionId direkt för att säkerställa rätt position
+        await saveAnnotation(selectedPositionId, payload, 'Markerad som korrekt.')
 
         // Stäng av justering EFTER att korrigeringen har sparats
         // Men behåll markören på sin korrigerade position om den har flyttats
@@ -712,16 +713,16 @@ const TestLab = () => {
     }
 
     const handleMarkIncorrect = () => {
-        if (!selectedPosition) return
-        saveAnnotation(selectedPosition.id, {
+        if (!selectedPositionId) return
+        saveAnnotation(selectedPositionId, {
             verified_status: 'incorrect',
             annotation_notes: notes,
         }, 'Markerad som fel.')
     }
 
     const handleResetCorrection = () => {
-        if (!selectedPosition) return
-        saveAnnotation(selectedPosition.id, {
+        if (!selectedPositionId) return
+        saveAnnotation(selectedPositionId, {
             verified_status: 'pending',
             clear_correction: true,
             annotation_notes: notes,
@@ -729,8 +730,8 @@ const TestLab = () => {
     }
 
     const handleSaveNotes = () => {
-        if (!selectedPosition) return
-        saveAnnotation(selectedPosition.id, {
+        if (!selectedPositionId) return
+        saveAnnotation(selectedPositionId, {
             annotation_notes: notes,
         }, 'Anteckningar sparade.')
     }
