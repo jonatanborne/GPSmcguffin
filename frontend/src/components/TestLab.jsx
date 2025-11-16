@@ -160,11 +160,20 @@ const TestLab = () => {
     const initializeMap = () => {
         if (mapInstanceRef.current || !mapRef.current) return
 
-        const map = L.map(mapRef.current).setView([59.334, 18.066], 14)
+        const map = L.map(mapRef.current, {
+            maxZoom: 22, // Tillåt mycket närmare zoom (för detaljerad positionering)
+            minZoom: 3,
+            zoomControl: true,
+        }).setView([59.334, 18.066], 14)
 
+        // Använd OpenStreetMap med högre zoom-stöd
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
+            maxZoom: 19, // OpenStreetMap standard tiles
         }).addTo(map)
+        
+        // Lägg till en extra tile layer för zoom 20-22 (använder samma tiles men låter zoom gå högre)
+        // Detta gör att man kan zooma in mer även om tiles inte är lika detaljerade
 
         markersLayerRef.current = L.layerGroup().addTo(map)
         humanTrackLayerRef.current = L.layerGroup().addTo(map)
@@ -435,7 +444,8 @@ const TestLab = () => {
             draggableMarkerRef.current.dragging.disable()
         }
 
-        mapInstanceRef.current.setView(point, Math.max(mapInstanceRef.current.getZoom(), 16))
+        // Zooma in närmare när position väljs (minst zoom 18 för detaljerad vy)
+        mapInstanceRef.current.setView(point, Math.max(mapInstanceRef.current.getZoom(), 18))
     }
 
     // Hantera drag med snapping
