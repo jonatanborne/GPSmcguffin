@@ -319,26 +319,31 @@ const TestLab = () => {
             const isSelected = selectedPositionId === pos.id && selectedPositionTrackType === 'human'
             const trackColor = '#ef4444' // Röd för människaspår
 
-            // Original point marker (smaller, grey) - only show if corrected
+            // Original point marker (smaller, grey) - alltid visa original om korrigerad finns
             if (pos.corrected_position) {
+                // Original position - alltid visa som liten grå punkt
                 L.circleMarker(originalLatLng, {
                     radius: 3,
                     color: '#64748b',
                     fillColor: '#94a3b8',
-                    fillOpacity: 0.4,
-                    weight: 1,
-                }).addTo(markersLayerRef.current)
-
-                // Line showing correction offset
-                L.polyline([originalLatLng, correctedLatLng], {
-                    color: statusColor,
-                    dashArray: '4, 4',
+                    fillOpacity: 0.6,
                     weight: 1.5,
-                    opacity: 0.5,
+                }).bindTooltip(
+                    `<div style="text-align: center; font-size: 11px;">🚶 Original #${positionNumber}</div>`,
+                    { direction: 'top', offset: [0, -5] }
+                ).addTo(markersLayerRef.current)
+
+                // Line showing correction offset (streckad linje från original till korrigerad)
+                L.polyline([originalLatLng, correctedLatLng], {
+                    color: '#f59e0b', // Amber för att visa korrigering
+                    dashArray: '5, 5',
+                    weight: 2,
+                    opacity: 0.7,
                 }).addTo(markersLayerRef.current)
             }
 
-            // Main marker: röd bas för människaspår, röd border (spår-färg)
+            // Main marker: visa korrigerad position om den finns, annars original
+            // Om korrigerad finns, visa den som huvudmarkör (större, tydligare)
             const radius = isSelected ? 5 : 4
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
@@ -353,17 +358,20 @@ const TestLab = () => {
             })
 
             // Enhanced tooltip with icon (använd relativt nummer)
-            marker.bindTooltip(
-                `<div style="text-align: center; font-weight: bold;">
+            const tooltipText = pos.corrected_position
+                ? `<div style="text-align: center; font-weight: bold;">
+                    🚶 ${icon} #${positionNumber} (Korrigerad)<br/>
+                    <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                </div>`
+                : `<div style="text-align: center; font-weight: bold;">
                     🚶 ${icon} #${positionNumber}<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
-                </div>`,
-                {
-                    direction: 'top',
-                    offset: [0, -10],
-                    className: 'custom-tooltip',
-                }
-            )
+                </div>`
+            marker.bindTooltip(tooltipText, {
+                direction: 'top',
+                offset: [0, -10],
+                className: 'custom-tooltip',
+            })
 
             marker.addTo(markersLayerRef.current)
         })
@@ -382,26 +390,31 @@ const TestLab = () => {
             const isSelected = selectedPositionId === pos.id && selectedPositionTrackType === 'dog'
             const trackColor = '#8b5cf6' // Lila för hundspår
 
-            // Original point marker (smaller, grey) - only show if corrected
+            // Original point marker (smaller, grey) - alltid visa original om korrigerad finns
             if (pos.corrected_position) {
+                // Original position - alltid visa som liten grå punkt
                 L.circleMarker(originalLatLng, {
                     radius: 3,
                     color: '#64748b',
                     fillColor: '#94a3b8',
-                    fillOpacity: 0.4,
-                    weight: 1,
-                }).addTo(markersLayerRef.current)
-
-                // Line showing correction offset
-                L.polyline([originalLatLng, correctedLatLng], {
-                    color: statusColor,
-                    dashArray: '4, 4',
+                    fillOpacity: 0.6,
                     weight: 1.5,
-                    opacity: 0.5,
+                }).bindTooltip(
+                    `<div style="text-align: center; font-size: 11px;">🐕 Original #${positionNumber}</div>`,
+                    { direction: 'top', offset: [0, -5] }
+                ).addTo(markersLayerRef.current)
+
+                // Line showing correction offset (streckad linje från original till korrigerad)
+                L.polyline([originalLatLng, correctedLatLng], {
+                    color: '#f59e0b', // Amber för att visa korrigering
+                    dashArray: '5, 5',
+                    weight: 2,
+                    opacity: 0.7,
                 }).addTo(markersLayerRef.current)
             }
 
-            // Main marker: lila bas för hundspår, lila border (spår-färg)
+            // Main marker: visa korrigerad position om den finns, annars original
+            // Om korrigerad finns, visa den som huvudmarkör (större, tydligare)
             const radius = isSelected ? 5 : 4
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
@@ -416,17 +429,20 @@ const TestLab = () => {
             })
 
             // Enhanced tooltip with icon (använd relativt nummer)
-            marker.bindTooltip(
-                `<div style="text-align: center; font-weight: bold;">
+            const tooltipText = pos.corrected_position
+                ? `<div style="text-align: center; font-weight: bold;">
+                    🐕 ${icon} #${positionNumber} (Korrigerad)<br/>
+                    <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                </div>`
+                : `<div style="text-align: center; font-weight: bold;">
                     🐕 ${icon} #${positionNumber}<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
-                </div>`,
-                {
-                    direction: 'top',
-                    offset: [0, -10],
-                    className: 'custom-tooltip',
-                }
-            )
+                </div>`
+            marker.bindTooltip(tooltipText, {
+                direction: 'top',
+                offset: [0, -10],
+                className: 'custom-tooltip',
+            })
 
             marker.addTo(markersLayerRef.current)
         })
@@ -550,8 +566,13 @@ const TestLab = () => {
             setError(null)
             setMessage(null)
 
+            // Spara korrigeringen till backend
             await axios.put(`${API_BASE}/track-positions/${positionId}`, payload)
+
+            // Uppdatera spåret och behåll vald position
+            // Detta kommer automatiskt trigga useEffect som renderar markörerna
             await refreshCurrentTrack(positionId, selectedPositionTrackType)
+
             setMessage(successMessage)
         } catch (err) {
             console.error('Kunde inte uppdatera positionen:', err)
