@@ -234,7 +234,8 @@ const TestLab = () => {
 
         markersLayerRef.current.clearLayers()
 
-        positions.forEach((pos) => {
+        positions.forEach((pos, index) => {
+            const positionNumber = index + 1 // Relativt nummer inom spåret (1, 2, 3...)
             const originalLatLng = [pos.position.lat, pos.position.lng]
             const correctedLatLng = pos.corrected_position
                 ? [pos.corrected_position.lat, pos.corrected_position.lng]
@@ -278,10 +279,10 @@ const TestLab = () => {
                 handleSelectPosition(pos.id)
             })
 
-            // Enhanced tooltip with icon
+            // Enhanced tooltip with icon (använd relativt nummer)
             marker.bindTooltip(
                 `<div style="text-align: center; font-weight: bold;">
-                    ${icon} #${pos.id}<br/>
+                    ${icon} #${positionNumber}<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
                 </div>`,
                 {
@@ -499,8 +500,8 @@ const TestLab = () => {
                                     <button
                                         onClick={() => setSnappingEnabled(!snappingEnabled)}
                                         className={`px-3 py-1 rounded text-[10px] font-semibold ${snappingEnabled
-                                                ? 'bg-green-600 text-white'
-                                                : 'bg-slate-200 text-slate-600'
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-slate-200 text-slate-600'
                                             }`}
                                     >
                                         {snappingEnabled ? 'På' : 'Av'}
@@ -545,9 +546,10 @@ const TestLab = () => {
                                 Inga positioner laddade.
                             </div>
                         )}
-                        {positions.map((pos) => {
+                        {positions.map((pos, index) => {
                             const status = pos.verified_status || 'pending'
                             const isSelected = pos.id === selectedPositionId
+                            const positionNumber = index + 1 // Relativt nummer inom spåret (1, 2, 3...)
                             return (
                                 <button
                                     key={pos.id}
@@ -558,7 +560,7 @@ const TestLab = () => {
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium text-slate-700 flex items-center gap-1">
                                             <span>{STATUS_ICONS[status]}</span>
-                                            <span>#{pos.id}</span>
+                                            <span>#{positionNumber}</span>
                                         </span>
                                         <span
                                             className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
@@ -580,87 +582,91 @@ const TestLab = () => {
                     </div>
                 </div>
 
-                {selectedPosition && (
-                    <div className="bg-white border border-slate-200 rounded p-3 space-y-3 text-xs">
-                        <div>
-                            <div className="font-semibold text-slate-700 flex items-center gap-2">
-                                <span className="text-lg">{STATUS_ICONS[selectedPosition.verified_status || 'pending']}</span>
-                                <span>Position #{selectedPosition.id}</span>
-                            </div>
-                            <div className="mt-2 space-y-1">
-                                <div className="text-slate-600 text-[11px]">
-                                    <span className="font-medium">Status:</span>{' '}
-                                    <span
-                                        className="px-2 py-0.5 rounded text-[10px] font-semibold"
-                                        style={{
-                                            backgroundColor: STATUS_BG_COLORS[selectedPosition.verified_status || 'pending'],
-                                            color: STATUS_COLORS[selectedPosition.verified_status || 'pending'],
-                                        }}
-                                    >
-                                        {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
-                                    </span>
+                {selectedPosition && (() => {
+                    const positionIndex = positions.findIndex(p => p.id === selectedPosition.id)
+                    const positionNumber = positionIndex >= 0 ? positionIndex + 1 : '?'
+                    return (
+                        <div className="bg-white border border-slate-200 rounded p-3 space-y-3 text-xs">
+                            <div>
+                                <div className="font-semibold text-slate-700 flex items-center gap-2">
+                                    <span className="text-lg">{STATUS_ICONS[selectedPosition.verified_status || 'pending']}</span>
+                                    <span>Position #{positionNumber}</span>
                                 </div>
-                                <div className="text-slate-500 text-[11px]">
-                                    <span className="font-medium">Rå:</span> {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
-                                </div>
-                                {selectedPosition.corrected_position && (
-                                    <div className="text-slate-500 text-[11px]">
-                                        <span className="font-medium">Korrigerad:</span> {selectedPosition.corrected_position.lat.toFixed(6)}, {selectedPosition.corrected_position.lng.toFixed(6)}
+                                <div className="mt-2 space-y-1">
+                                    <div className="text-slate-600 text-[11px]">
+                                        <span className="font-medium">Status:</span>{' '}
+                                        <span
+                                            className="px-2 py-0.5 rounded text-[10px] font-semibold"
+                                            style={{
+                                                backgroundColor: STATUS_BG_COLORS[selectedPosition.verified_status || 'pending'],
+                                                color: STATUS_COLORS[selectedPosition.verified_status || 'pending'],
+                                            }}
+                                        >
+                                            {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
+                                        </span>
                                     </div>
-                                )}
+                                    <div className="text-slate-500 text-[11px]">
+                                        <span className="font-medium">Rå:</span> {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
+                                    </div>
+                                    {selectedPosition.corrected_position && (
+                                        <div className="text-slate-500 text-[11px]">
+                                            <span className="font-medium">Korrigerad:</span> {selectedPosition.corrected_position.lat.toFixed(6)}, {selectedPosition.corrected_position.lng.toFixed(6)}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={handleMarkCorrect}
+                                    disabled={loading}
+                                    className="px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300"
+                                >
+                                    ✅ Markera som korrekt
+                                </button>
+                                <button
+                                    onClick={handleMarkIncorrect}
+                                    disabled={loading}
+                                    className="px-3 py-2 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:bg-red-300"
+                                >
+                                    ❌ Markera som fel
+                                </button>
+                                <button
+                                    onClick={() => setIsAdjusting((prev) => !prev)}
+                                    disabled={loading}
+                                    className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                        } disabled:bg-blue-200`}
+                                >
+                                    {isAdjusting ? '✅ Klar med justering' : '🎯 Justera position på kartan'}
+                                </button>
+                                <button
+                                    onClick={handleResetCorrection}
+                                    disabled={loading}
+                                    className="px-3 py-2 rounded bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 disabled:bg-slate-100"
+                                >
+                                    ↩️ Återställ korrigering
+                                </button>
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] text-slate-600 mb-1">Anteckningar</label>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    className="w-full border border-slate-300 rounded px-2 py-1 text-xs"
+                                    rows={3}
+                                />
+                                <button
+                                    onClick={handleSaveNotes}
+                                    disabled={loading}
+                                    className="mt-2 px-3 py-2 rounded bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:bg-purple-300"
+                                >
+                                    💾 Spara anteckningar
+                                </button>
                             </div>
                         </div>
-
-                        <div className="flex flex-col gap-2">
-                            <button
-                                onClick={handleMarkCorrect}
-                                disabled={loading}
-                                className="px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300"
-                            >
-                                ✅ Markera som korrekt
-                            </button>
-                            <button
-                                onClick={handleMarkIncorrect}
-                                disabled={loading}
-                                className="px-3 py-2 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:bg-red-300"
-                            >
-                                ❌ Markera som fel
-                            </button>
-                            <button
-                                onClick={() => setIsAdjusting((prev) => !prev)}
-                                disabled={loading}
-                                className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                    } disabled:bg-blue-200`}
-                            >
-                                {isAdjusting ? '✅ Klar med justering' : '🎯 Justera position på kartan'}
-                            </button>
-                            <button
-                                onClick={handleResetCorrection}
-                                disabled={loading}
-                                className="px-3 py-2 rounded bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 disabled:bg-slate-100"
-                            >
-                                ↩️ Återställ korrigering
-                            </button>
-                        </div>
-
-                        <div>
-                            <label className="block text-[11px] text-slate-600 mb-1">Anteckningar</label>
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                className="w-full border border-slate-300 rounded px-2 py-1 text-xs"
-                                rows={3}
-                            />
-                            <button
-                                onClick={handleSaveNotes}
-                                disabled={loading}
-                                className="mt-2 px-3 py-2 rounded bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:bg-purple-300"
-                            >
-                                💾 Spara anteckningar
-                            </button>
-                        </div>
-                    </div>
-                )}
+                    )
+                })()}
 
                 {(message || error) && (
                     <div
