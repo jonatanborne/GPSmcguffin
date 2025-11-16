@@ -480,6 +480,30 @@ const TestLab = () => {
             marker.addTo(mapInstanceRef.current)
             draggableMarkerRef.current = marker
         } else {
+            // Om markören redan finns, kontrollera om den har flyttats från original positionen
+            // Om den har flyttats mer än 1 meter, behåll den där den är (förhindrar att den hoppar tillbaka)
+            const currentMarkerPos = draggableMarkerRef.current.getLatLng()
+            const originalPos = [selectedPosition.position.lat, selectedPosition.position.lng]
+            const distance = haversineDistance(
+                { lat: currentMarkerPos.lat, lng: currentMarkerPos.lng },
+                { lat: originalPos[0], lng: originalPos[1] }
+            )
+
+            // Om markören har flyttats mer än 1 meter från original positionen,
+            // och användaren justerar positionen (isAdjusting) ELLER det finns en korrigerad position,
+            // behåll markören där den är
+            if (distance > 1 && (isAdjusting || selectedPosition.corrected_position)) {
+                // Behåll markören där den är, uppdatera inte positionen
+                // Men aktivera/deaktivera dragging baserat på isAdjusting
+                if (isAdjusting) {
+                    draggableMarkerRef.current.dragging.enable()
+                } else {
+                    draggableMarkerRef.current.dragging.disable()
+                }
+                return
+            }
+
+            // Annars, uppdatera markörens position till korrigerad eller original
             draggableMarkerRef.current.setLatLng(point)
         }
 
@@ -583,53 +607,73 @@ const TestLab = () => {
         }
     }
 
-    const handleMarkCorrect = () => {
+    const handleMarkCorrect = async () => {
         if (!selectedPosition) return
-        
+
         const payload = {
             verified_status: 'correct',
             annotation_notes: notes,
         }
-        
+
         // Om draggable marker finns och har flyttats från original positionen,
         // spara den korrigerade positionen
+        let correctedPos = null
         if (draggableMarkerRef.current) {
             const markerLatLng = draggableMarkerRef.current.getLatLng()
             const originalLatLng = [selectedPosition.position.lat, selectedPosition.position.lng]
             const currentLatLng = [markerLatLng.lat, markerLatLng.lng]
-            
+
             // Kontrollera om markören har flyttats (mer än 1 meter skillnad)
             const distance = haversineDistance(
                 { lat: originalLatLng[0], lng: originalLatLng[1] },
                 { lat: currentLatLng[0], lng: currentLatLng[1] }
             )
-            
+
             if (distance > 1) {
                 // Markören har flyttats, spara den korrigerade positionen
-                payload.corrected_position = { lat: currentLatLng[0], lng: currentLatLng[1] }
+                correctedPos = { lat: currentLatLng[0], lng: currentLatLng[1] }
+                payload.corrected_position = correctedPos
             } else if (selectedPosition.corrected_position) {
                 // Markören är på original positionen men det finns en gammal korrigering,
                 // behåll den gamla korrigeringen
-                payload.corrected_position = {
+                correctedPos = {
                     lat: selectedPosition.corrected_position.lat,
                     lng: selectedPosition.corrected_position.lng,
                 }
+                payload.corrected_position = correctedPos
             } else {
                 // Ingen korrigering, säkerställ att ingen korrigering finns
                 payload.clear_correction = true
             }
         } else if (selectedPosition.corrected_position) {
             // Ingen draggable marker men det finns en korrigerad position, behåll den
-            payload.corrected_position = {
+            correctedPos = {
                 lat: selectedPosition.corrected_position.lat,
                 lng: selectedPosition.corrected_position.lng,
             }
+            payload.corrected_position = correctedPos
         } else {
             // Ingen korrigering, säkerställ att ingen korrigering finns
             payload.clear_correction = true
         }
-        
-        saveAnnotation(selectedPosition.id, payload, 'Markerad som korrekt.')
+
+        // Spara korrigeringen
+        await saveAnnotation(selectedPosition.id, payload, 'Markerad som korrekt.')
+
+        // Stäng av justering EFTER att korrigeringen har sparats
+        // Men behåll markören på sin korrigerade position om den har flyttats
+        setIsAdjusting(false)
+
+        // Om markören har flyttats, uppdatera den lokalt så den stannar på korrigerad position
+        // även efter att selectedPosition har uppdaterats
+        if (correctedPos && draggableMarkerRef.current) {
+            // Vänta lite för att selectedPosition ska uppdateras
+            setTimeout(() => {
+                if (draggableMarkerRef.current) {
+                    draggableMarkerRef.current.setLatLng([correctedPos.lat, correctedPos.lng])
+                }
+            }, 100)
+        }
     }
 
     const handleMarkIncorrect = () => {
