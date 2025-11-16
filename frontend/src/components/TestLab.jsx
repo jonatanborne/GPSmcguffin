@@ -585,11 +585,51 @@ const TestLab = () => {
 
     const handleMarkCorrect = () => {
         if (!selectedPosition) return
-        saveAnnotation(selectedPosition.id, {
+        
+        const payload = {
             verified_status: 'correct',
-            clear_correction: true,
             annotation_notes: notes,
-        }, 'Markerad som korrekt.')
+        }
+        
+        // Om draggable marker finns och har flyttats från original positionen,
+        // spara den korrigerade positionen
+        if (draggableMarkerRef.current) {
+            const markerLatLng = draggableMarkerRef.current.getLatLng()
+            const originalLatLng = [selectedPosition.position.lat, selectedPosition.position.lng]
+            const currentLatLng = [markerLatLng.lat, markerLatLng.lng]
+            
+            // Kontrollera om markören har flyttats (mer än 1 meter skillnad)
+            const distance = haversineDistance(
+                { lat: originalLatLng[0], lng: originalLatLng[1] },
+                { lat: currentLatLng[0], lng: currentLatLng[1] }
+            )
+            
+            if (distance > 1) {
+                // Markören har flyttats, spara den korrigerade positionen
+                payload.corrected_position = { lat: currentLatLng[0], lng: currentLatLng[1] }
+            } else if (selectedPosition.corrected_position) {
+                // Markören är på original positionen men det finns en gammal korrigering,
+                // behåll den gamla korrigeringen
+                payload.corrected_position = {
+                    lat: selectedPosition.corrected_position.lat,
+                    lng: selectedPosition.corrected_position.lng,
+                }
+            } else {
+                // Ingen korrigering, säkerställ att ingen korrigering finns
+                payload.clear_correction = true
+            }
+        } else if (selectedPosition.corrected_position) {
+            // Ingen draggable marker men det finns en korrigerad position, behåll den
+            payload.corrected_position = {
+                lat: selectedPosition.corrected_position.lat,
+                lng: selectedPosition.corrected_position.lng,
+            }
+        } else {
+            // Ingen korrigering, säkerställ att ingen korrigering finns
+            payload.clear_correction = true
+        }
+        
+        saveAnnotation(selectedPosition.id, payload, 'Markerad som korrekt.')
     }
 
     const handleMarkIncorrect = () => {
