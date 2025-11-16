@@ -44,23 +44,33 @@ const TestLab = () => {
     const humanTrackLayerRef = useRef(null) // Layer för människaspåret
 
     const [tracks, setTracks] = useState([])
-    const [selectedTrackId, setSelectedTrackId] = useState('')
-    const [selectedTrack, setSelectedTrack] = useState(null)
-    const [positions, setPositions] = useState([])
+    // Två spår för jämförelse
+    const [humanTrackId, setHumanTrackId] = useState('')
+    const [dogTrackId, setDogTrackId] = useState('')
+    const [humanTrack, setHumanTrack] = useState(null)
+    const [dogTrack, setDogTrack] = useState(null)
+    const [humanPositions, setHumanPositions] = useState([])
+    const [dogPositions, setDogPositions] = useState([])
+
+    // Vald position (kan vara från vilket spår som helst)
     const [selectedPositionId, setSelectedPositionId] = useState(null)
+    const [selectedPositionTrackType, setSelectedPositionTrackType] = useState(null) // 'human' eller 'dog'
     const [isAdjusting, setIsAdjusting] = useState(false)
     const [notes, setNotes] = useState('')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState(null)
     const [error, setError] = useState(null)
-    const [humanTrack, setHumanTrack] = useState(null) // Människaspår för snapping
     const [snappingEnabled, setSnappingEnabled] = useState(true)
     const [snappingDistance, setSnappingDistance] = useState(10) // meter
     const snapIndicatorRef = useRef(null) // Visuell feedback för snapping
 
     const selectedPosition = useMemo(
-        () => positions.find((p) => p.id === selectedPositionId) || null,
-        [positions, selectedPositionId],
+        () => {
+            if (!selectedPositionId || !selectedPositionTrackType) return null
+            const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+            return positions.find((p) => p.id === selectedPositionId) || null
+        },
+        [selectedPositionId, selectedPositionTrackType, humanPositions, dogPositions],
     )
 
     useEffect(() => {
@@ -75,49 +85,72 @@ const TestLab = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // Ladda människaspår
     useEffect(() => {
-        if (!selectedTrackId) {
-            setSelectedTrack(null)
+        if (!humanTrackId) {
             setHumanTrack(null)
+            setHumanPositions([])
             return
         }
-        fetchTrack(selectedTrackId)
-    }, [selectedTrackId])
+        fetchTrack(humanTrackId, 'human')
+    }, [humanTrackId])
 
+    // Ladda hundspår
     useEffect(() => {
-        if (selectedTrack && selectedTrack.track_type === 'dog' && selectedTrack.human_track_id) {
-            fetchHumanTrack(selectedTrack.human_track_id)
-        } else {
-            setHumanTrack(null)
+        if (!dogTrackId) {
+            setDogTrack(null)
+            setDogPositions([])
+            return
         }
-    }, [selectedTrack])
+        fetchTrack(dogTrackId, 'dog')
+    }, [dogTrackId])
 
-    // Rita människaspåret på kartan när det laddas
+    // Rita spår på kartan när de laddas
     useEffect(() => {
         if (!humanTrackLayerRef.current) return
 
         humanTrackLayerRef.current.clearLayers()
 
-        if (humanTrack && humanTrack.positions && humanTrack.positions.length > 0) {
-            const coords = humanTrack.positions.map(p => [p.position.lat, p.position.lng])
+        // Rita människaspår
+        if (humanTrack && humanPositions.length > 0) {
+            const coords = humanPositions.map(p => {
+                const pos = p.corrected_position || p.position
+                return [pos.lat, pos.lng]
+            })
             const polyline = L.polyline(coords, {
                 color: '#ef4444',
-                weight: 3,
-                opacity: 0.6,
-                dashArray: '8, 4',
+                weight: 4,
+                opacity: 0.7,
             }).addTo(humanTrackLayerRef.current)
 
-            // Lägg till tooltip
-            polyline.bindTooltip(`Människaspår: ${humanTrack.name}`, {
+            polyline.bindTooltip(`🚶 Människaspår: ${humanTrack.name}`, {
                 sticky: true,
             })
         }
-    }, [humanTrack])
+
+        // Rita hundspår
+        if (dogTrack && dogPositions.length > 0) {
+            const coords = dogPositions.map(p => {
+                const pos = p.corrected_position || p.position
+                return [pos.lat, pos.lng]
+            })
+            const polyline = L.polyline(coords, {
+                color: '#8b5cf6',
+                weight: 3,
+                opacity: 0.6,
+                dashArray: '10, 5',
+            }).addTo(humanTrackLayerRef.current)
+
+            polyline.bindTooltip(`🐕 Hundspår: ${dogTrack.name}`, {
+                sticky: true,
+            })
+        }
+    }, [humanTrack, dogTrack, humanPositions, dogPositions])
 
     useEffect(() => {
         renderMarkers()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [positions, selectedPositionId])
+    }, [humanPositions, dogPositions, selectedPositionId])
 
     useEffect(() => {
         updateDraggableMarker()
@@ -150,7 +183,7 @@ const TestLab = () => {
         }
     }
 
-    const fetchTrack = async (trackId) => {
+    const fetchTrack = async (trackId, trackType) => {
         try {
             setLoading(true)
             const response = await axios.get(`${API_BASE}/tracks/${trackId}`)
@@ -159,15 +192,19 @@ const TestLab = () => {
                 ? [...track.positions].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
                 : []
 
-            setSelectedTrack(track)
-            setPositions(withSortedPositions)
-
-            if (withSortedPositions.length > 0) {
-                setSelectedPositionId(withSortedPositions[0].id)
-                setNotes(withSortedPositions[0].annotation_notes || '')
+            if (trackType === 'human') {
+                setHumanTrack(track)
+                setHumanPositions(withSortedPositions)
             } else {
-                setSelectedPositionId(null)
-                setNotes('')
+                setDogTrack(track)
+                setDogPositions(withSortedPositions)
+            }
+
+            // Om ingen position är vald, välj första från det nya spåret
+            if (!selectedPositionId && withSortedPositions.length > 0) {
+                setSelectedPositionId(withSortedPositions[0].id)
+                setSelectedPositionTrackType(trackType)
+                setNotes(withSortedPositions[0].annotation_notes || '')
             }
         } catch (err) {
             console.error('Kunde inte hämta spåret:', err)
@@ -177,11 +214,17 @@ const TestLab = () => {
         }
     }
 
-    const refreshCurrentTrack = async (positionIdToKeep = null) => {
-        if (!selectedTrackId) return
-        await fetchTrack(selectedTrackId)
+    const refreshCurrentTrack = async (positionIdToKeep = null, trackType = null) => {
+        if (!trackType) trackType = selectedPositionTrackType
+        if (!trackType) return
+
+        const trackId = trackType === 'human' ? humanTrackId : dogTrackId
+        if (!trackId) return
+
+        await fetchTrack(trackId, trackType)
         if (positionIdToKeep) {
             setSelectedPositionId(positionIdToKeep)
+            setSelectedPositionTrackType(trackType)
         }
     }
 
@@ -197,20 +240,9 @@ const TestLab = () => {
         return R * c
     }
 
-    // Hämta människaspår för snapping
-    const fetchHumanTrack = async (humanTrackId) => {
-        try {
-            const response = await axios.get(`${API_BASE}/tracks/${humanTrackId}`)
-            setHumanTrack(response.data)
-        } catch (err) {
-            console.error('Kunde inte hämta människaspår:', err)
-            setHumanTrack(null)
-        }
-    }
-
     // Hitta närmaste punkt på människaspåret
     const findNearestHumanPosition = (lat, lng) => {
-        if (!humanTrack || !humanTrack.positions || humanTrack.positions.length === 0) {
+        if (!humanTrack || humanPositions.length === 0) {
             return null
         }
 
@@ -218,11 +250,12 @@ const TestLab = () => {
         let nearest = null
         let nearestDistance = Infinity
 
-        humanTrack.positions.forEach((pos) => {
-            const distance = haversineDistance(currentPos, pos.position)
+        humanPositions.forEach((pos) => {
+            const posToUse = pos.corrected_position || pos.position
+            const distance = haversineDistance(currentPos, posToUse)
             if (distance < nearestDistance && distance <= snappingDistance) {
                 nearestDistance = distance
-                nearest = pos.position
+                nearest = posToUse
             }
         })
 
@@ -234,8 +267,9 @@ const TestLab = () => {
 
         markersLayerRef.current.clearLayers()
 
-        positions.forEach((pos, index) => {
-            const positionNumber = index + 1 // Relativt nummer inom spåret (1, 2, 3...)
+        // Rita människaspår-positioner
+        humanPositions.forEach((pos, index) => {
+            const positionNumber = index + 1
             const originalLatLng = [pos.position.lat, pos.position.lng]
             const correctedLatLng = pos.corrected_position
                 ? [pos.corrected_position.lat, pos.corrected_position.lng]
@@ -244,7 +278,8 @@ const TestLab = () => {
             const status = pos.verified_status || 'pending'
             const color = STATUS_COLORS[status] || STATUS_COLORS.pending
             const icon = STATUS_ICONS[status] || STATUS_ICONS.pending
-            const isSelected = selectedPositionId === pos.id
+            const isSelected = selectedPositionId === pos.id && selectedPositionTrackType === 'human'
+            const trackColor = '#ef4444' // Röd för människaspår
 
             // Original point marker (smaller, grey) - only show if corrected
             if (pos.corrected_position) {
@@ -276,13 +311,76 @@ const TestLab = () => {
             })
 
             marker.on('click', () => {
-                handleSelectPosition(pos.id)
+                handleSelectPosition(pos.id, 'human')
             })
 
             // Enhanced tooltip with icon (använd relativt nummer)
             marker.bindTooltip(
                 `<div style="text-align: center; font-weight: bold;">
-                    ${icon} #${positionNumber}<br/>
+                    🚶 ${icon} #${positionNumber}<br/>
+                    <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                </div>`,
+                {
+                    direction: 'top',
+                    offset: [0, -10],
+                    className: 'custom-tooltip',
+                }
+            )
+
+            marker.addTo(markersLayerRef.current)
+        })
+
+        // Rita hundspår-positioner
+        dogPositions.forEach((pos, index) => {
+            const positionNumber = index + 1
+            const originalLatLng = [pos.position.lat, pos.position.lng]
+            const correctedLatLng = pos.corrected_position
+                ? [pos.corrected_position.lat, pos.corrected_position.lng]
+                : originalLatLng
+
+            const status = pos.verified_status || 'pending'
+            const color = STATUS_COLORS[status] || STATUS_COLORS.pending
+            const icon = STATUS_ICONS[status] || STATUS_ICONS.pending
+            const isSelected = selectedPositionId === pos.id && selectedPositionTrackType === 'dog'
+            const trackColor = '#8b5cf6' // Lila för hundspår
+
+            // Original point marker (smaller, grey) - only show if corrected
+            if (pos.corrected_position) {
+                L.circleMarker(originalLatLng, {
+                    radius: 5,
+                    color: '#64748b',
+                    fillColor: '#94a3b8',
+                    fillOpacity: 0.5,
+                    weight: 1.5,
+                }).addTo(markersLayerRef.current)
+
+                // Line showing correction offset
+                L.polyline([originalLatLng, correctedLatLng], {
+                    color: color,
+                    dashArray: '5, 5',
+                    weight: 2,
+                    opacity: 0.6,
+                }).addTo(markersLayerRef.current)
+            }
+
+            // Main marker with status color
+            const radius = isSelected ? 8 : 6
+            const marker = L.circleMarker(correctedLatLng, {
+                radius,
+                color: color,
+                fillColor: color,
+                fillOpacity: isSelected ? 0.9 : 0.7,
+                weight: isSelected ? 4 : 2.5,
+            })
+
+            marker.on('click', () => {
+                handleSelectPosition(pos.id, 'dog')
+            })
+
+            // Enhanced tooltip with icon (använd relativt nummer)
+            marker.bindTooltip(
+                `<div style="text-align: center; font-weight: bold;">
+                    🐕 ${icon} #${positionNumber}<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
                 </div>`,
                 {
@@ -296,9 +394,11 @@ const TestLab = () => {
         })
     }
 
-    const handleSelectPosition = (positionId) => {
+    const handleSelectPosition = (positionId, trackType) => {
         setSelectedPositionId(positionId)
+        setSelectedPositionTrackType(trackType)
         setIsAdjusting(false)
+        const positions = trackType === 'human' ? humanPositions : dogPositions
         const position = positions.find((p) => p.id === positionId)
         if (position) {
             setNotes(position.annotation_notes || '')
@@ -340,7 +440,9 @@ const TestLab = () => {
 
     // Hantera drag med snapping
     const handleCorrectionDrag = () => {
-        if (!draggableMarkerRef.current || !snappingEnabled || !humanTrack) return
+        if (!draggableMarkerRef.current || !snappingEnabled) return
+        // Snapping fungerar bara när vi justerar hundspår och människaspår finns
+        if (selectedPositionTrackType !== 'dog' || !humanTrack) return
 
         const { lat, lng } = draggableMarkerRef.current.getLatLng()
         const nearest = findNearestHumanPosition(lat, lng)
@@ -383,8 +485,8 @@ const TestLab = () => {
 
         let { lat, lng } = draggableMarkerRef.current.getLatLng()
 
-        // Om snapping är aktiverat, kontrollera om vi ska snappa
-        if (snappingEnabled && humanTrack) {
+        // Om snapping är aktiverat, kontrollera om vi ska snappa (endast för hundspår)
+        if (snappingEnabled && selectedPositionTrackType === 'dog' && humanTrack) {
             const nearest = findNearestHumanPosition(lat, lng)
             if (nearest) {
                 lat = nearest.position.lat
@@ -410,7 +512,7 @@ const TestLab = () => {
             setMessage(null)
 
             await axios.put(`${API_BASE}/track-positions/${positionId}`, payload)
-            await refreshCurrentTrack(positionId)
+            await refreshCurrentTrack(positionId, selectedPositionTrackType)
             setMessage(successMessage)
         } catch (err) {
             console.error('Kunde inte uppdatera positionen:', err)
@@ -460,37 +562,70 @@ const TestLab = () => {
                 <div>
                     <h2 className="text-lg font-semibold mb-2">Testmiljö</h2>
                     <p className="text-sm text-slate-600">
-                        Välj ett spår, inspektera varje position och markera om den stämmer eller justera den på kartan.
+                        Välj människaspår och hundspår för jämförelse. Justera positioner på kartan.
                     </p>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium mb-1">Välj spår</label>
-                    <select
-                        value={selectedTrackId}
-                        onChange={(e) => setSelectedTrackId(e.target.value)}
-                        className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
-                    >
-                        <option value="">-- Välj --</option>
-                        {tracks.map((track) => (
-                            <option key={track.id} value={track.id}>
-                                {track.track_type === 'human' ? '🚶' : '🐕'} {track.name} ({track.positions?.length || 0})
-                            </option>
-                        ))}
-                    </select>
+                <div className="space-y-3">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">🚶 Människaspår</label>
+                        <select
+                            value={humanTrackId}
+                            onChange={(e) => setHumanTrackId(e.target.value)}
+                            className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
+                        >
+                            <option value="">-- Välj människaspår --</option>
+                            {tracks.filter(t => t.track_type === 'human').map((track) => (
+                                <option key={track.id} value={track.id}>
+                                    {track.name} ({track.positions?.length || 0} pos)
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">🐕 Hundspår</label>
+                        <select
+                            value={dogTrackId}
+                            onChange={(e) => setDogTrackId(e.target.value)}
+                            className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
+                        >
+                            <option value="">-- Välj hundspår --</option>
+                            {tracks.filter(t => t.track_type === 'dog').map((track) => (
+                                <option key={track.id} value={track.id}>
+                                    {track.name} ({track.positions?.length || 0} pos)
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
-                {selectedTrack && (
-                    <div className="text-xs bg-white border border-slate-200 rounded p-2 space-y-1">
-                        <div className="font-medium text-slate-700">{selectedTrack.name}</div>
-                        <div>Typ: {selectedTrack.track_type === 'human' ? 'Människa' : 'Hund'}</div>
-                        <div>Positioner: {positions.length}</div>
-                        <div>Skapad: {new Date(selectedTrack.created_at).toLocaleString()}</div>
+                {/* Spår-info */}
+                {(humanTrack || dogTrack) && (
+                    <div className="text-xs bg-white border border-slate-200 rounded p-2 space-y-2">
+                        {humanTrack && (
+                            <div className="border-b border-slate-200 pb-2">
+                                <div className="font-medium text-slate-700 flex items-center gap-1">
+                                    <span>🚶</span>
+                                    <span>{humanTrack.name}</span>
+                                </div>
+                                <div className="text-slate-500">Positioner: {humanPositions.length}</div>
+                            </div>
+                        )}
+                        {dogTrack && (
+                            <div>
+                                <div className="font-medium text-slate-700 flex items-center gap-1">
+                                    <span>🐕</span>
+                                    <span>{dogTrack.name}</span>
+                                </div>
+                                <div className="text-slate-500">Positioner: {dogPositions.length}</div>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {/* Snapping-inställningar - endast för hundspår */}
-                {selectedTrack && selectedTrack.track_type === 'dog' && (
+                {/* Snapping-inställningar - endast när båda spår är valda */}
+                {humanTrack && dogTrack && (
                     <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
                         <div className="font-semibold text-slate-700">🎯 Snapping-inställningar</div>
                         {humanTrack ? (
@@ -541,56 +676,111 @@ const TestLab = () => {
                 <div className="flex-1">
                     <h3 className="font-semibold text-sm mb-2">Positioner</h3>
                     <div className="bg-white border border-slate-200 rounded max-h-64 overflow-y-auto divide-y divide-slate-100">
-                        {positions.length === 0 && (
+                        {humanPositions.length === 0 && dogPositions.length === 0 && (
                             <div className="p-3 text-xs text-slate-500">
-                                Inga positioner laddade.
+                                Välj spår för att se positioner.
                             </div>
                         )}
-                        {positions.map((pos, index) => {
-                            const status = pos.verified_status || 'pending'
-                            const isSelected = pos.id === selectedPositionId
-                            const positionNumber = index + 1 // Relativt nummer inom spåret (1, 2, 3...)
-                            return (
-                                <button
-                                    key={pos.id}
-                                    onClick={() => handleSelectPosition(pos.id)}
-                                    className={`w-full text-left px-3 py-2 text-xs transition ${isSelected ? 'bg-blue-100' : 'bg-white hover:bg-slate-100'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-medium text-slate-700 flex items-center gap-1">
-                                            <span>{STATUS_ICONS[status]}</span>
-                                            <span>#{positionNumber}</span>
-                                        </span>
-                                        <span
-                                            className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                                            style={{
-                                                backgroundColor: STATUS_BG_COLORS[status] || STATUS_BG_COLORS.pending,
-                                                color: STATUS_COLORS[status],
-                                                border: `1px solid ${STATUS_COLORS[status]}`,
-                                            }}
+                        {humanPositions.length > 0 && (
+                            <>
+                                <div className="px-3 py-2 bg-red-50 border-b border-red-200 text-[10px] font-semibold text-red-700">
+                                    🚶 Människaspår ({humanPositions.length})
+                                </div>
+                                {humanPositions.map((pos, index) => {
+                                    const status = pos.verified_status || 'pending'
+                                    const isSelected = pos.id === selectedPositionId && selectedPositionTrackType === 'human'
+                                    const positionNumber = index + 1
+                                    return (
+                                        <button
+                                            key={pos.id}
+                                            onClick={() => handleSelectPosition(pos.id, 'human')}
+                                            className={`w-full text-left px-3 py-2 text-xs transition ${isSelected ? 'bg-blue-100' : 'bg-white hover:bg-slate-100'
+                                                }`}
                                         >
-                                            {STATUS_LABELS[status]}
-                                        </span>
-                                    </div>
-                                    <div className="mt-1 text-[10px] text-slate-500">
-                                        {new Date(pos.timestamp).toLocaleString()}
-                                    </div>
-                                </button>
-                            )
-                        })}
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium text-slate-700 flex items-center gap-1">
+                                                    <span>🚶</span>
+                                                    <span>{STATUS_ICONS[status]}</span>
+                                                    <span>#{positionNumber}</span>
+                                                </span>
+                                                <span
+                                                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                                                    style={{
+                                                        backgroundColor: STATUS_BG_COLORS[status] || STATUS_BG_COLORS.pending,
+                                                        color: STATUS_COLORS[status],
+                                                        border: `1px solid ${STATUS_COLORS[status]}`,
+                                                    }}
+                                                >
+                                                    {STATUS_LABELS[status]}
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 text-[10px] text-slate-500">
+                                                {new Date(pos.timestamp).toLocaleString()}
+                                            </div>
+                                        </button>
+                                    )
+                                })}
+                            </>
+                        )}
+                        {dogPositions.length > 0 && (
+                            <>
+                                <div className="px-3 py-2 bg-purple-50 border-b border-purple-200 text-[10px] font-semibold text-purple-700">
+                                    🐕 Hundspår ({dogPositions.length})
+                                </div>
+                                {dogPositions.map((pos, index) => {
+                                    const status = pos.verified_status || 'pending'
+                                    const isSelected = pos.id === selectedPositionId && selectedPositionTrackType === 'dog'
+                                    const positionNumber = index + 1
+                                    return (
+                                        <button
+                                            key={pos.id}
+                                            onClick={() => handleSelectPosition(pos.id, 'dog')}
+                                            className={`w-full text-left px-3 py-2 text-xs transition ${isSelected ? 'bg-blue-100' : 'bg-white hover:bg-slate-100'
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium text-slate-700 flex items-center gap-1">
+                                                    <span>🐕</span>
+                                                    <span>{STATUS_ICONS[status]}</span>
+                                                    <span>#{positionNumber}</span>
+                                                </span>
+                                                <span
+                                                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                                                    style={{
+                                                        backgroundColor: STATUS_BG_COLORS[status] || STATUS_BG_COLORS.pending,
+                                                        color: STATUS_COLORS[status],
+                                                        border: `1px solid ${STATUS_COLORS[status]}`,
+                                                    }}
+                                                >
+                                                    {STATUS_LABELS[status]}
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 text-[10px] text-slate-500">
+                                                {new Date(pos.timestamp).toLocaleString()}
+                                            </div>
+                                        </button>
+                                    )
+                                })}
+                            </>
+                        )}
                     </div>
                 </div>
 
                 {selectedPosition && (() => {
+                    const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
                     const positionIndex = positions.findIndex(p => p.id === selectedPosition.id)
                     const positionNumber = positionIndex >= 0 ? positionIndex + 1 : '?'
+                    const trackIcon = selectedPositionTrackType === 'human' ? '🚶' : '🐕'
                     return (
                         <div className="bg-white border border-slate-200 rounded p-3 space-y-3 text-xs">
                             <div>
                                 <div className="font-semibold text-slate-700 flex items-center gap-2">
+                                    <span className="text-lg">{trackIcon}</span>
                                     <span className="text-lg">{STATUS_ICONS[selectedPosition.verified_status || 'pending']}</span>
                                     <span>Position #{positionNumber}</span>
+                                    <span className="text-[10px] text-slate-500">
+                                        ({selectedPositionTrackType === 'human' ? 'Människaspår' : 'Hundspår'})
+                                    </span>
                                 </div>
                                 <div className="mt-2 space-y-1">
                                     <div className="text-slate-600 text-[11px]">
