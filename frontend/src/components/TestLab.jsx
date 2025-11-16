@@ -42,6 +42,7 @@ const TestLab = () => {
     const markersLayerRef = useRef(null)
     const draggableMarkerRef = useRef(null)
     const draggableMarkerPositionIdRef = useRef(null) // Spåra vilken position markören tillhör
+    const draggingPositionIdRef = useRef(null) // Spåra vilken position som justeras under drag-operationen
     const humanTrackLayerRef = useRef(null) // Layer för människaspåret
 
     const [tracks, setTracks] = useState([])
@@ -603,7 +604,17 @@ const TestLab = () => {
     }
 
     const handleCorrectionDragEnd = async () => {
-        if (!draggableMarkerRef.current || !selectedPositionId || !selectedPositionTrackType) return
+        if (!draggableMarkerRef.current) return
+
+        // Använd den position som spårades när drag-operationen startade
+        // Detta förhindrar att selectedPositionId ändras under drag-operationen
+        const positionIdToSave = draggingPositionIdRef.current || selectedPositionId
+        const trackTypeToSave = selectedPositionTrackType
+
+        if (!positionIdToSave || !trackTypeToSave) {
+            console.error('Ingen position att spara')
+            return
+        }
 
         // Ta bort snap-indikator
         if (snapIndicatorRef.current) {
@@ -614,7 +625,7 @@ const TestLab = () => {
         let { lat, lng } = draggableMarkerRef.current.getLatLng()
 
         // Om snapping är aktiverat, kontrollera om vi ska snappa (endast för hundspår)
-        if (snappingEnabled && selectedPositionTrackType === 'dog' && humanTrack) {
+        if (snappingEnabled && trackTypeToSave === 'dog' && humanTrack) {
             const nearest = findNearestHumanPosition(lat, lng)
             if (nearest) {
                 lat = nearest.position.lat
@@ -624,13 +635,15 @@ const TestLab = () => {
             }
         }
 
-        // Använd selectedPositionId direkt för att säkerställa att vi sparar för rätt position
-        await saveAnnotation(selectedPositionId, {
+        // Använd den spårade positionen för att säkerställa att vi sparar för rätt position
+        await saveAnnotation(positionIdToSave, {
             verified_status: 'incorrect',
             corrected_position: { lat, lng },
             annotation_notes: notes,
         })
 
+        // Rensa ref efter drag-operationen
+        draggingPositionIdRef.current = null
         setIsAdjusting(false)
     }
 
@@ -984,7 +997,16 @@ const TestLab = () => {
                                         ❌ Markera som fel
                                     </button>
                                     <button
-                                        onClick={() => setIsAdjusting((prev) => !prev)}
+                                        onClick={() => {
+                                            if (!isAdjusting) {
+                                                // När justering startar, spåra den valda positionen
+                                                draggingPositionIdRef.current = selectedPositionId
+                                            } else {
+                                                // När justering avslutas, rensa ref
+                                                draggingPositionIdRef.current = null
+                                            }
+                                            setIsAdjusting((prev) => !prev)
+                                        }}
                                         disabled={loading}
                                         className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                             } disabled:bg-blue-200`}
