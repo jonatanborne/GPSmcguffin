@@ -111,16 +111,16 @@ const TestLab = () => {
 
         humanTrackLayerRef.current.clearLayers()
 
-        // Rita människaspår
+        // Rita människaspår (röd, solid linje)
         if (humanTrack && humanPositions.length > 0) {
             const coords = humanPositions.map(p => {
                 const pos = p.corrected_position || p.position
                 return [pos.lat, pos.lng]
             })
             const polyline = L.polyline(coords, {
-                color: '#ef4444',
-                weight: 4,
-                opacity: 0.7,
+                color: '#ef4444', // Röd
+                weight: 3,
+                opacity: 0.8,
             }).addTo(humanTrackLayerRef.current)
 
             polyline.bindTooltip(`🚶 Människaspår: ${humanTrack.name}`, {
@@ -128,17 +128,17 @@ const TestLab = () => {
             })
         }
 
-        // Rita hundspår
+        // Rita hundspår (lila, streckad linje)
         if (dogTrack && dogPositions.length > 0) {
             const coords = dogPositions.map(p => {
                 const pos = p.corrected_position || p.position
                 return [pos.lat, pos.lng]
             })
             const polyline = L.polyline(coords, {
-                color: '#8b5cf6',
-                weight: 3,
-                opacity: 0.6,
-                dashArray: '10, 5',
+                color: '#8b5cf6', // Lila
+                weight: 2.5,
+                opacity: 0.7,
+                dashArray: '8, 4', // Streckad
             }).addTo(humanTrackLayerRef.current)
 
             polyline.bindTooltip(`🐕 Hundspår: ${dogTrack.name}`, {
@@ -276,7 +276,7 @@ const TestLab = () => {
                 : originalLatLng
 
             const status = pos.verified_status || 'pending'
-            const color = STATUS_COLORS[status] || STATUS_COLORS.pending
+            const statusColor = STATUS_COLORS[status] || STATUS_COLORS.pending
             const icon = STATUS_ICONS[status] || STATUS_ICONS.pending
             const isSelected = selectedPositionId === pos.id && selectedPositionTrackType === 'human'
             const trackColor = '#ef4444' // Röd för människaspår
@@ -284,30 +284,30 @@ const TestLab = () => {
             // Original point marker (smaller, grey) - only show if corrected
             if (pos.corrected_position) {
                 L.circleMarker(originalLatLng, {
-                    radius: 5,
+                    radius: 3,
                     color: '#64748b',
                     fillColor: '#94a3b8',
-                    fillOpacity: 0.5,
-                    weight: 1.5,
+                    fillOpacity: 0.4,
+                    weight: 1,
                 }).addTo(markersLayerRef.current)
 
                 // Line showing correction offset
                 L.polyline([originalLatLng, correctedLatLng], {
-                    color: color,
-                    dashArray: '5, 5',
-                    weight: 2,
-                    opacity: 0.6,
+                    color: statusColor,
+                    dashArray: '4, 4',
+                    weight: 1.5,
+                    opacity: 0.5,
                 }).addTo(markersLayerRef.current)
             }
 
-            // Main marker with status color
-            const radius = isSelected ? 8 : 6
+            // Main marker: röd bas för människaspår, status-färg som border
+            const radius = isSelected ? 5 : 4
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
-                color: color,
-                fillColor: color,
+                color: statusColor, // Status-färg som border
+                fillColor: trackColor, // Röd fyllning för människaspår
                 fillOpacity: isSelected ? 0.9 : 0.7,
-                weight: isSelected ? 4 : 2.5,
+                weight: isSelected ? 2.5 : 2,
             })
 
             marker.on('click', () => {
@@ -339,7 +339,7 @@ const TestLab = () => {
                 : originalLatLng
 
             const status = pos.verified_status || 'pending'
-            const color = STATUS_COLORS[status] || STATUS_COLORS.pending
+            const statusColor = STATUS_COLORS[status] || STATUS_COLORS.pending
             const icon = STATUS_ICONS[status] || STATUS_ICONS.pending
             const isSelected = selectedPositionId === pos.id && selectedPositionTrackType === 'dog'
             const trackColor = '#8b5cf6' // Lila för hundspår
@@ -347,30 +347,30 @@ const TestLab = () => {
             // Original point marker (smaller, grey) - only show if corrected
             if (pos.corrected_position) {
                 L.circleMarker(originalLatLng, {
-                    radius: 5,
+                    radius: 3,
                     color: '#64748b',
                     fillColor: '#94a3b8',
-                    fillOpacity: 0.5,
-                    weight: 1.5,
+                    fillOpacity: 0.4,
+                    weight: 1,
                 }).addTo(markersLayerRef.current)
 
                 // Line showing correction offset
                 L.polyline([originalLatLng, correctedLatLng], {
-                    color: color,
-                    dashArray: '5, 5',
-                    weight: 2,
-                    opacity: 0.6,
+                    color: statusColor,
+                    dashArray: '4, 4',
+                    weight: 1.5,
+                    opacity: 0.5,
                 }).addTo(markersLayerRef.current)
             }
 
-            // Main marker with status color
-            const radius = isSelected ? 8 : 6
+            // Main marker: lila bas för hundspår, status-färg som border
+            const radius = isSelected ? 5 : 4
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
-                color: color,
-                fillColor: color,
+                color: statusColor, // Status-färg som border
+                fillColor: trackColor, // Lila fyllning för hundspår
                 fillOpacity: isSelected ? 0.9 : 0.7,
-                weight: isSelected ? 4 : 2.5,
+                weight: isSelected ? 2.5 : 2,
             })
 
             marker.on('click', () => {
