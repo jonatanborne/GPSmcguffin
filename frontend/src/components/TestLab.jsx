@@ -354,7 +354,14 @@ const TestLab = () => {
                 weight: isSelected ? 2.5 : 2,
             })
 
-            marker.on('click', () => {
+            marker.on('click', (e) => {
+                // Förhindra att klick på markörer ändrar vald position om användaren redan har valt en position
+                // Användaren kan fortfarande klicka på markörer för att välja dem, men bara om ingen position är vald
+                // eller om de explicit klickar med Ctrl/Cmd-tangenten
+                if (selectedPositionId && !e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
+                    // Om en position redan är vald, ignorera klicket (eller visa en notis)
+                    return
+                }
                 handleSelectPosition(pos.id, 'human')
             })
 
@@ -425,7 +432,14 @@ const TestLab = () => {
                 weight: isSelected ? 2.5 : 2,
             })
 
-            marker.on('click', () => {
+            marker.on('click', (e) => {
+                // Förhindra att klick på markörer ändrar vald position om användaren redan har valt en position
+                // Användaren kan fortfarande klicka på markörer för att välja dem, men bara om ingen position är vald
+                // eller om de explicit klickar med Ctrl/Cmd-tangenten
+                if (selectedPositionId && !e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
+                    // Om en position redan är vald, ignorera klicket (eller visa en notis)
+                    return
+                }
                 handleSelectPosition(pos.id, 'dog')
             })
 
