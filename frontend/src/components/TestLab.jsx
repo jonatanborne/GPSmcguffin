@@ -737,7 +737,7 @@ const TestLab = () => {
 
     return (
         <div className="h-full flex">
-            <div className="w-72 bg-slate-100 border-r border-slate-200 p-4 flex flex-col gap-4 overflow-y-auto">
+            <div className="w-72 bg-slate-100 border-r border-slate-200 p-4 flex flex-col gap-4 overflow-y-auto min-h-0">
                 <div>
                     <h2 className="text-lg font-semibold mb-2">Testmiljö</h2>
                     <p className="text-sm text-slate-600">
@@ -852,9 +852,9 @@ const TestLab = () => {
                     </div>
                 )}
 
-                <div className="flex-1">
+                <div>
                     <h3 className="font-semibold text-sm mb-2">Positioner</h3>
-                    <div className="bg-white border border-slate-200 rounded max-h-64 overflow-y-auto divide-y divide-slate-100">
+                    <div className="bg-white border border-slate-200 rounded divide-y divide-slate-100">
                         {humanPositions.length === 0 && dogPositions.length === 0 && (
                             <div className="p-3 text-xs text-slate-500">
                                 Välj spår för att se positioner.
