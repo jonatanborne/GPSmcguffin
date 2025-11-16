@@ -738,314 +738,283 @@ const TestLab = () => {
 
     return (
         <div className="h-full flex">
-            <div className="w-72 bg-slate-100 border-r border-slate-200 p-4 flex flex-col gap-4 overflow-y-auto min-h-0">
-                <div>
-                    <h2 className="text-lg font-semibold mb-2">Testmiljö</h2>
-                    <p className="text-sm text-slate-600">
-                        Välj människaspår och hundspår för jämförelse. Justera positioner på kartan.
-                    </p>
-                </div>
-
-                <div className="space-y-3">
+            <div className="w-72 bg-slate-100 border-r border-slate-200 flex flex-col overflow-hidden">
+                <div className="p-4 flex flex-col gap-4 overflow-y-auto flex-1">
                     <div>
-                        <label className="block text-sm font-medium mb-1">🚶 Människaspår</label>
-                        <select
-                            value={humanTrackId}
-                            onChange={(e) => setHumanTrackId(e.target.value)}
-                            className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
-                        >
-                            <option value="">-- Välj människaspår --</option>
-                            {tracks.filter(t => t.track_type === 'human').map((track) => (
-                                <option key={track.id} value={track.id}>
-                                    {track.name} ({track.positions?.length || 0} pos)
-                                </option>
-                            ))}
-                        </select>
+                        <h2 className="text-lg font-semibold mb-2">Testmiljö</h2>
+                        <p className="text-sm text-slate-600">
+                            Välj människaspår och hundspår för jämförelse. Justera positioner på kartan.
+                        </p>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">🐕 Hundspår</label>
-                        <select
-                            value={dogTrackId}
-                            onChange={(e) => setDogTrackId(e.target.value)}
-                            className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
-                        >
-                            <option value="">-- Välj hundspår --</option>
-                            {tracks.filter(t => t.track_type === 'dog').map((track) => (
-                                <option key={track.id} value={track.id}>
-                                    {track.name} ({track.positions?.length || 0} pos)
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+                    <div className="space-y-3">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">🚶 Människaspår</label>
+                            <select
+                                value={humanTrackId}
+                                onChange={(e) => setHumanTrackId(e.target.value)}
+                                className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
+                            >
+                                <option value="">-- Välj människaspår --</option>
+                                {tracks.filter(t => t.track_type === 'human').map((track) => (
+                                    <option key={track.id} value={track.id}>
+                                        {track.name} ({track.positions?.length || 0} pos)
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                {/* Spår-info */}
-                {(humanTrack || dogTrack) && (
-                    <div className="text-xs bg-white border border-slate-200 rounded p-2 space-y-2">
-                        {humanTrack && (
-                            <div className="border-b border-slate-200 pb-2">
-                                <div className="font-medium text-slate-700 flex items-center gap-1">
-                                    <span>🚶</span>
-                                    <span>{humanTrack.name}</span>
-                                </div>
-                                <div className="text-slate-500">Positioner: {humanPositions.length}</div>
-                            </div>
-                        )}
-                        {dogTrack && (
-                            <div>
-                                <div className="font-medium text-slate-700 flex items-center gap-1">
-                                    <span>🐕</span>
-                                    <span>{dogTrack.name}</span>
-                                </div>
-                                <div className="text-slate-500">Positioner: {dogPositions.length}</div>
-                            </div>
-                        )}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">🐕 Hundspår</label>
+                            <select
+                                value={dogTrackId}
+                                onChange={(e) => setDogTrackId(e.target.value)}
+                                className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
+                            >
+                                <option value="">-- Välj hundspår --</option>
+                                {tracks.filter(t => t.track_type === 'dog').map((track) => (
+                                    <option key={track.id} value={track.id}>
+                                        {track.name} ({track.positions?.length || 0} pos)
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
-                )}
 
-                {/* Snapping-inställningar - endast när båda spår är valda */}
-                {humanTrack && dogTrack && (
-                    <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
-                        <div className="font-semibold text-slate-700">🎯 Snapping-inställningar</div>
-                        {humanTrack ? (
-                            <>
-                                <div className="flex items-center justify-between">
-                                    <label className="text-slate-600">Aktivera snapping</label>
-                                    <button
-                                        onClick={() => setSnappingEnabled(!snappingEnabled)}
-                                        className={`px-3 py-1 rounded text-[10px] font-semibold ${snappingEnabled
-                                            ? 'bg-green-600 text-white'
-                                            : 'bg-slate-200 text-slate-600'
-                                            }`}
-                                    >
-                                        {snappingEnabled ? 'På' : 'Av'}
-                                    </button>
-                                </div>
-                                <div>
-                                    <label className="block text-slate-600 mb-1">
-                                        Snapping-avstånd: {snappingDistance}m
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="5"
-                                        max="20"
-                                        step="1"
-                                        value={snappingDistance}
-                                        onChange={(e) => setSnappingDistance(Number(e.target.value))}
-                                        className="w-full"
-                                        disabled={!snappingEnabled}
-                                    />
-                                    <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                                        <span>5m</span>
-                                        <span>20m</span>
+                    {/* Spår-info */}
+                    {(humanTrack || dogTrack) && (
+                        <div className="text-xs bg-white border border-slate-200 rounded p-2 space-y-2">
+                            {humanTrack && (
+                                <div className="border-b border-slate-200 pb-2">
+                                    <div className="font-medium text-slate-700 flex items-center gap-1">
+                                        <span>🚶</span>
+                                        <span>{humanTrack.name}</span>
                                     </div>
+                                    <div className="text-slate-500">Positioner: {humanPositions.length}</div>
                                 </div>
+                            )}
+                            {dogTrack && (
+                                <div>
+                                    <div className="font-medium text-slate-700 flex items-center gap-1">
+                                        <span>🐕</span>
+                                        <span>{dogTrack.name}</span>
+                                    </div>
+                                    <div className="text-slate-500">Positioner: {dogPositions.length}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Snapping-inställningar - endast när båda spår är valda */}
+                    {humanTrack && dogTrack && (
+                        <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
+                            <div className="font-semibold text-slate-700">🎯 Snapping-inställningar</div>
+                            {humanTrack ? (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-slate-600">Aktivera snapping</label>
+                                        <button
+                                            onClick={() => setSnappingEnabled(!snappingEnabled)}
+                                            className={`px-3 py-1 rounded text-[10px] font-semibold ${snappingEnabled
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-slate-200 text-slate-600'
+                                                }`}
+                                        >
+                                            {snappingEnabled ? 'På' : 'Av'}
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <label className="block text-slate-600 mb-1">
+                                            Snapping-avstånd: {snappingDistance}m
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="5"
+                                            max="20"
+                                            step="1"
+                                            value={snappingDistance}
+                                            onChange={(e) => setSnappingDistance(Number(e.target.value))}
+                                            className="w-full"
+                                            disabled={!snappingEnabled}
+                                        />
+                                        <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                                            <span>5m</span>
+                                            <span>20m</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-[10px] text-slate-500">
+                                        Snappar till: <span className="font-medium">{humanTrack.name}</span>
+                                    </div>
+                                </>
+                            ) : (
                                 <div className="text-[10px] text-slate-500">
-                                    Snappar till: <span className="font-medium">{humanTrack.name}</span>
+                                    Inget människaspår kopplat. Snapping inaktiverat.
                                 </div>
-                            </>
-                        ) : (
-                            <div className="text-[10px] text-slate-500">
-                                Inget människaspår kopplat. Snapping inaktiverat.
+                            )}
+                        </div>
+                    )}
+
+                    <div className="space-y-3">
+                        {humanPositions.length > 0 && (
+                            <div>
+                                <label className="block text-sm font-medium mb-1">🚶 Människaspår Position</label>
+                                <select
+                                    value={selectedPositionId && selectedPositionTrackType === 'human' ? selectedPositionId : ''}
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            handleSelectPosition(Number(e.target.value), 'human')
+                                        }
+                                    }}
+                                    className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
+                                >
+                                    <option value="">-- Välj position --</option>
+                                    {humanPositions.map((pos, index) => {
+                                        const status = pos.verified_status || 'pending'
+                                        const positionNumber = index + 1
+                                        return (
+                                            <option key={pos.id} value={pos.id}>
+                                                #{positionNumber} - {STATUS_ICONS[status]} {STATUS_LABELS[status]} ({new Date(pos.timestamp).toLocaleString()})
+                                            </option>
+                                        )
+                                    })}
+                                </select>
                             </div>
                         )}
-                    </div>
-                )}
 
-                <div>
-                    <h3 className="font-semibold text-sm mb-2">Positioner</h3>
-                    <div className="bg-white border border-slate-200 rounded divide-y divide-slate-100">
+                        {dogPositions.length > 0 && (
+                            <div>
+                                <label className="block text-sm font-medium mb-1">🐕 Hundspår Position</label>
+                                <select
+                                    value={selectedPositionId && selectedPositionTrackType === 'dog' ? selectedPositionId : ''}
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            handleSelectPosition(Number(e.target.value), 'dog')
+                                        }
+                                    }}
+                                    className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
+                                >
+                                    <option value="">-- Välj position --</option>
+                                    {dogPositions.map((pos, index) => {
+                                        const status = pos.verified_status || 'pending'
+                                        const positionNumber = index + 1
+                                        return (
+                                            <option key={pos.id} value={pos.id}>
+                                                #{positionNumber} - {STATUS_ICONS[status]} {STATUS_LABELS[status]} ({new Date(pos.timestamp).toLocaleString()})
+                                            </option>
+                                        )
+                                    })}
+                                </select>
+                            </div>
+                        )}
+
                         {humanPositions.length === 0 && dogPositions.length === 0 && (
-                            <div className="p-3 text-xs text-slate-500">
+                            <div className="text-xs text-slate-500">
                                 Välj spår för att se positioner.
                             </div>
                         )}
-                        {humanPositions.length > 0 && (
-                            <>
-                                <div className="px-3 py-2 bg-red-50 border-b border-red-200 text-[10px] font-semibold text-red-700">
-                                    🚶 Människaspår ({humanPositions.length})
-                                </div>
-                                {humanPositions.map((pos, index) => {
-                                    const status = pos.verified_status || 'pending'
-                                    const isSelected = pos.id === selectedPositionId && selectedPositionTrackType === 'human'
-                                    const positionNumber = index + 1
-                                    return (
-                                        <button
-                                            key={pos.id}
-                                            onClick={() => handleSelectPosition(pos.id, 'human')}
-                                            className={`w-full text-left px-3 py-2 text-xs transition ${isSelected ? 'bg-blue-100' : 'bg-white hover:bg-slate-100'
-                                                }`}
-                                        >
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium text-slate-700 flex items-center gap-1">
-                                                    <span>🚶</span>
-                                                    <span>{STATUS_ICONS[status]}</span>
-                                                    <span>#{positionNumber}</span>
-                                                </span>
-                                                <span
-                                                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                                                    style={{
-                                                        backgroundColor: STATUS_BG_COLORS[status] || STATUS_BG_COLORS.pending,
-                                                        color: STATUS_COLORS[status],
-                                                        border: `1px solid ${STATUS_COLORS[status]}`,
-                                                    }}
-                                                >
-                                                    {STATUS_LABELS[status]}
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 text-[10px] text-slate-500">
-                                                {new Date(pos.timestamp).toLocaleString()}
-                                            </div>
-                                        </button>
-                                    )
-                                })}
-                            </>
-                        )}
-                        {dogPositions.length > 0 && (
-                            <>
-                                <div className="px-3 py-2 bg-purple-50 border-b border-purple-200 text-[10px] font-semibold text-purple-700">
-                                    🐕 Hundspår ({dogPositions.length})
-                                </div>
-                                {dogPositions.map((pos, index) => {
-                                    const status = pos.verified_status || 'pending'
-                                    const isSelected = pos.id === selectedPositionId && selectedPositionTrackType === 'dog'
-                                    const positionNumber = index + 1
-                                    return (
-                                        <button
-                                            key={pos.id}
-                                            onClick={() => handleSelectPosition(pos.id, 'dog')}
-                                            className={`w-full text-left px-3 py-2 text-xs transition ${isSelected ? 'bg-blue-100' : 'bg-white hover:bg-slate-100'
-                                                }`}
-                                        >
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium text-slate-700 flex items-center gap-1">
-                                                    <span>🐕</span>
-                                                    <span>{STATUS_ICONS[status]}</span>
-                                                    <span>#{positionNumber}</span>
-                                                </span>
-                                                <span
-                                                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                                                    style={{
-                                                        backgroundColor: STATUS_BG_COLORS[status] || STATUS_BG_COLORS.pending,
-                                                        color: STATUS_COLORS[status],
-                                                        border: `1px solid ${STATUS_COLORS[status]}`,
-                                                    }}
-                                                >
-                                                    {STATUS_LABELS[status]}
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 text-[10px] text-slate-500">
-                                                {new Date(pos.timestamp).toLocaleString()}
-                                            </div>
-                                        </button>
-                                    )
-                                })}
-                            </>
-                        )}
                     </div>
-                </div>
 
-                {selectedPosition && (() => {
-                    const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
-                    const positionIndex = positions.findIndex(p => p.id === selectedPosition.id)
-                    const positionNumber = positionIndex >= 0 ? positionIndex + 1 : '?'
-                    const trackIcon = selectedPositionTrackType === 'human' ? '🚶' : '🐕'
-                    return (
-                        <div className="bg-white border border-slate-200 rounded p-3 space-y-3 text-xs">
-                            <div>
-                                <div className="font-semibold text-slate-700 flex items-center gap-2">
-                                    <span className="text-lg">{trackIcon}</span>
-                                    <span className="text-lg">{STATUS_ICONS[selectedPosition.verified_status || 'pending']}</span>
-                                    <span>Position #{positionNumber}</span>
-                                    <span className="text-[10px] text-slate-500">
-                                        ({selectedPositionTrackType === 'human' ? 'Människaspår' : 'Hundspår'})
-                                    </span>
-                                </div>
-                                <div className="mt-2 space-y-1">
-                                    <div className="text-slate-600 text-[11px]">
-                                        <span className="font-medium">Status:</span>{' '}
-                                        <span
-                                            className="px-2 py-0.5 rounded text-[10px] font-semibold"
-                                            style={{
-                                                backgroundColor: STATUS_BG_COLORS[selectedPosition.verified_status || 'pending'],
-                                                color: STATUS_COLORS[selectedPosition.verified_status || 'pending'],
-                                            }}
-                                        >
-                                            {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
+                    {selectedPosition && (() => {
+                        const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+                        const positionIndex = positions.findIndex(p => p.id === selectedPosition.id)
+                        const positionNumber = positionIndex >= 0 ? positionIndex + 1 : '?'
+                        const trackIcon = selectedPositionTrackType === 'human' ? '🚶' : '🐕'
+                        return (
+                            <div className="bg-white border border-slate-200 rounded p-3 space-y-3 text-xs">
+                                <div>
+                                    <div className="font-semibold text-slate-700 flex items-center gap-2">
+                                        <span className="text-lg">{trackIcon}</span>
+                                        <span className="text-lg">{STATUS_ICONS[selectedPosition.verified_status || 'pending']}</span>
+                                        <span>Position #{positionNumber}</span>
+                                        <span className="text-[10px] text-slate-500">
+                                            ({selectedPositionTrackType === 'human' ? 'Människaspår' : 'Hundspår'})
                                         </span>
                                     </div>
-                                    <div className="text-slate-500 text-[11px]">
-                                        <span className="font-medium">Rå:</span> {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
-                                    </div>
-                                    {selectedPosition.corrected_position && (
-                                        <div className="text-slate-500 text-[11px]">
-                                            <span className="font-medium">Korrigerad:</span> {selectedPosition.corrected_position.lat.toFixed(6)}, {selectedPosition.corrected_position.lng.toFixed(6)}
+                                    <div className="mt-2 space-y-1">
+                                        <div className="text-slate-600 text-[11px]">
+                                            <span className="font-medium">Status:</span>{' '}
+                                            <span
+                                                className="px-2 py-0.5 rounded text-[10px] font-semibold"
+                                                style={{
+                                                    backgroundColor: STATUS_BG_COLORS[selectedPosition.verified_status || 'pending'],
+                                                    color: STATUS_COLORS[selectedPosition.verified_status || 'pending'],
+                                                }}
+                                            >
+                                                {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
+                                            </span>
                                         </div>
-                                    )}
+                                        <div className="text-slate-500 text-[11px]">
+                                            <span className="font-medium">Rå:</span> {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
+                                        </div>
+                                        {selectedPosition.corrected_position && (
+                                            <div className="text-slate-500 text-[11px]">
+                                                <span className="font-medium">Korrigerad:</span> {selectedPosition.corrected_position.lat.toFixed(6)}, {selectedPosition.corrected_position.lng.toFixed(6)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={handleMarkCorrect}
+                                        disabled={loading}
+                                        className="px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300"
+                                    >
+                                        ✅ Markera som korrekt
+                                    </button>
+                                    <button
+                                        onClick={handleMarkIncorrect}
+                                        disabled={loading}
+                                        className="px-3 py-2 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:bg-red-300"
+                                    >
+                                        ❌ Markera som fel
+                                    </button>
+                                    <button
+                                        onClick={() => setIsAdjusting((prev) => !prev)}
+                                        disabled={loading}
+                                        className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                            } disabled:bg-blue-200`}
+                                    >
+                                        {isAdjusting ? '✅ Klar med justering' : '🎯 Justera position på kartan'}
+                                    </button>
+                                    <button
+                                        onClick={handleResetCorrection}
+                                        disabled={loading}
+                                        className="px-3 py-2 rounded bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 disabled:bg-slate-100"
+                                    >
+                                        ↩️ Återställ korrigering
+                                    </button>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] text-slate-600 mb-1">Anteckningar</label>
+                                    <textarea
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        className="w-full border border-slate-300 rounded px-2 py-1 text-xs"
+                                        rows={3}
+                                    />
+                                    <button
+                                        onClick={handleSaveNotes}
+                                        disabled={loading}
+                                        className="mt-2 px-3 py-2 rounded bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:bg-purple-300"
+                                    >
+                                        💾 Spara anteckningar
+                                    </button>
                                 </div>
                             </div>
+                        )
+                    })()}
 
-                            <div className="flex flex-col gap-2">
-                                <button
-                                    onClick={handleMarkCorrect}
-                                    disabled={loading}
-                                    className="px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300"
-                                >
-                                    ✅ Markera som korrekt
-                                </button>
-                                <button
-                                    onClick={handleMarkIncorrect}
-                                    disabled={loading}
-                                    className="px-3 py-2 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:bg-red-300"
-                                >
-                                    ❌ Markera som fel
-                                </button>
-                                <button
-                                    onClick={() => setIsAdjusting((prev) => !prev)}
-                                    disabled={loading}
-                                    className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                        } disabled:bg-blue-200`}
-                                >
-                                    {isAdjusting ? '✅ Klar med justering' : '🎯 Justera position på kartan'}
-                                </button>
-                                <button
-                                    onClick={handleResetCorrection}
-                                    disabled={loading}
-                                    className="px-3 py-2 rounded bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 disabled:bg-slate-100"
-                                >
-                                    ↩️ Återställ korrigering
-                                </button>
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] text-slate-600 mb-1">Anteckningar</label>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    className="w-full border border-slate-300 rounded px-2 py-1 text-xs"
-                                    rows={3}
-                                />
-                                <button
-                                    onClick={handleSaveNotes}
-                                    disabled={loading}
-                                    className="mt-2 px-3 py-2 rounded bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:bg-purple-300"
-                                >
-                                    💾 Spara anteckningar
-                                </button>
-                            </div>
+                    {(message || error) && (
+                        <div
+                            className={`text-xs rounded px-3 py-2 ${error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                }`}
+                        >
+                            {error || message}
                         </div>
-                    )
-                })()}
-
-                {(message || error) && (
-                    <div
-                        className={`text-xs rounded px-3 py-2 ${error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                            }`}
-                    >
-                        {error || message}
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             <div className="flex-1 relative">
