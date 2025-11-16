@@ -161,16 +161,48 @@ const TestLab = () => {
         if (mapInstanceRef.current || !mapRef.current) return
 
         const map = L.map(mapRef.current, {
-            maxZoom: 22, // Tillåt mycket närmare zoom (för detaljerad positionering)
+            maxZoom: 23, // Tillåt mycket närmare zoom (för detaljerad positionering)
             minZoom: 3,
             zoomControl: true,
         }).setView([59.334, 18.066], 14)
 
-        // Använd OpenStreetMap (stöder zoom upp till 19, men kartan tillåter zoom 20-22 för närmare inzoomning)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Skapa olika tile layers med olika zoom-stöd
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 19, // OpenStreetMap standard tiles
-        }).addTo(map)
+            maxZoom: 19,
+        })
+
+        // Esri World Imagery - stöder zoom upp till 23 med hög upplösning
+        const esriImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 23,
+        })
+
+        // Esri World Street Map - stöder zoom upp till 23
+        const esriStreetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 23,
+        })
+
+        // CartoDB Positron - stöder zoom upp till 20
+        const cartoPositronLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO',
+            maxZoom: 20,
+        })
+
+        // Lägg till layer control för att växla mellan karttyper
+        const baseMaps = {
+            'OpenStreetMap': osmLayer,
+            'Esri Satellit': esriImageryLayer,
+            'Esri Gatukarta': esriStreetLayer,
+            'CartoDB Ljus': cartoPositronLayer,
+        }
+
+        // Börja med Esri Street Map (hög zoom-stöd)
+        esriStreetLayer.addTo(map)
+
+        // Lägg till layer control
+        L.control.layers(baseMaps).addTo(map)
 
         markersLayerRef.current = L.layerGroup().addTo(map)
         humanTrackLayerRef.current = L.layerGroup().addTo(map)
@@ -306,11 +338,11 @@ const TestLab = () => {
                 }).addTo(markersLayerRef.current)
             }
 
-            // Main marker: röd bas för människaspår, status-färg som border
+            // Main marker: röd bas för människaspår, röd border (spår-färg)
             const radius = isSelected ? 5 : 4
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
-                color: statusColor, // Status-färg som border
+                color: trackColor, // Röd border (spår-färg)
                 fillColor: trackColor, // Röd fyllning för människaspår
                 fillOpacity: isSelected ? 0.9 : 0.7,
                 weight: isSelected ? 2.5 : 2,
@@ -369,11 +401,11 @@ const TestLab = () => {
                 }).addTo(markersLayerRef.current)
             }
 
-            // Main marker: lila bas för hundspår, status-färg som border
+            // Main marker: lila bas för hundspår, lila border (spår-färg)
             const radius = isSelected ? 5 : 4
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
-                color: statusColor, // Status-färg som border
+                color: trackColor, // Lila border (spår-färg)
                 fillColor: trackColor, // Lila fyllning för hundspår
                 fillOpacity: isSelected ? 0.9 : 0.7,
                 weight: isSelected ? 2.5 : 2,
