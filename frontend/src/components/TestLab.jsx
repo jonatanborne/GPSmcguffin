@@ -41,6 +41,7 @@ const TestLab = () => {
     const mapInstanceRef = useRef(null)
     const markersLayerRef = useRef(null)
     const draggableMarkerRef = useRef(null)
+    const draggableMarkerPositionIdRef = useRef(null) // Spåra vilken position markören tillhör
     const humanTrackLayerRef = useRef(null) // Layer för människaspåret
 
     const [tracks, setTracks] = useState([])
@@ -466,6 +467,7 @@ const TestLab = () => {
             if (draggableMarkerRef.current) {
                 draggableMarkerRef.current.remove()
                 draggableMarkerRef.current = null
+                draggableMarkerPositionIdRef.current = null
             }
             return
         }
@@ -480,56 +482,64 @@ const TestLab = () => {
             marker.on('dragend', handleCorrectionDragEnd)
             marker.addTo(mapInstanceRef.current)
             draggableMarkerRef.current = marker
+            draggableMarkerPositionIdRef.current = selectedPosition.id
         } else {
-            // Om markören redan finns, kontrollera om den tillhör den nuvarande valda positionen
-            const currentMarkerPos = draggableMarkerRef.current.getLatLng()
-            const expectedPos = [latLng.lat, latLng.lng]
-            const distanceToExpected = haversineDistance(
-                { lat: currentMarkerPos.lat, lng: currentMarkerPos.lng },
-                { lat: expectedPos[0], lng: expectedPos[1] }
-            )
+            // Om markören tillhör en annan position, flytta den alltid till den nya positionen
+            if (draggableMarkerPositionIdRef.current !== selectedPosition.id) {
+                // Markören tillhör en annan position, flytta den till den nya positionen
+                draggableMarkerRef.current.setLatLng(point)
+                draggableMarkerPositionIdRef.current = selectedPosition.id
+            } else {
+                // Om markören redan finns, kontrollera om den tillhör den nuvarande valda positionen
+                const currentMarkerPos = draggableMarkerRef.current.getLatLng()
+                const expectedPos = [latLng.lat, latLng.lng]
+                const distanceToExpected = haversineDistance(
+                    { lat: currentMarkerPos.lat, lng: currentMarkerPos.lng },
+                    { lat: expectedPos[0], lng: expectedPos[1] }
+                )
 
-            // Om markören är nära den förväntade positionen (mindre än 1 meter),
-            // betyder det att den redan är på rätt plats för denna position
-            // I så fall, behåll den där den är om användaren justerar (isAdjusting)
-            if (distanceToExpected < 1) {
-                // Markören är redan på rätt plats för denna position
-                if (isAdjusting) {
-                    draggableMarkerRef.current.dragging.enable()
-                } else {
-                    draggableMarkerRef.current.dragging.disable()
-                }
-                return
-            }
-
-            // Om markören är långt från den förväntade positionen (mer än 1 meter),
-            // betyder det att den tillhör en annan position (t.ex. position #1 när vi valt #2)
-            // I så fall, flytta markören till den nya positionen
-            // MEN: om användaren justerar denna position OCH markören är nära denna positionens original,
-            // betyder det att användaren just flyttat denna markör, så behåll den där den är
-            if (distanceToExpected > 1) {
-                // Markören är inte på den valda positionen
-                // Kontrollera om användaren justerar denna position
-                if (isAdjusting) {
-                    const originalPos = [selectedPosition.position.lat, selectedPosition.position.lng]
-                    const distanceFromOriginal = haversineDistance(
-                        { lat: currentMarkerPos.lat, lng: currentMarkerPos.lng },
-                        { lat: originalPos[0], lng: originalPos[1] }
-                    )
-
-                    // Om markören är nära denna positionens original (mindre än 1 meter),
-                    // betyder det att användaren just flyttat denna markör från original positionen
-                    // Behåll den där användaren flyttat den
-                    if (distanceFromOriginal < 1) {
+                // Om markören är nära den förväntade positionen (mindre än 1 meter),
+                // betyder det att den redan är på rätt plats för denna position
+                // I så fall, behåll den där den är om användaren justerar (isAdjusting)
+                if (distanceToExpected < 1) {
+                    // Markören är redan på rätt plats för denna position
+                    if (isAdjusting) {
                         draggableMarkerRef.current.dragging.enable()
-                        return
+                    } else {
+                        draggableMarkerRef.current.dragging.disable()
                     }
+                    return
                 }
-                // Annars, flytta markören till den nya positionen
-            }
 
-            // Uppdatera markörens position till korrigerad eller original för den valda positionen
-            draggableMarkerRef.current.setLatLng(point)
+                // Om markören är långt från den förväntade positionen (mer än 1 meter),
+                // betyder det att den tillhör en annan position (t.ex. position #1 när vi valt #2)
+                // I så fall, flytta markören till den nya positionen
+                // MEN: om användaren justerar denna position OCH markören är nära denna positionens original,
+                // betyder det att användaren just flyttat denna markör, så behåll den där den är
+                if (distanceToExpected > 1) {
+                    // Markören är inte på den valda positionen
+                    // Kontrollera om användaren justerar denna position
+                    if (isAdjusting) {
+                        const originalPos = [selectedPosition.position.lat, selectedPosition.position.lng]
+                        const distanceFromOriginal = haversineDistance(
+                            { lat: currentMarkerPos.lat, lng: currentMarkerPos.lng },
+                            { lat: originalPos[0], lng: originalPos[1] }
+                        )
+
+                        // Om markören är nära denna positionens original (mindre än 1 meter),
+                        // betyder det att användaren just flyttat denna markör från original positionen
+                        // Behåll den där användaren flyttat den
+                        if (distanceFromOriginal < 1) {
+                            draggableMarkerRef.current.dragging.enable()
+                            return
+                        }
+                    }
+                    // Annars, flytta markören till den nya positionen
+                }
+
+                // Uppdatera markörens position till korrigerad eller original för den valda positionen
+                draggableMarkerRef.current.setLatLng(point)
+            }
         }
 
         if (isAdjusting) {
