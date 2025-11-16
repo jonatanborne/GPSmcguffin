@@ -18,10 +18,22 @@ const STATUS_LABELS = {
     incorrect: 'Fel',
 }
 
+const STATUS_ICONS = {
+    pending: '⏳',
+    correct: '✅',
+    incorrect: '❌',
+}
+
 const STATUS_COLORS = {
-    pending: '#f59e0b',
-    correct: '#22c55e',
-    incorrect: '#ef4444',
+    pending: '#f59e0b', // Amber
+    correct: '#22c55e', // Green
+    incorrect: '#ef4444', // Red
+}
+
+const STATUS_BG_COLORS = {
+    pending: '#fef3c7', // Light amber
+    correct: '#d1fae5', // Light green
+    incorrect: '#fee2e2', // Light red
 }
 
 const TestLab = () => {
@@ -146,44 +158,54 @@ const TestLab = () => {
 
             const status = pos.verified_status || 'pending'
             const color = STATUS_COLORS[status] || STATUS_COLORS.pending
+            const icon = STATUS_ICONS[status] || STATUS_ICONS.pending
+            const isSelected = selectedPositionId === pos.id
 
-            // Original point marker (smaller, grey)
-            L.circleMarker(originalLatLng, {
-                radius: 4,
-                color: '#94a3b8',
-                fillColor: '#cbd5f5',
-                fillOpacity: 0.4,
-                weight: 1,
-            }).addTo(markersLayerRef.current)
-
-            // Line showing correction offset
+            // Original point marker (smaller, grey) - only show if corrected
             if (pos.corrected_position) {
-                L.polyline([originalLatLng, correctedLatLng], {
+                L.circleMarker(originalLatLng, {
+                    radius: 5,
                     color: '#64748b',
-                    dashArray: '4, 4',
+                    fillColor: '#94a3b8',
+                    fillOpacity: 0.5,
                     weight: 1.5,
-                    opacity: 0.7,
+                }).addTo(markersLayerRef.current)
+
+                // Line showing correction offset
+                L.polyline([originalLatLng, correctedLatLng], {
+                    color: color,
+                    dashArray: '5, 5',
+                    weight: 2,
+                    opacity: 0.6,
                 }).addTo(markersLayerRef.current)
             }
 
-            const radius = selectedPositionId === pos.id ? 7 : 5
-
+            // Main marker with status color
+            const radius = isSelected ? 8 : 6
             const marker = L.circleMarker(correctedLatLng, {
                 radius,
-                color,
+                color: color,
                 fillColor: color,
-                fillOpacity: 0.7,
-                weight: selectedPositionId === pos.id ? 3 : 2,
+                fillOpacity: isSelected ? 0.9 : 0.7,
+                weight: isSelected ? 4 : 2.5,
             })
 
             marker.on('click', () => {
                 handleSelectPosition(pos.id)
             })
 
-            marker.bindTooltip(`#${pos.id} • ${STATUS_LABELS[status]}`, {
-                direction: 'top',
-                offset: [0, -8],
-            })
+            // Enhanced tooltip with icon
+            marker.bindTooltip(
+                `<div style="text-align: center; font-weight: bold;">
+                    ${icon} #${pos.id}<br/>
+                    <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                </div>`,
+                {
+                    direction: 'top',
+                    offset: [0, -10],
+                    className: 'custom-tooltip',
+                }
+            )
 
             marker.addTo(markersLayerRef.current)
         })
@@ -349,12 +371,16 @@ const TestLab = () => {
                                         }`}
                                 >
                                     <div className="flex justify-between items-center">
-                                        <span className="font-medium text-slate-700">#{pos.id}</span>
+                                        <span className="font-medium text-slate-700 flex items-center gap-1">
+                                            <span>{STATUS_ICONS[status]}</span>
+                                            <span>#{pos.id}</span>
+                                        </span>
                                         <span
                                             className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
                                             style={{
-                                                backgroundColor: `${STATUS_COLORS[status]}22`,
+                                                backgroundColor: STATUS_BG_COLORS[status] || STATUS_BG_COLORS.pending,
                                                 color: STATUS_COLORS[status],
+                                                border: `1px solid ${STATUS_COLORS[status]}`,
                                             }}
                                         >
                                             {STATUS_LABELS[status]}
@@ -372,17 +398,31 @@ const TestLab = () => {
                 {selectedPosition && (
                     <div className="bg-white border border-slate-200 rounded p-3 space-y-3 text-xs">
                         <div>
-                            <div className="font-semibold text-slate-700">Vald position #{selectedPosition.id}</div>
-                            <div className="text-slate-500">
-                                Rå: {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
+                            <div className="font-semibold text-slate-700 flex items-center gap-2">
+                                <span className="text-lg">{STATUS_ICONS[selectedPosition.verified_status || 'pending']}</span>
+                                <span>Position #{selectedPosition.id}</span>
                             </div>
-                            {selectedPosition.corrected_position && (
-                                <div className="text-slate-500">
-                                    Korrigerad: {selectedPosition.corrected_position.lat.toFixed(6)}, {selectedPosition.corrected_position.lng.toFixed(6)}
+                            <div className="mt-2 space-y-1">
+                                <div className="text-slate-600 text-[11px]">
+                                    <span className="font-medium">Status:</span>{' '}
+                                    <span
+                                        className="px-2 py-0.5 rounded text-[10px] font-semibold"
+                                        style={{
+                                            backgroundColor: STATUS_BG_COLORS[selectedPosition.verified_status || 'pending'],
+                                            color: STATUS_COLORS[selectedPosition.verified_status || 'pending'],
+                                        }}
+                                    >
+                                        {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
+                                    </span>
                                 </div>
-                            )}
-                            <div className="text-slate-500">
-                                Status: {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
+                                <div className="text-slate-500 text-[11px]">
+                                    <span className="font-medium">Rå:</span> {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
+                                </div>
+                                {selectedPosition.corrected_position && (
+                                    <div className="text-slate-500 text-[11px]">
+                                        <span className="font-medium">Korrigerad:</span> {selectedPosition.corrected_position.lat.toFixed(6)}, {selectedPosition.corrected_position.lng.toFixed(6)}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
