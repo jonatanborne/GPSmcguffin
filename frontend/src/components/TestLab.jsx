@@ -166,14 +166,11 @@ const TestLab = () => {
             zoomControl: true,
         }).setView([59.334, 18.066], 14)
 
-        // Använd OpenStreetMap med högre zoom-stöd
+        // Använd OpenStreetMap (stöder zoom upp till 19, men kartan tillåter zoom 20-22 för närmare inzoomning)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19, // OpenStreetMap standard tiles
         }).addTo(map)
-        
-        // Lägg till en extra tile layer för zoom 20-22 (använder samma tiles men låter zoom gå högre)
-        // Detta gör att man kan zooma in mer även om tiles inte är lika detaljerade
 
         markersLayerRef.current = L.layerGroup().addTo(map)
         humanTrackLayerRef.current = L.layerGroup().addTo(map)
