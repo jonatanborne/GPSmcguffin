@@ -41,6 +41,7 @@ const TestLab = () => {
     const mapInstanceRef = useRef(null)
     const markersLayerRef = useRef(null)
     const draggableMarkerRef = useRef(null)
+    const humanTrackLayerRef = useRef(null) // Layer för människaspåret
 
     const [tracks, setTracks] = useState([])
     const [selectedTrackId, setSelectedTrackId] = useState('')
@@ -52,6 +53,10 @@ const TestLab = () => {
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState(null)
     const [error, setError] = useState(null)
+    const [humanTrack, setHumanTrack] = useState(null) // Människaspår för snapping
+    const [snappingEnabled, setSnappingEnabled] = useState(true)
+    const [snappingDistance, setSnappingDistance] = useState(10) // meter
+    const snapIndicatorRef = useRef(null) // Visuell feedback för snapping
 
     const selectedPosition = useMemo(
         () => positions.find((p) => p.id === selectedPositionId) || null,
@@ -71,9 +76,43 @@ const TestLab = () => {
     }, [])
 
     useEffect(() => {
-        if (!selectedTrackId) return
+        if (!selectedTrackId) {
+            setSelectedTrack(null)
+            setHumanTrack(null)
+            return
+        }
         fetchTrack(selectedTrackId)
     }, [selectedTrackId])
+
+    useEffect(() => {
+        if (selectedTrack && selectedTrack.track_type === 'dog' && selectedTrack.human_track_id) {
+            fetchHumanTrack(selectedTrack.human_track_id)
+        } else {
+            setHumanTrack(null)
+        }
+    }, [selectedTrack])
+
+    // Rita människaspåret på kartan när det laddas
+    useEffect(() => {
+        if (!humanTrackLayerRef.current) return
+
+        humanTrackLayerRef.current.clearLayers()
+
+        if (humanTrack && humanTrack.positions && humanTrack.positions.length > 0) {
+            const coords = humanTrack.positions.map(p => [p.position.lat, p.position.lng])
+            const polyline = L.polyline(coords, {
+                color: '#ef4444',
+                weight: 3,
+                opacity: 0.6,
+                dashArray: '8, 4',
+            }).addTo(humanTrackLayerRef.current)
+
+            // Lägg till tooltip
+            polyline.bindTooltip(`Människaspår: ${humanTrack.name}`, {
+                sticky: true,
+            })
+        }
+    }, [humanTrack])
 
     useEffect(() => {
         renderMarkers()
@@ -95,6 +134,7 @@ const TestLab = () => {
         }).addTo(map)
 
         markersLayerRef.current = L.layerGroup().addTo(map)
+        humanTrackLayerRef.current = L.layerGroup().addTo(map)
 
         mapInstanceRef.current = map
     }
@@ -143,6 +183,50 @@ const TestLab = () => {
         if (positionIdToKeep) {
             setSelectedPositionId(positionIdToKeep)
         }
+    }
+
+    // Beräkna avstånd mellan två positioner (Haversine-formel)
+    const haversineDistance = (pos1, pos2) => {
+        const R = 6371000 // Jordens radie i meter
+        const dLat = (pos2.lat - pos1.lat) * Math.PI / 180
+        const dLon = (pos2.lng - pos1.lng) * Math.PI / 180
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(pos1.lat * Math.PI / 180) * Math.cos(pos2.lat * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c
+    }
+
+    // Hämta människaspår för snapping
+    const fetchHumanTrack = async (humanTrackId) => {
+        try {
+            const response = await axios.get(`${API_BASE}/tracks/${humanTrackId}`)
+            setHumanTrack(response.data)
+        } catch (err) {
+            console.error('Kunde inte hämta människaspår:', err)
+            setHumanTrack(null)
+        }
+    }
+
+    // Hitta närmaste punkt på människaspåret
+    const findNearestHumanPosition = (lat, lng) => {
+        if (!humanTrack || !humanTrack.positions || humanTrack.positions.length === 0) {
+            return null
+        }
+
+        const currentPos = { lat, lng }
+        let nearest = null
+        let nearestDistance = Infinity
+
+        humanTrack.positions.forEach((pos) => {
+            const distance = haversineDistance(currentPos, pos.position)
+            if (distance < nearestDistance && distance <= snappingDistance) {
+                nearestDistance = distance
+                nearest = pos.position
+            }
+        })
+
+        return nearest ? { position: nearest, distance: nearestDistance } : null
     }
 
     const renderMarkers = () => {
@@ -236,6 +320,7 @@ const TestLab = () => {
 
         if (!draggableMarkerRef.current) {
             const marker = L.marker(point, { draggable: true })
+            marker.on('drag', handleCorrectionDrag)
             marker.on('dragend', handleCorrectionDragEnd)
             marker.addTo(mapInstanceRef.current)
             draggableMarkerRef.current = marker
@@ -252,10 +337,61 @@ const TestLab = () => {
         mapInstanceRef.current.setView(point, Math.max(mapInstanceRef.current.getZoom(), 16))
     }
 
+    // Hantera drag med snapping
+    const handleCorrectionDrag = () => {
+        if (!draggableMarkerRef.current || !snappingEnabled || !humanTrack) return
+
+        const { lat, lng } = draggableMarkerRef.current.getLatLng()
+        const nearest = findNearestHumanPosition(lat, lng)
+
+        if (nearest) {
+            // Snappa till närmaste punkt
+            draggableMarkerRef.current.setLatLng([nearest.position.lat, nearest.position.lng])
+
+            // Visa visuell feedback (linje från original till snapped position)
+            if (snapIndicatorRef.current) {
+                snapIndicatorRef.current.remove()
+            }
+            const indicator = L.polyline(
+                [[lat, lng], [nearest.position.lat, nearest.position.lng]],
+                {
+                    color: '#3b82f6',
+                    dashArray: '3, 3',
+                    weight: 2,
+                    opacity: 0.8,
+                }
+            ).addTo(mapInstanceRef.current)
+            snapIndicatorRef.current = indicator
+        } else {
+            // Ta bort feedback om vi inte är nära någon punkt
+            if (snapIndicatorRef.current) {
+                snapIndicatorRef.current.remove()
+                snapIndicatorRef.current = null
+            }
+        }
+    }
+
     const handleCorrectionDragEnd = async () => {
         if (!draggableMarkerRef.current || !selectedPosition) return
 
-        const { lat, lng } = draggableMarkerRef.current.getLatLng()
+        // Ta bort snap-indikator
+        if (snapIndicatorRef.current) {
+            snapIndicatorRef.current.remove()
+            snapIndicatorRef.current = null
+        }
+
+        let { lat, lng } = draggableMarkerRef.current.getLatLng()
+
+        // Om snapping är aktiverat, kontrollera om vi ska snappa
+        if (snappingEnabled && humanTrack) {
+            const nearest = findNearestHumanPosition(lat, lng)
+            if (nearest) {
+                lat = nearest.position.lat
+                lng = nearest.position.lng
+                // Uppdatera markörens position till den snappade positionen
+                draggableMarkerRef.current.setLatLng([lat, lng])
+            }
+        }
 
         await saveAnnotation(selectedPosition.id, {
             verified_status: 'incorrect',
@@ -349,6 +485,55 @@ const TestLab = () => {
                         <div>Typ: {selectedTrack.track_type === 'human' ? 'Människa' : 'Hund'}</div>
                         <div>Positioner: {positions.length}</div>
                         <div>Skapad: {new Date(selectedTrack.created_at).toLocaleString()}</div>
+                    </div>
+                )}
+
+                {/* Snapping-inställningar - endast för hundspår */}
+                {selectedTrack && selectedTrack.track_type === 'dog' && (
+                    <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
+                        <div className="font-semibold text-slate-700">🎯 Snapping-inställningar</div>
+                        {humanTrack ? (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-slate-600">Aktivera snapping</label>
+                                    <button
+                                        onClick={() => setSnappingEnabled(!snappingEnabled)}
+                                        className={`px-3 py-1 rounded text-[10px] font-semibold ${snappingEnabled
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-slate-200 text-slate-600'
+                                            }`}
+                                    >
+                                        {snappingEnabled ? 'På' : 'Av'}
+                                    </button>
+                                </div>
+                                <div>
+                                    <label className="block text-slate-600 mb-1">
+                                        Snapping-avstånd: {snappingDistance}m
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="5"
+                                        max="20"
+                                        step="1"
+                                        value={snappingDistance}
+                                        onChange={(e) => setSnappingDistance(Number(e.target.value))}
+                                        className="w-full"
+                                        disabled={!snappingEnabled}
+                                    />
+                                    <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                                        <span>5m</span>
+                                        <span>20m</span>
+                                    </div>
+                                </div>
+                                <div className="text-[10px] text-slate-500">
+                                    Snappar till: <span className="font-medium">{humanTrack.name}</span>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="text-[10px] text-slate-500">
+                                Inget människaspår kopplat. Snapping inaktiverat.
+                            </div>
+                        )}
                     </div>
                 )}
 
