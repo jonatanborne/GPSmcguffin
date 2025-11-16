@@ -467,7 +467,7 @@ const TestLab = () => {
     const handleSelectPosition = (positionId, trackType) => {
         // Konvertera till number om det är en sträng
         const numericPositionId = typeof positionId === 'string' ? Number(positionId) : positionId
-        
+
         console.log('Väljer position:', {
             positionId: numericPositionId,
             trackType,
@@ -475,7 +475,7 @@ const TestLab = () => {
             humanPositionsCount: humanPositions.length,
             dogPositionsCount: dogPositions.length,
         })
-        
+
         setSelectedPositionId(numericPositionId)
         setSelectedPositionTrackType(trackType)
         setIsAdjusting(false)
@@ -993,18 +993,18 @@ const TestLab = () => {
                         }
 
                         return (
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 my-2">
                                 <button
                                     onClick={handlePrevious}
                                     disabled={!hasPrevious || loading}
-                                    className="flex-1 px-3 py-2 rounded bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                    className="flex-1 px-3 py-2 rounded bg-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition"
                                 >
                                     ⬅️ Föregående
                                 </button>
                                 <button
                                     onClick={handleNext}
                                     disabled={!hasNext || loading}
-                                    className="flex-1 px-3 py-2 rounded bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                    className="flex-1 px-3 py-2 rounded bg-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition"
                                 >
                                     Nästa ➡️
                                 </button>
@@ -1067,22 +1067,22 @@ const TestLab = () => {
                                     >
                                         ❌ Markera som fel
                                     </button>
-                                <button
-                                    onClick={() => {
-                                        if (!isAdjusting) {
-                                            // När justering startar, spåra den valda positionen
-                                            draggingPositionIdRef.current = selectedPositionId
-                                            console.log('Justering startar för position:', {
-                                                selectedPositionId,
-                                                selectedPositionTrackType,
-                                                draggingPositionIdRef: draggingPositionIdRef.current,
-                                            })
-                                        } else {
-                                            // När justering avslutas, rensa ref
-                                            draggingPositionIdRef.current = null
-                                        }
-                                        setIsAdjusting((prev) => !prev)
-                                    }}
+                                    <button
+                                        onClick={() => {
+                                            if (!isAdjusting) {
+                                                // När justering startar, spåra den valda positionen
+                                                draggingPositionIdRef.current = selectedPositionId
+                                                console.log('Justering startar för position:', {
+                                                    selectedPositionId,
+                                                    selectedPositionTrackType,
+                                                    draggingPositionIdRef: draggingPositionIdRef.current,
+                                                })
+                                            } else {
+                                                // När justering avslutas, rensa ref
+                                                draggingPositionIdRef.current = null
+                                            }
+                                            setIsAdjusting((prev) => !prev)
+                                        }}
                                         disabled={loading}
                                         className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                             } disabled:bg-blue-200`}
