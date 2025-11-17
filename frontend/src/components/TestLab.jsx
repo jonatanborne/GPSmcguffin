@@ -357,10 +357,9 @@ const TestLab = () => {
             })
 
             marker.on('click', (e) => {
-                // Förhindra att klick på markörer ändrar vald position om användaren redan har valt en position
-                // Användaren kan fortfarande klicka på markörer för att välja dem, men bara om ingen position är vald
-                // eller om de explicit klickar med Ctrl/Cmd-tangenten
-                if (selectedPositionId && !e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
+                // I batch-läge: tillåt att klicka på markörer för att byta position direkt
+                // Annars: förhindra att klick på markörer ändrar vald position om användaren redan har valt en position
+                if (!batchAdjustMode && selectedPositionId && !e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
                     // Om en position redan är vald, ignorera klicket (eller visa en notis)
                     return
                 }
@@ -435,10 +434,9 @@ const TestLab = () => {
             })
 
             marker.on('click', (e) => {
-                // Förhindra att klick på markörer ändrar vald position om användaren redan har valt en position
-                // Användaren kan fortfarande klicka på markörer för att välja dem, men bara om ingen position är vald
-                // eller om de explicit klickar med Ctrl/Cmd-tangenten
-                if (selectedPositionId && !e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
+                // I batch-läge: tillåt att klicka på markörer för att byta position direkt
+                // Annars: förhindra att klick på markörer ändrar vald position om användaren redan har valt en position
+                if (!batchAdjustMode && selectedPositionId && !e.originalEvent.ctrlKey && !e.originalEvent.metaKey) {
                     // Om en position redan är vald, ignorera klicket (eller visa en notis)
                     return
                 }
@@ -667,7 +665,12 @@ const TestLab = () => {
 
         // Rensa ref efter drag-operationen
         draggingPositionIdRef.current = null
-        setIsAdjusting(false)
+
+        // I batch-läge: behåll justering aktivt så användaren kan fortsätta justera nästa position direkt
+        // Annars: stäng av justering som tidigare
+        if (!batchAdjustMode) {
+            setIsAdjusting(false)
+        }
     }
 
     const saveAnnotation = async (positionId, payload, successMessage = 'Uppdaterat!') => {
@@ -850,9 +853,9 @@ const TestLab = () => {
     }
 
     return (
-        <div className="h-full flex">
+        <div className="h-full flex overflow-hidden">
             <div className="w-72 bg-slate-100 border-r border-slate-200 flex flex-col overflow-hidden">
-                <div className="p-4 flex flex-col gap-4 overflow-y-auto flex-1">
+                <div className="p-4 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0">
                     <div>
                         <h2 className="text-lg font-semibold mb-2">Testmiljö</h2>
                         <p className="text-sm text-slate-600">
