@@ -66,6 +66,8 @@ const TestLab = () => {
     const [snappingDistance, setSnappingDistance] = useState(10) // meter
     const snapIndicatorRef = useRef(null) // Visuell feedback för snapping
     const [batchAdjustMode, setBatchAdjustMode] = useState(false) // Batch-justeringsläge
+    const [convertingTiles, setConvertingTiles] = useState(false) // Tile conversion status
+    const [localTilesAvailable, setLocalTilesAvailable] = useState(false) // Om lokala tiles finns
 
     const selectedPosition = useMemo(
         () => {
@@ -193,6 +195,15 @@ const TestLab = () => {
             maxZoom: 20,
         })
 
+        // Lokal högupplösning tile layer (om tiles finns)
+        const localHighResLayer = L.tileLayer('/tiles/{z}/{x}/{y}.png', {
+            attribution: '© Lokal högupplösning',
+            maxZoom: 20,
+            tileSize: 512, // Om förstorade med faktor 2
+            zoomOffset: 0,
+            errorTileUrl: '', // Dölj fel-tiles
+        })
+
         // Lägg till layer control för att växla mellan karttyper
         const baseMaps = {
             'OpenStreetMap': osmLayer,
@@ -200,6 +211,10 @@ const TestLab = () => {
             'Esri Gatukarta': esriStreetLayer,
             'CartoDB Ljus': cartoPositronLayer,
         }
+
+        // Lägg till lokal högupplösning om tiles finns (testa genom att försöka ladda en tile)
+        // För enkelhetens skull, lägg alltid till den men den kommer bara fungera om tiles finns
+        baseMaps['Lokal Högupplösning'] = localHighResLayer
 
         // Börja med Esri Street Map (hög zoom-stöd)
         esriStreetLayer.addTo(map)
@@ -925,6 +940,156 @@ const TestLab = () => {
                             </div>
                         )
                     })()}
+
+                    {/* Konvertera aktuellt kartområde till förstorade tiles */}
+                    {mapInstanceRef.current && (
+                        <div className="bg-blue-50 border border-blue-300 rounded p-3 space-y-2 text-xs">
+                            <div className="font-semibold text-blue-700">🗺️ Förstora Kartbilder</div>
+                            <div className="text-[10px] text-blue-600">
+                                Ladda ner och förstora tiles för hela området som täcks av de valda spåren (inklusive alla positioner).
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    if (!mapInstanceRef.current) return
+
+                                    // Kontrollera att spår är valda
+                                    if (!humanTrack && !dogTrack) {
+                                        setError('Välj minst ett spår (människaspår eller hundspår) först.')
+                                        setTimeout(() => setError(null), 3000)
+                                        return
+                                    }
+
+                                    setConvertingTiles(true)
+                                    setError(null)
+                                    setMessage(null)
+
+                                    try {
+                                        // Samla alla positioner från båda spåren (både original och korrigerade)
+                                        const allPositions = []
+
+                                        // Lägg till alla människaspår-positioner
+                                        humanPositions.forEach(pos => {
+                                            // Lägg till original position
+                                            allPositions.push({
+                                                lat: pos.position.lat,
+                                                lng: pos.position.lng
+                                            })
+                                            // Lägg till korrigerad position om den finns
+                                            if (pos.corrected_position) {
+                                                allPositions.push({
+                                                    lat: pos.corrected_position.lat,
+                                                    lng: pos.corrected_position.lng
+                                                })
+                                            }
+                                        })
+
+                                        // Lägg till alla hundspår-positioner
+                                        dogPositions.forEach(pos => {
+                                            // Lägg till original position
+                                            allPositions.push({
+                                                lat: pos.position.lat,
+                                                lng: pos.position.lng
+                                            })
+                                            // Lägg till korrigerad position om den finns
+                                            if (pos.corrected_position) {
+                                                allPositions.push({
+                                                    lat: pos.corrected_position.lat,
+                                                    lng: pos.corrected_position.lng
+                                                })
+                                            }
+                                        })
+
+                                        if (allPositions.length === 0) {
+                                            setError('Inga positioner hittades i de valda spåren.')
+                                            setTimeout(() => setError(null), 3000)
+                                            return
+                                        }
+
+                                        // Beräkna bounding box för alla positioner
+                                        const lats = allPositions.map(p => p.lat)
+                                        const lngs = allPositions.map(p => p.lng)
+                                        const minLat = Math.min(...lats)
+                                        const maxLat = Math.max(...lats)
+                                        const minLng = Math.min(...lngs)
+                                        const maxLng = Math.max(...lngs)
+
+                                        // Lägg till padding (5% på alla sidor) för säkerhet
+                                        const latPadding = (maxLat - minLat) * 0.05
+                                        const lngPadding = (maxLng - minLng) * 0.05
+
+                                        const bounds = {
+                                            south: Math.max(-90, minLat - latPadding),
+                                            west: Math.max(-180, minLng - lngPadding),
+                                            north: Math.min(90, maxLat + latPadding),
+                                            east: Math.min(180, maxLng + lngPadding)
+                                        }
+
+                                        // Beräkna zoom levels baserat på områdets storlek
+                                        // För större områden, använd lägre zoom levels
+                                        const latRange = bounds.north - bounds.south
+                                        const lngRange = bounds.east - bounds.west
+                                        const maxRange = Math.max(latRange, lngRange)
+
+                                        let minZoom, maxZoom
+                                        if (maxRange > 0.1) {
+                                            // Stort område (>10km)
+                                            minZoom = 10
+                                            maxZoom = 16
+                                        } else if (maxRange > 0.01) {
+                                            // Medelstort område (1-10km)
+                                            minZoom = 12
+                                            maxZoom = 18
+                                        } else {
+                                            // Litet område (<1km)
+                                            minZoom = 14
+                                            maxZoom = 20
+                                        }
+
+                                        const zoomLevels = []
+                                        for (let z = minZoom; z <= maxZoom; z++) {
+                                            zoomLevels.push(z)
+                                        }
+
+                                        // Bestäm vilken server som används
+                                        const activeServer = 'esri_street' // Default
+
+                                        setMessage(`Laddar ner tiles för ${allPositions.length} positioner...`)
+
+                                        const response = await axios.post(`${API_BASE}/tiles/convert`, {
+                                            bounds: [
+                                                bounds.south,
+                                                bounds.west,
+                                                bounds.north,
+                                                bounds.east,
+                                            ],
+                                            zoom_levels: zoomLevels,
+                                            server: activeServer,
+                                            scale_factor: 2,
+                                        })
+
+                                        setMessage(`✅ ${response.data.message}. Tiles sparade för hela spårområdet (${allPositions.length} positioner). Växla till "Lokal Högupplösning" i kartväljaren.`)
+                                        setLocalTilesAvailable(true)
+
+                                    } catch (err) {
+                                        console.error('Fel vid konvertering av tiles:', err)
+                                        setError(err.response?.data?.detail || 'Kunde inte konvertera tiles')
+                                    } finally {
+                                        setConvertingTiles(false)
+                                        setTimeout(() => setMessage(null), 8000)
+                                    }
+                                }}
+                                disabled={convertingTiles || loading}
+                                className="w-full px-3 py-2 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition"
+                            >
+                                {convertingTiles ? '🔄 Konverterar tiles...' : '📥 Förstora spårområde'}
+                            </button>
+                            {localTilesAvailable && (
+                                <div className="text-[10px] text-green-600 font-semibold">
+                                    ✓ Lokala tiles tillgängliga
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="space-y-3">
                         <div>

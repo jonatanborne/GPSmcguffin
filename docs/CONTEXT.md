@@ -65,9 +65,29 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
 - All annotation functions now use `selectedPositionId` directly instead of `selectedPosition.id` to avoid closure issues
 - Sidebar has proper scroll structure with `overflow-y-auto` on inner container
 
-### Code Cleanup (Completed Today)
+### Code Cleanup (Completed)
 - ✅ Removed all debug console.log statements from TestLab.jsx and GeofenceEditor.jsx
 - Console.warn and console.error statements kept for actual error handling
+
+### Batch-Justeringsläge (Completed Today)
+- ✅ Implementerat batch-justeringsläge i TestLab för effektiv massjustering av positioner
+- ✅ Växlingsknapp för att aktivera/inaktivera batch-läge
+- ✅ I batch-läge: ändringar sparas med status "pending" istället för "incorrect"
+- ✅ Automatisk aktivering av justering när man navigerar mellan positioner i batch-läge
+- ✅ "Godkänn alla justerade"-knapp för att godkänna flera positioner på en gång
+- ✅ Synlig placering av "Godkänn alla justerade"-knappen längst upp i sidebar
+- ✅ Klick på kartan som alternativ till att dra markören i batch-läge
+- ✅ Båda metoderna (dra markören eller klicka på kartan) fungerar parallellt
+- ✅ Automatisk navigering till nästa position när man trycker "Korrekt" i batch-läge
+- ✅ Justering förblir aktivt i batch-läge så användaren kan fortsätta justera nästa position direkt
+- ✅ Fixat scroll i sidebar så bara sidebar scrollar, inte kartan
+
+### Technical Details (Batch-läge)
+- Använder `batchAdjustMode` state för att växla mellan normal-läge och batch-läge
+- I batch-läge: `handleCorrectionDragEnd` sparar med status "pending" istället för "incorrect"
+- Klick-hantering på kartan flyttar markören och sparar ändringen direkt
+- `handleMarkCorrect` navigerar automatiskt till nästa position i batch-läge
+- `handleSelectPosition` aktiverar justering automatiskt när batch-läge är aktivt
 
 ### Next Steps (Pending)
 - Continue testing annotation workflow

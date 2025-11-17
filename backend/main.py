@@ -1842,3 +1842,95 @@ def delete_hiding_spot(track_id: int, spot_id: int):
     conn.commit()
     conn.close()
     return {"deleted": spot_id}
+
+
+# Tile converter endpoint
+class TileConvertRequest(BaseModel):
+    bounds: List[float] = Field(..., min_length=4, max_length=4)  # [min_lat, min_lon, max_lat, max_lon]
+    zoom_levels: List[int] = Field(..., min_items=1)
+    server: Literal["osm", "esri_street", "esri_satellite"] = "esri_street"
+    scale_factor: int = Field(2, ge=1, le=4)
+
+
+@app.post("/tiles/convert")
+def convert_tiles(payload: TileConvertRequest):
+    """
+    Konvertera och förstora tiles för aktuellt kartområde.
+    Kör tile_converter.py med angivna parametrar.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    try:
+        # Hämta projektets root directory
+        backend_dir = Path(__file__).parent
+        project_root = backend_dir.parent
+        tile_converter_path = project_root / "tools" / "tile_converter.py"
+        
+        # Skapa public-mappen om den inte finns (Vite använder public/ för statiska filer)
+        public_dir = project_root / "frontend" / "public"
+        public_dir.mkdir(parents=True, exist_ok=True)
+        output_dir = public_dir / "tiles"
+
+        if not tile_converter_path.exists():
+            raise HTTPException(
+                status_code=500,
+                detail=f"Tile converter script not found at {tile_converter_path}",
+            )
+
+        # Bygg bounds string
+        bounds_str = f"{payload.bounds[0]},{payload.bounds[1]},{payload.bounds[2]},{payload.bounds[3]}"
+
+        # Bygg zoom string
+        if len(payload.zoom_levels) == 1:
+            zoom_str = str(payload.zoom_levels[0])
+        else:
+            zoom_str = f"{min(payload.zoom_levels)}-{max(payload.zoom_levels)}"
+
+        # Kör tile converter
+        cmd = [
+            sys.executable,
+            str(tile_converter_path),
+            "--bounds",
+            bounds_str,
+            "--zoom",
+            zoom_str,
+            "--server",
+            payload.server,
+            "--output",
+            str(output_dir),
+            "--scale",
+            str(payload.scale_factor),
+            "--delay",
+            "0.1",
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300,  # 5 minuter timeout
+            cwd=str(project_root),
+        )
+
+        if result.returncode != 0:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Tile conversion failed: {result.stderr}",
+            )
+
+        return {
+            "status": "success",
+            "message": "Tiles konverterade och förstorade",
+            "output_dir": str(output_dir.relative_to(project_root)),
+            "tile_size": 256 * payload.scale_factor,
+            "stdout": result.stdout,
+        }
+
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=500, detail="Tile conversion timed out (took longer than 5 minutes)"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error converting tiles: {str(e)}")
