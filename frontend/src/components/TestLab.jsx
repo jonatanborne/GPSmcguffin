@@ -471,7 +471,15 @@ const TestLab = () => {
 
         setSelectedPositionId(numericPositionId)
         setSelectedPositionTrackType(trackType)
-        setIsAdjusting(false)
+
+        // I batch-läge: aktivera justering automatiskt, annars stäng av
+        if (batchAdjustMode) {
+            draggingPositionIdRef.current = numericPositionId
+            setIsAdjusting(true)
+        } else {
+            setIsAdjusting(false)
+        }
+
         const positions = trackType === 'human' ? humanPositions : dogPositions
         const position = positions.find((p) => p.id === numericPositionId)
         if (position) {
@@ -852,6 +860,25 @@ const TestLab = () => {
                         </p>
                     </div>
 
+                    {/* Godkänn alla justerade - synlig längst upp när batch-läge är aktivt */}
+                    {batchAdjustMode && (() => {
+                        const pendingCount = getPendingAdjustedPositions().length
+                        return pendingCount > 0 && (
+                            <div className="bg-green-50 border-2 border-green-500 rounded-lg p-3 shadow-md">
+                                <div className="text-xs text-green-800 mb-2 font-semibold">
+                                    {pendingCount} position{pendingCount !== 1 ? 'er' : ''} väntar på godkännande
+                                </div>
+                                <button
+                                    onClick={handleApproveAllAdjusted}
+                                    disabled={loading}
+                                    className="w-full px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition shadow-md"
+                                >
+                                    ✅ Godkänn alla justerade ({pendingCount})
+                                </button>
+                            </div>
+                        )
+                    })()}
+
                     <div className="space-y-3">
                         <div>
                             <label className="block text-sm font-medium mb-1">🚶 Människaspår</label>
@@ -919,8 +946,8 @@ const TestLab = () => {
                                 <button
                                     onClick={() => setBatchAdjustMode(!batchAdjustMode)}
                                     className={`px-3 py-1 rounded text-[10px] font-semibold transition ${batchAdjustMode
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-slate-200 text-slate-600'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-slate-200 text-slate-600'
                                         }`}
                                 >
                                     {batchAdjustMode ? 'På' : 'Av'}
@@ -928,21 +955,9 @@ const TestLab = () => {
                             </div>
                             {batchAdjustMode && (
                                 <div className="text-[10px] text-slate-500 mt-1">
-                                    I batch-läge kan du justera flera positioner i rad och godkänna alla på en gång.
+                                    I batch-läge kan du justera flera positioner i rad. Använd "Nästa"-knappen för att automatiskt aktivera justering på nästa position.
                                 </div>
                             )}
-                            {batchAdjustMode && (() => {
-                                const pendingCount = getPendingAdjustedPositions().length
-                                return pendingCount > 0 && (
-                                    <button
-                                        onClick={handleApproveAllAdjusted}
-                                        disabled={loading}
-                                        className="w-full mt-2 px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition"
-                                    >
-                                        ✅ Godkänn alla justerade ({pendingCount})
-                                    </button>
-                                )
-                            })()}
                         </div>
                     )}
 
@@ -1066,6 +1081,11 @@ const TestLab = () => {
                             if (hasPrevious) {
                                 const previousPosition = positions[currentIndex - 1]
                                 handleSelectPosition(previousPosition.id, selectedPositionTrackType)
+                                // I batch-läge: aktivera justering automatiskt
+                                if (batchAdjustMode) {
+                                    draggingPositionIdRef.current = previousPosition.id
+                                    setIsAdjusting(true)
+                                }
                             }
                         }
 
@@ -1073,6 +1093,11 @@ const TestLab = () => {
                             if (hasNext) {
                                 const nextPosition = positions[currentIndex + 1]
                                 handleSelectPosition(nextPosition.id, selectedPositionTrackType)
+                                // I batch-läge: aktivera justering automatiskt
+                                if (batchAdjustMode) {
+                                    draggingPositionIdRef.current = nextPosition.id
+                                    setIsAdjusting(true)
+                                }
                             }
                         }
 
