@@ -210,6 +210,35 @@ const TestLab = () => {
         markersLayerRef.current = L.layerGroup().addTo(map)
         humanTrackLayerRef.current = L.layerGroup().addTo(map)
 
+        // I batch-läge: hantera klick på kartan som alternativ till att dra markören
+        // Båda metoderna fungerar parallellt - användaren kan välja vilken som passar bäst
+        map.on('click', (e) => {
+            if (batchAdjustMode && selectedPositionId && isAdjusting && draggableMarkerRef.current) {
+                let targetLatLng = e.latlng
+
+                // Om snapping är aktiverat, kontrollera om vi ska snappa (endast för hundspår)
+                if (snappingEnabled && selectedPositionTrackType === 'dog' && humanTrack) {
+                    const nearest = findNearestHumanPosition(e.latlng.lat, e.latlng.lng)
+                    if (nearest) {
+                        targetLatLng = L.latLng(nearest.position.lat, nearest.position.lng)
+                    }
+                }
+
+                // Flytta markören till klickad position (samma som att dra den)
+                draggableMarkerRef.current.setLatLng(targetLatLng)
+
+                // Spara ändringen direkt med status "pending" (samma som när man drar och släpper)
+                const positionIdToSave = draggingPositionIdRef.current || selectedPositionId
+                if (positionIdToSave) {
+                    saveAnnotation(positionIdToSave, {
+                        verified_status: 'pending',
+                        corrected_position: { lat: targetLatLng.lat, lng: targetLatLng.lng },
+                        annotation_notes: notes,
+                    }, 'Position justerad. Klicka "Korrekt" för att godkänna eller fortsätt justera.')
+                }
+            }
+        })
+
         mapInstanceRef.current = map
     }
 
@@ -749,9 +778,24 @@ const TestLab = () => {
         // Spara korrigeringen - använd selectedPositionId direkt för att säkerställa rätt position
         await saveAnnotation(selectedPositionId, payload, 'Markerad som korrekt.')
 
-        // Stäng av justering EFTER att korrigeringen har sparats
-        // Men behåll markören på sin korrigerade position om den har flyttats
-        setIsAdjusting(false)
+        // I batch-läge: gå automatiskt till nästa position efter godkännande
+        if (batchAdjustMode) {
+            const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+            const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
+            const hasNext = currentIndex < positions.length - 1
+
+            if (hasNext) {
+                const nextPosition = positions[currentIndex + 1]
+                handleSelectPosition(nextPosition.id, selectedPositionTrackType)
+                // Justering är redan aktivt från handleSelectPosition i batch-läge
+            } else {
+                // Inga fler positioner, stäng av justering
+                setIsAdjusting(false)
+            }
+        } else {
+            // Stäng av justering EFTER att korrigeringen har sparats (normal-läge)
+            setIsAdjusting(false)
+        }
 
         // Om markören har flyttats, uppdatera den lokalt så den stannar på korrigerad position
         // även efter att selectedPosition har uppdaterats
