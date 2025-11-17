@@ -65,6 +65,7 @@ const TestLab = () => {
     const [snappingEnabled, setSnappingEnabled] = useState(true)
     const [snappingDistance, setSnappingDistance] = useState(10) // meter
     const snapIndicatorRef = useRef(null) // Visuell feedback för snapping
+    const [batchAdjustMode, setBatchAdjustMode] = useState(false) // Batch-justeringsläge
 
     const selectedPosition = useMemo(
         () => {
@@ -468,14 +469,6 @@ const TestLab = () => {
         // Konvertera till number om det är en sträng
         const numericPositionId = typeof positionId === 'string' ? Number(positionId) : positionId
 
-        console.log('Väljer position:', {
-            positionId: numericPositionId,
-            trackType,
-            originalPositionId: positionId,
-            humanPositionsCount: humanPositions.length,
-            dogPositionsCount: dogPositions.length,
-        })
-
         setSelectedPositionId(numericPositionId)
         setSelectedPositionTrackType(trackType)
         setIsAdjusting(false)
@@ -483,11 +476,6 @@ const TestLab = () => {
         const position = positions.find((p) => p.id === numericPositionId)
         if (position) {
             setNotes(position.annotation_notes || '')
-            console.log('Position hittad:', {
-                id: position.id,
-                verified_status: position.verified_status,
-                hasCorrectedPosition: !!position.corrected_position,
-            })
         } else {
             console.warn('Position inte hittad:', {
                 searchedId: numericPositionId,
@@ -638,14 +626,6 @@ const TestLab = () => {
             return
         }
 
-        // Logga för debugging
-        console.log('Sparar korrigering för position:', {
-            positionId: positionIdToSave,
-            trackType: trackTypeToSave,
-            draggingPositionIdRef: draggingPositionIdRef.current,
-            selectedPositionId: selectedPositionId,
-        })
-
         // Ta bort snap-indikator
         if (snapIndicatorRef.current) {
             snapIndicatorRef.current.remove()
@@ -665,12 +645,17 @@ const TestLab = () => {
             }
         }
 
-        // Använd den spårade positionen för att säkerställa att vi sparar för rätt position
+        // I batch-läge: spara med "pending", annars spara med "incorrect" (som tidigare)
+        const status = batchAdjustMode ? 'pending' : 'incorrect'
+        const message = batchAdjustMode
+            ? 'Position justerad. Fortsätt justera fler eller klicka "Godkänn alla justerade" när du är klar.'
+            : 'Position justerad. Klicka "Korrekt" för att godkänna.'
+
         await saveAnnotation(positionIdToSave, {
-            verified_status: 'incorrect',
+            verified_status: status,
             corrected_position: { lat, lng },
             annotation_notes: notes,
-        })
+        }, message)
 
         // Rensa ref efter drag-operationen
         draggingPositionIdRef.current = null
@@ -793,6 +778,69 @@ const TestLab = () => {
         }, 'Anteckningar sparade.')
     }
 
+    // Hitta alla positioner som är justerade men inte godkända än (pending + corrected_position)
+    const getPendingAdjustedPositions = () => {
+        const allPositions = [...humanPositions, ...dogPositions]
+        return allPositions.filter(pos =>
+            pos.verified_status === 'pending' &&
+            pos.corrected_position !== null &&
+            pos.corrected_position !== undefined
+        )
+    }
+
+    const handleApproveAllAdjusted = async () => {
+        const pendingPositions = getPendingAdjustedPositions()
+
+        if (pendingPositions.length === 0) {
+            setMessage('Inga justerade positioner att godkänna.')
+            setTimeout(() => setMessage(null), 2500)
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+        setMessage(null)
+
+        try {
+            let successCount = 0
+            let failCount = 0
+
+            for (const pos of pendingPositions) {
+                try {
+                    await axios.put(`${API_BASE}/track-positions/${pos.id}`, {
+                        verified_status: 'correct',
+                        corrected_position: pos.corrected_position,
+                        annotation_notes: pos.annotation_notes || notes,
+                    })
+                    successCount++
+                } catch (err) {
+                    console.error(`Kunde inte uppdatera position ${pos.id}:`, err)
+                    failCount++
+                }
+            }
+
+            // Uppdatera spåren
+            if (humanTrackId) {
+                await fetchTrack(humanTrackId, 'human')
+            }
+            if (dogTrackId) {
+                await fetchTrack(dogTrackId, 'dog')
+            }
+
+            if (failCount === 0) {
+                setMessage(`✅ ${successCount} positioner godkända!`)
+            } else {
+                setMessage(`✅ ${successCount} positioner godkända, ${failCount} misslyckades.`)
+            }
+        } catch (err) {
+            console.error('Fel vid godkännande av positioner:', err)
+            setError('Kunde inte godkänna alla positioner.')
+        } finally {
+            setLoading(false)
+            setTimeout(() => setMessage(null), 5000)
+        }
+    }
+
     return (
         <div className="h-full flex">
             <div className="w-72 bg-slate-100 border-r border-slate-200 flex flex-col overflow-hidden">
@@ -859,6 +907,42 @@ const TestLab = () => {
                                     <div className="text-slate-500">Positioner: {dogPositions.length}</div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* Batch-justeringsläge */}
+                    {(humanTrack || dogTrack) && (
+                        <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
+                            <div className="font-semibold text-slate-700">⚡ Justeringsläge</div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-slate-600">Batch-justering (justera flera i rad)</label>
+                                <button
+                                    onClick={() => setBatchAdjustMode(!batchAdjustMode)}
+                                    className={`px-3 py-1 rounded text-[10px] font-semibold transition ${batchAdjustMode
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-slate-200 text-slate-600'
+                                        }`}
+                                >
+                                    {batchAdjustMode ? 'På' : 'Av'}
+                                </button>
+                            </div>
+                            {batchAdjustMode && (
+                                <div className="text-[10px] text-slate-500 mt-1">
+                                    I batch-läge kan du justera flera positioner i rad och godkänna alla på en gång.
+                                </div>
+                            )}
+                            {batchAdjustMode && (() => {
+                                const pendingCount = getPendingAdjustedPositions().length
+                                return pendingCount > 0 && (
+                                    <button
+                                        onClick={handleApproveAllAdjusted}
+                                        disabled={loading}
+                                        className="w-full mt-2 px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition"
+                                    >
+                                        ✅ Godkänn alla justerade ({pendingCount})
+                                    </button>
+                                )
+                            })()}
                         </div>
                     )}
 
@@ -1072,11 +1156,6 @@ const TestLab = () => {
                                             if (!isAdjusting) {
                                                 // När justering startar, spåra den valda positionen
                                                 draggingPositionIdRef.current = selectedPositionId
-                                                console.log('Justering startar för position:', {
-                                                    selectedPositionId,
-                                                    selectedPositionTrackType,
-                                                    draggingPositionIdRef: draggingPositionIdRef.current,
-                                                })
                                             } else {
                                                 // När justering avslutas, rensa ref
                                                 draggingPositionIdRef.current = null

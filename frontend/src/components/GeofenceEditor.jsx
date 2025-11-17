@@ -109,7 +109,6 @@ const GeofenceEditor = () => {
 
         // Kombinera tracks från API och localStorage
         const allTracks = [...apiTracks, ...localTracks]
-        console.log(`Laddade ${apiTracks.length} spår från server och ${localTracks.length} spår från localStorage. Totalt: ${allTracks.length} spår`)
         setTracks(allTracks)
         return allTracks
     }
@@ -316,7 +315,6 @@ const GeofenceEditor = () => {
         if (offlineQueueRef.current.length === 0) return
 
         setIsSyncingOfflineData(true)
-        console.log(`Synkar ${offlineQueueRef.current.length} objekt...`)
         const queue = [...offlineQueueRef.current]
         offlineQueueRef.current = []
         updateOfflineQueueState()
@@ -370,11 +368,8 @@ const GeofenceEditor = () => {
         }
 
         if (offlineQueueRef.current.length === 0) {
-            console.log('Alla objekt synkade!')
             // Ladda om tracks
             loadTracks().then(refreshTrackLayers)
-        } else {
-            console.log(`${offlineQueueRef.current.length} objekt kvar att synka`)
         }
         setIsSyncingOfflineData(false)
         updateOfflineQueueState()
@@ -497,8 +492,6 @@ const GeofenceEditor = () => {
                     const localPositionCount = entry.positions.length
                     const shouldUploadPositions = localPositionCount > existingPositionCount
 
-                    console.log(`Track ${entry.track.name || entry.track.id}: Lokala positioner: ${localPositionCount}, Server positioner: ${existingPositionCount}, Ska ladda upp: ${shouldUploadPositions}`)
-
                     // Variabler för att spåra uppladdningsresultat (definieras utanför if för att vara tillgängliga senare)
                     let successfullyUploaded = 0
                     let failedUploads = 0
@@ -507,8 +500,6 @@ const GeofenceEditor = () => {
                     if (shouldUploadPositions) {
                         const positionsToUpload = entry.positions.slice(existingPositionCount)
                         const totalPositions = positionsToUpload.length
-
-                        console.log(`Laddar upp ${totalPositions} positioner för track ${targetTrackId}`)
 
                         for (let i = 0; i < positionsToUpload.length; i++) {
                             const pos = positionsToUpload[i]
@@ -570,13 +561,6 @@ const GeofenceEditor = () => {
                             }
                         }
 
-                        // Logga sammanfattning
-                        console.log(`Position-uppladdning klar för track ${targetTrackId}:`)
-                        console.log(`  - Totalt: ${totalPositions}`)
-                        console.log(`  - Framgångsrikt: ${successfullyUploaded}`)
-                        console.log(`  - Misslyckades: ${failedUploads}`)
-                        console.log(`  - Ogiltiga: ${invalidPositions.length}`)
-
                         if (invalidPositions.length > 0) {
                             console.warn('Ogiltiga positioner:', invalidPositions)
                         }
@@ -590,8 +574,6 @@ const GeofenceEditor = () => {
                                 reason: `${failedUploads} positioner misslyckades, ${invalidPositions.length} ogiltiga`
                             })
                         }
-                    } else {
-                        console.log(`Inga positioner att ladda upp för track ${targetTrackId} (lokal: ${localPositionCount}, server: ${existingPositionCount})`)
                     }
 
                     let refreshedTrack = serverTrack
@@ -627,16 +609,12 @@ const GeofenceEditor = () => {
                                         reason: `Positioner laddades inte upp korrekt: förväntade ${expectedServerCount}, fick ${serverPositions.length}`
                                     })
                                 }
-                            } else {
-                                console.log(`✅ Verifiering OK: Server har ${serverPositions.length} positioner (förväntade ${expectedServerCount})`)
                             }
                         }
 
                         const finalPositions = serverPositions.length >= localPositions.length
                             ? serverPositions
                             : localPositions
-
-                        console.log(`Track ${targetTrackId}: Server har ${serverPositions.length} positioner, Lokalt har ${localPositions.length} positioner, Sparar ${finalPositions.length} positioner`)
 
                         localStorage.setItem(
                             `track_${targetTrackId}`,
@@ -654,11 +632,8 @@ const GeofenceEditor = () => {
                         // Använd localTrackId (från localStorage-nyckeln) istället för track.id
                         const oldLocalId = entry.localTrackId || entry.track.id?.toString()
                         if (oldLocalId && targetTrackId.toString() !== oldLocalId && serverPositions.length >= localPositions.length) {
-                            console.log(`Tar bort gamla lokala spår: track_${oldLocalId} (nytt ID: ${targetTrackId})`)
                             localStorage.removeItem(`track_${oldLocalId}`)
                             localStorage.removeItem(`track_${oldLocalId}_positions`)
-                        } else {
-                            console.log(`Behåller lokalt spår: track_${oldLocalId} (server ID: ${targetTrackId}, server pos: ${serverPositions.length}, lokal pos: ${localPositions.length})`)
                         }
                     }
                 } catch (error) {
@@ -964,7 +939,6 @@ const GeofenceEditor = () => {
         // Om offline, försök skapa track på server när online
         if (!isOnline && currentTrack) {
             // Track finns redan lokalt, kommer synkas när online
-            console.log('Spår sparat lokalt, synkar när online igen')
         }
 
         setCurrentTrack(null)
