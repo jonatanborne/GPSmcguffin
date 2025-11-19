@@ -35,7 +35,7 @@ function App() {
                     </nav>
                 </div>
             </header>
-            <main className="flex-1">
+            <main className="flex-1 overflow-hidden">
                 {isAppView ? <GeofenceEditor /> : <TestLab />}
             </main>
         </div>
