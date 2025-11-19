@@ -1846,7 +1846,9 @@ def delete_hiding_spot(track_id: int, spot_id: int):
 
 # Tile converter endpoint
 class TileConvertRequest(BaseModel):
-    bounds: List[float] = Field(..., min_length=4, max_length=4)  # [min_lat, min_lon, max_lat, max_lon]
+    bounds: List[float] = Field(
+        ..., min_length=4, max_length=4
+    )  # [min_lat, min_lon, max_lat, max_lon]
     zoom_levels: List[int] = Field(..., min_items=1)
     server: Literal["osm", "esri_street", "esri_satellite"] = "esri_street"
     scale_factor: int = Field(2, ge=1, le=4)
@@ -1856,81 +1858,173 @@ class TileConvertRequest(BaseModel):
 def convert_tiles(payload: TileConvertRequest):
     """
     Konvertera och förstora tiles för aktuellt kartområde.
-    Kör tile_converter.py med angivna parametrar.
+    Anropar tile-konverteringsfunktioner direkt istället för via subprocess.
     """
-    import subprocess
     import sys
+    import io
+    import requests
+    from PIL import Image
     from pathlib import Path
+    import time
 
     try:
         # Hämta projektets root directory
         backend_dir = Path(__file__).parent
         project_root = backend_dir.parent
-        tile_converter_path = project_root / "tools" / "tile_converter.py"
-        
+
         # Skapa public-mappen om den inte finns (Vite använder public/ för statiska filer)
         public_dir = project_root / "frontend" / "public"
         public_dir.mkdir(parents=True, exist_ok=True)
         output_dir = public_dir / "tiles"
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-        if not tile_converter_path.exists():
+        # Kontrollera att output_dir är skrivbar
+        try:
+            test_file = output_dir / ".test_write"
+            test_file.write_text("test")
+            test_file.unlink()
+        except Exception as write_error:
             raise HTTPException(
                 status_code=500,
-                detail=f"Tile converter script not found at {tile_converter_path}",
+                detail=f"Cannot write to output directory {output_dir}: {str(write_error)}",
             )
 
-        # Bygg bounds string
-        bounds_str = f"{payload.bounds[0]},{payload.bounds[1]},{payload.bounds[2]},{payload.bounds[3]}"
+        # Tile server URLs
+        TILE_SERVERS = {
+            "osm": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "esri_street": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+            "esri_satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        }
 
-        # Bygg zoom string
-        if len(payload.zoom_levels) == 1:
-            zoom_str = str(payload.zoom_levels[0])
-        else:
-            zoom_str = f"{min(payload.zoom_levels)}-{max(payload.zoom_levels)}"
+        server_url = TILE_SERVERS.get(payload.server)
+        if not server_url:
+            raise HTTPException(
+                status_code=400, detail=f"Unknown server: {payload.server}"
+            )
 
-        # Kör tile converter
-        cmd = [
-            sys.executable,
-            str(tile_converter_path),
-            "--bounds",
-            bounds_str,
-            "--zoom",
-            zoom_str,
-            "--server",
-            payload.server,
-            "--output",
-            str(output_dir),
-            "--scale",
-            str(payload.scale_factor),
-            "--delay",
-            "0.1",
-        ]
+        # Helper functions (från tile_converter.py)
+        def deg2num(lat_deg: float, lon_deg: float, zoom: int):
+            """Konvertera lat/lng till tile koordinater"""
+            lat_rad = math.radians(lat_deg)
+            n = 2.0**zoom
+            xtile = int((lon_deg + 180.0) / 360.0 * n)
+            ytile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+            return (xtile, ytile)
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=300,  # 5 minuter timeout
-            cwd=str(project_root),
+        def get_tile_bounds(
+            min_lat: float, min_lon: float, max_lat: float, max_lon: float, zoom: int
+        ):
+            """Hämta tile bounds för ett område"""
+            x_min, y_max = deg2num(min_lat, min_lon, zoom)
+            x_max, y_min = deg2num(max_lat, max_lon, zoom)
+            return (x_min, y_min, x_max, y_max)
+
+        def download_tile(
+            url_template: str, x: int, y: int, z: int, subdomain: str = "a"
+        ):
+            """Ladda ner en tile"""
+            try:
+                url = url_template.format(s=subdomain, x=x, y=y, z=z)
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    return response.content
+            except Exception:
+                pass
+            return None
+
+        def upscale_tile(image: Image.Image, scale_factor: int = 2):
+            """Förstora en tile"""
+            width, height = image.size
+            new_width = width * scale_factor
+            new_height = height * scale_factor
+            upscaled = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            return upscaled
+
+        # Konvertera bounds till tuple
+        bounds = (
+            payload.bounds[0],
+            payload.bounds[1],
+            payload.bounds[2],
+            payload.bounds[3],
         )
+        min_lat, min_lon, max_lat, max_lon = bounds
 
-        if result.returncode != 0:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Tile conversion failed: {result.stderr}",
+        total_tiles = 0
+        downloaded_tiles = 0
+        output_messages = []
+
+        for zoom in payload.zoom_levels:
+            x_min, y_min, x_max, y_max = get_tile_bounds(
+                min_lat, min_lon, max_lat, max_lon, zoom
             )
+
+            zoom_dir = output_dir / str(zoom)
+            zoom_dir.mkdir(exist_ok=True)
+
+            for x in range(x_min, x_max + 1):
+                x_dir = zoom_dir / str(x)
+                x_dir.mkdir(exist_ok=True)
+
+                for y in range(y_min, y_max + 1):
+                    total_tiles += 1
+                    tile_path = x_dir / f"{y}.png"
+
+                    # Hoppa över om redan nedladdad
+                    if tile_path.exists():
+                        continue
+
+                    # Ladda ner tile
+                    tile_data = download_tile(server_url, x, y, zoom)
+                    if tile_data is None:
+                        continue
+
+                    try:
+                        # Öppna bild
+                        img = Image.open(io.BytesIO(tile_data))
+
+                        # Förstora om scale_factor > 1
+                        if payload.scale_factor > 1:
+                            img = upscale_tile(img, payload.scale_factor)
+
+                        # Spara förstorad tile
+                        img.save(tile_path, "PNG", optimize=True)
+                        downloaded_tiles += 1
+
+                        if downloaded_tiles % 10 == 0:
+                            output_messages.append(
+                                f"Nedladdade {downloaded_tiles} tiles..."
+                            )
+
+                        # Vänta lite för att inte överbelasta servern
+                        time.sleep(0.1)
+
+                    except Exception as e:
+                        output_messages.append(
+                            f"Fel vid bearbetning av {zoom}/{x}/{y}: {e}"
+                        )
+                        continue
+
+        output_text = "\n".join(output_messages)
+        output_text += (
+            f"\n\nKlar! Nedladdade {downloaded_tiles} av {total_tiles} tiles."
+        )
+        output_text += f"\nTiles sparade i: {output_dir.absolute()}"
 
         return {
             "status": "success",
             "message": "Tiles konverterade och förstorade",
             "output_dir": str(output_dir.relative_to(project_root)),
             "tile_size": 256 * payload.scale_factor,
-            "stdout": result.stdout,
+            "stdout": output_text,
+            "downloaded_tiles": downloaded_tiles,
+            "total_tiles": total_tiles,
         }
 
-    except subprocess.TimeoutExpired:
-        raise HTTPException(
-            status_code=500, detail="Tile conversion timed out (took longer than 5 minutes)"
-        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error converting tiles: {str(e)}")
+        import traceback
+
+        error_details = traceback.format_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error converting tiles: {str(e)}\n\nDetails:\n{error_details}",
+        )
