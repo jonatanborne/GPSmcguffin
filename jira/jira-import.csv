@@ -1,0 +1,118 @@
+Issue Type,Summary,Description,Priority,Labels,Epic Link,Story Points
+Epic,Förbättring av Tile-hantering,"Gör det enklare att använda förstorade tiles i appen. Användare ska kunna se och använda förstorade tiles utan manuell konfiguration.",Highest,Tile Management,,0
+Epic,Förbättring av Annoteringsflöde,"Gör TestLab ännu mer effektivt för att samla in annoteringsdata. Förbättra navigering, visualisering och feedback.",Highest,TestLab Annotation,,0
+Epic,Datakvalitet och Validering,"Säkerställ att samlad data är av hög kvalitet. Automatisk validering och kvalitetsmätningar för GPS-data.",Medium,Data Quality Validation,,0
+Epic,ML-Modell Integration,"Börja använda annoterad data för att förbättra GPS-positionsberäkningar. Implementera automatisk korrigeringsmodell.",Medium,ML Machine Learning,,0
+Epic,Förbättrad Visualisering,"Bättre visuell representation av spår och avvikelser. Heatmap, animationer och interaktiva analysverktyg.",Low-Medium,Visualization UI,,0
+Epic,Prestanda och Skalbarhet,"Säkerställ att systemet hanterar stora datamängder. Optimering av kartvisning, databas och frontend-prestanda.",Medium,Performance Optimization,,0
+Epic,Avancerade Funktioner,"Flera samtidiga användare, mobilapp, API för extern integration. Funktioner för lång sikt.",Low,Advanced Features,,0
+Epic,Tekniska Förbättringar,"Backend, frontend och DevOps-förbättringar. Felhantering, dokumentation, CI/CD, tester.",Medium,Tech Improvements,,0
+Epic,Geofence-hantering och förbättringar,"Förbättringar av GeofenceEditor. Utökade funktioner för cirklar, polygoner, gömställen och geofence-analys.",Medium,Geofence Management,,0
+Epic,Track-hantering och analys,"Förbättrad hantering av tracks (spår). Track-jämförelse, analysverktyg och track-statistik.",Medium,Track Management,,0
+Epic,Offline-stöd och synkronisering,"Utöka offline-funktionalitet till TestLab. Förbättra synkronisering mellan offline och online data.",Medium,Offline Sync,,0
+Epic,Användarupplevelse och onboarding,"Förbättra användarupplevelsen med bättre onboarding, hjälptexter, tutorials och användarguider.",Low-Medium,UX Onboarding,,0
+Epic,Säkerhet och autentisering,"Implementera säkerhetsfunktioner som autentisering, auktorisering, dataskydd och säker lagring.",Medium,Security Authentication,,0
+Epic,Dokumentation och support,"Förbättra dokumentation, lägg till användarguider, API-dokumentation och troubleshooting-guides.",Low,Documentation Support,,0
+Epic,Integration och export,"Olika integrationsmöjligheter och export-format för att utbyta data med externa system.",Low,Integration Export,,0
+Epic,Testning och kvalitetssäkring,"Omfattande testning, QA-processer, bugg-trackning och kvalitetssäkring för stabilare releases.",Medium,Testing QA,,0
+Story,Automatisk detektering av lokala tiles,Implementera automatisk detektering av lokala tiles i TestLab. Kontrollera om /tiles/-mappen finns och innehåller data. Uppdatera localTilesAvailable state baserat på faktisk tillgänglighet. Visa tydlig indikator om lokala tiles är tillgängliga eller inte.,Highest,Tile Management Frontend,Förbättring av Tile-hantering,3
+Story,Förbättra tile converter integration,"Validering av tile-struktur vid start. Förbättrad felhantering när tiles saknas. Automatisk upptäckt av tile-storlek (512, 768, 1024) baserat på faktiska filer.",Highest,Tile Management Tools,"Förbättring av Tile-hantering",2
+Story,UI-förbättringar för tile-lager,"Tydlig markering när ""Lokal Högupplösning""-lager är aktivt. Lägg till information om tile-upplösning och område i settings. Varning om tile-området inte täcker nuvarande visning.",Highest,Tile Management UI,Förbättring av Tile-hantering,2
+Story,Förbättrad visuell feedback för korrigeringar,"Visa tydligare skillnad mellan original och korrigerad position. Lägg till linje som visar korrigeringsavståndet (med etikett i meter). Färgkodning baserat på korrigeringsavstånd (grön = liten, röd = stor).",Highest,TestLab Annotation,"Förbättring av Annoteringsflöde",3
+Story,Statistik och översikt i TestLab,"Dashboard med antal annoterade positioner per status. Visa genomsnittligt korrigeringsavstånd. Förloppsindikator: ""X av Y positioner annoterade"". Export-funktion för annoterade data (JSON/CSV).",Highest,TestLab Annotation Dashboard,Förbättring av Annoteringsflöde,5
+Story,Förbättrad navigering i TestLab,"Snabbare navigering med piltangenter (vänster/höger). ""Hoppa till nästa ej märkt""-knapp. Filter: Visa endast pending/incorrect/correct positioner.",Highest,TestLab Annotation Navigation,Förbättring av Annoteringsflöde,2
+Story,Automatisk validering av GPS-data,"Varning om position ligger långt utanför track-banan. Detektera potentiella fel: för snabba rörelser, plötsliga hopp. Jämför hundspår mot människaspår för avvikelsedetektering.",Medium,Data Quality Validation,Datakvalitet och Validering,5
+Story,Kvalitetsmätningar och statistik,"Beräkna avvikelse mellan hund- och människaspår. Visa avståndsstatistik per track. Identifiera problemområden (där avvikelser är störst).",Medium,Data Quality Validation,Datakvalitet och Validering,3
+Story,Data-export för ML-träning,"Strukturerad export med original + korrigerad position. Inkludera metadata (tid, noggrannhet, korrigeringsavstånd). Format som passar för ML-träning (t.ex. JSONL).",Medium,Data Quality ML Export,"Datakvalitet och Validering",3
+Story,Dataanalys och förberedelse för ML,"Analysera annoterad data för mönster. Identifiera vanliga typer av GPS-fel (offset, drift, nois). Förbered träningsdata i lämpligt format.",Medium,ML Machine Learning,"ML-Modell Integration",5
+Story,Enkel korrigeringsmodell,"Implementera grundläggande ML-modell (t.ex. linjär regression eller beslutsträd). Träna på annoterad data för att förutsäga korrigeringar. Integration i backend för automatisk position-korrektion.",Medium,ML Machine Learning,ML-Modell Integration,8
+Story,Validering och testning av ML-modell,Testa modellens prestanda på testdata. Jämför automatiska korrigeringar mot manuella. Förbättra modell iterativt.,Medium,ML Machine Learning,ML-Modell Integration,5
+Story,Heatmap-visualisering,Visa områden med högsta GPS-osäkerhet. Heatmap över korrigeringsavstånd. Identifiera problemområden visuellt.,Low-Medium,Visualization UI,Förbättrad Visualisering,5
+Story,Förbättrad track-visualisering,"Visa både original och korrigerad track samtidigt. Animation av hundens rörelse över tiden. 3D-visualisering av elevation (om data finns).",Low-Medium,Visualization UI,Förbättrad Visualisering,5
+Story,Interaktiva analysverktyg,"Zooma in på specifika avvikelser. Jämförelse mellan olika tracks. Export av visualiseringar (screenshots, video).",Low-Medium,Visualization UI,Förbättrad Visualisering,3
+Story,Optimering av kartvisning,Lazy loading av positions för stora tracks. Clustering av markörer vid låg zoom. Debouncing av kartuppdateringar.,Medium,Performance Optimization,Prestanda och Skalbarhet,5
+Story,Databasoptimering,Indexering för snabbare queries. Paginering av positions-listor. Caching av ofta använda queries.,Medium,Performance Optimization Database,Prestanda och Skalbarhet,5
+Story,Frontend-prestanda,Memoization av beräkningar. Virtualisering av långa listor. Optimering av re-renders.,Medium,Performance Optimization Frontend,Prestanda och Skalbarhet,3
+Story,Flera samtidiga användare,Realtids-synkronisering mellan användare. Konflikthantering för samtidiga redigeringar. Användarhantering och behörigheter.,Low,Advanced Features,Avancerade Funktioner,13
+Story,Mobilapp,React Native eller PWA. GPS-spårning direkt från mobilen. Offline-stöd.,Low,Advanced Features Mobile,Avancerade Funktioner,21
+Story,API för extern integration,REST API för externa system. Webhooks för händelser. OAuth-autentisering.,Low,Advanced Features API,Avancerade Funktioner,8
+Story,Backend-förbättringar,Lägg till API-endpoint för tile-status. Förbättrad felhantering och logging. API-dokumentation med exempel. Automatiska backups av databas.,Medium,Tech Improvements Backend,Tekniska Förbättringar,5
+Story,Frontend-förbättringar,"Förbättrad responsiv design för mobil. Tillgänglighetsförbättringar (a11y). Dark mode support. Internationellisering (i18n) för engelska/svenska.",Medium,Tech Improvements Frontend,Tekniska Förbättringar,8
+Story,DevOps-förbättringar,CI/CD pipeline. Automatiserade tester. Docker Compose för lokal utveckling. Monitoring och alerting.,Medium,Tech Improvements DevOps,Tekniska Förbättringar,13
+Task,Implementera tile detection i TestLab,Kontrollera om /tiles/-mappen finns och innehåller data. Skapa funktion som validerar tile-struktur.,Highest,Tile Management Frontend,Automatisk detektering av lokala tiles,2
+Task,Uppdatera localTilesAvailable state,Uppdatera state baserat på faktisk tile-tillgänglighet. Använd useEffect för att kontrollera vid komponentmount och när tiles läggs till.,Highest,Tile Management Frontend,Automatisk detektering av lokala tiles,1
+Task,Visa indikator för tile-tillgänglighet,Lägg till visuell indikator i UI som visar om lokala tiles är tillgängliga eller inte. T.ex. badge eller ikon.,Highest,Tile Management UI,Automatisk detektering av lokala tiles,1
+Task,Validera tile-struktur vid start,Lägg till validering i tile_converter.py som kontrollerar att tile-struktur är korrekt.,Highest,Tile Management Tools,Förbättra tile converter integration,1
+Task,Förbättra felhantering när tiles saknas,Lägg till try-catch och bättre felmeddelanden när tiles saknas eller är korrupta.,Highest,Tile Management Tools,Förbättra tile converter integration,1
+Task,Automatisk upptäckt av tile-storlek,"Implementera funktion som läser första tile-filen och detekterar storleken (512, 768, 1024).",Highest,Tile Management Tools,"Förbättra tile converter integration",2
+Task,Markering när lokal tile layer är aktiv,"Ändra UI visuellt när ""Lokal Högupplösning""-lager är aktivt (t.ex. markerad i layer control).",Highest,Tile Management UI,UI-förbättringar för tile-lager,1
+Task,Information om tile-upplösning i settings,"Lägg till sektion i settings som visar tile-upplösning, område och tillgängliga zoom levels.",Highest,Tile Management UI,UI-förbättringar för tile-lager,2
+Task,Varning om tile-område inte täcker visning,Lägg till varning/banner när användaren zoomar eller panorerar utanför tile-området.,Highest,Tile Management UI,UI-förbättringar för tile-lager,2
+Task,Linje som visar korrigeringsavstånd,Lägg till linje mellan original och korrigerad position med etikett som visar avståndet i meter.,Highest,TestLab Annotation,Förbättrad visuell feedback för korrigeringar,2
+Task,Färgkodning baserat på korrigeringsavstånd,"Implementera färgkodning där grön = liten korrigering, röd = stor korrigering. T.ex. gräns vid 10m.",Highest,TestLab Annotation,Förbättrad visuell feedback för korrigeringar,2
+Task,Tydligare skillnad mellan original och korrigerad,Använd olika markörer eller färger för att tydligt skilja original från korrigerad position.,Highest,TestLab Annotation,Förbättrad visuell feedback för korrigeringar,1
+Task,Dashboard med annoteringsstatistik,"Skapa dashboard-komponent som visar antal positioner per status (pending/correct/incorrect).",Highest,TestLab Annotation Dashboard,Statistik och översikt i TestLab,3
+Task,Genomsnittligt korrigeringsavstånd,Beräkna och visa genomsnittligt korrigeringsavstånd för alla korrigerade positioner.,Highest,TestLab Annotation Dashboard,Statistik och översikt i TestLab,2
+Task,Förloppsindikator för annoteringar,"Visa ""X av Y positioner annoterade"" med progressbar.",Highest,TestLab Annotation Dashboard,Statistik och översikt i TestLab,1
+Task,Export-funktion för annoterade data,Implementera export-knapp som exporterar annoterade data som JSON eller CSV.,Highest,TestLab Annotation Dashboard,Statistik och översikt i TestLab,2
+Task,Navigering med piltangenter,Lägg till keyboard event listeners för vänster/höger piltangenter för att navigera mellan positioner.,Highest,TestLab Annotation Navigation,Förbättrad navigering i TestLab,1
+Task,Hoppa till nästa ej märkt-knapp,"Implementera knapp som hittar och hoppar till nästa position med status ""pending"".",Highest,TestLab Annotation Navigation,Förbättrad navigering i TestLab,2
+Task,Filter för positioner baserat på status,Lägg till filter-kontroller för att visa endast pending/incorrect/correct positioner.,Highest,TestLab Annotation Navigation,Förbättrad navigering i TestLab,2
+Task,Validering: position utanför track-bana,"Implementera algoritm som varnar om position ligger långt utanför track-banan (t.ex. >50m från närmaste punkt).",Medium,Data Quality Validation,Automatisk validering av GPS-data,3
+Task,Detektera för snabba rörelser,"Beräkna hastighet mellan positioner och varna om hastighet överskrider realistisk gräns (t.ex. >50 km/h för gående hund).",Medium,Data Quality Validation,Automatisk validering av GPS-data,3
+Task,Detektera plötsliga hopp,"Identifiera positioner där avståndet från föregående position är orimligt stort (t.ex. >100m mellan två positioner 1 sekund ifrån varandra).",Medium,Data Quality Validation,Automatisk validering av GPS-data,2
+Task,Jämförelse hundspår vs människaspår,Implementera algoritm som jämför hundspår mot människaspår och identifierar avvikelser.,Medium,Data Quality Validation,Automatisk validering av GPS-data,5
+Task,Beräkna avvikelse mellan tracks,"Implementera funktion som beräknar avvikelse mellan hund- och människaspår (t.ex. med DTW eller Fréchet distance).",Medium,Data Quality Validation,Kvalitetsmätningar och statistik,5
+Task,Avståndsstatistik per track,"Visa statistik som genomsnittlig avvikelse, max avvikelse, procent av tid inom tröskel per track.",Medium,Data Quality Validation,Kvalitetsmätningar och statistik,3
+Task,Identifiera problemområden,"Implementera funktion som identifierar områden där avvikelser är störst (t.ex. heatmap-data).",Medium,Data Quality Validation,Kvalitetsmätningar och statistik,3
+Task,Export med original + korrigerad position,Exportera strukturerad data med både original och korrigerad position för varje annoterad punkt.,Medium,Data Quality ML Export,Data-export för ML-träning,2
+Task,Inkludera metadata i export,"Exportera metadata som tid, noggrannhet (accuracy), korrigeringsavstånd för varje position.",Medium,Data Quality ML Export,"Data-export för ML-träning",2
+Task,JSONL-format för ML-träning,"Implementera export i JSONL-format som passar för ML-träning (en JSON-objekt per rad).",Medium,Data Quality ML Export,Data-export för ML-träning,1
+Task,Identifiera typer av GPS-fel,"Kategorisera GPS-fel i typer: offset (systematisk förskjutning), drift (gradvis förändring), nois (slumpmässiga variationer).",Medium,ML Machine Learning,"Dataanalys och förberedelse för ML",3
+Task,Förbereda träningsdata,"Transformera annoterad data till format som passar för ML-träning (features, labels, etc.).",Medium,ML Machine Learning,"Dataanalys och förberedelse för ML",3
+Task,Implementera linjär regression modell,Skapa grundläggande ML-modell med linjär regression för att förutsäga GPS-korrigeringar.,Medium,ML Machine Learning,Enkel korrigeringsmodell,5
+Task,Träna modell på annoterad data,Implementera träningspipeline som tränar modellen på annoterad data.,Medium,ML Machine Learning,Enkel korrigeringsmodell,3
+Task,Integration i backend för automatisk korrigering,Skapa API-endpoint som använder tränad modell för att automatiskt korrigera GPS-positioner.,Medium,ML Machine Learning,Enkel korrigeringsmodell,5
+Task,Testa modellens prestanda,"Implementera validering som testar modellens prestanda på testdata (t.ex. cross-validation).",Medium,ML Machine Learning,Validering och testning av ML-modell,3
+Task,Jämförelse automatiska vs manuella korrigeringar,Jämför modellens automatiska korrigeringar mot manuella korrigeringar för att mäta noggrannhet.,Medium,ML Machine Learning,Validering och testning av ML-modell,3
+Task,Iterativ förbättring av modell,Implementera pipeline för att iterativt förbättra modellen baserat på ny annoterad data.,Medium,ML Machine Learning,Validering och testning av ML-modell,2
+Task,Heatmap över GPS-osäkerhet,Implementera heatmap-layer som visar områden med högsta GPS-osäkerhet baserat på korrigeringsavstånd.,Low-Medium,Visualization UI,Heatmap-visualisering,5
+Task,Heatmap över korrigeringsavstånd,Skapa heatmap som visualiserar korrigeringsavstånd för att identifiera problemområden.,Low-Medium,Visualization UI,Heatmap-visualisering,3
+Task,Visual identifiering av problemområden,Kombinera heatmap med interaktiva verktyg för att identifiera problemområden visuellt.,Low-Medium,Visualization UI,Heatmap-visualisering,2
+Task,Visa original och korrigerad track samtidigt,Implementera visualisering som visar både original och korrigerad track med olika färger/linjestil.,Low-Medium,Visualization UI,Förbättrad track-visualisering,3
+Task,Animation av hundens rörelse,"Skapa animation som visar hundens rörelse över tiden (t.ex. marker som rör sig längs tracken).",Low-Medium,Visualization UI,Förbättrad track-visualisering,5
+Task,3D-visualisering av elevation,"Om elevation-data finns, implementera 3D-visualisering av elevation längs tracken.",Low-Medium,Visualization UI,"Förbättrad track-visualisering",8
+Task,Zooma in på specifika avvikelser,Implementera funktion som automatiskt zoomar in på största avvikelser.,Low-Medium,Visualization UI,Interaktiva analysverktyg,2
+Task,Jämförelse mellan olika tracks,Skapa verktyg som låter användaren jämföra två eller flera tracks sida vid sida.,Low-Medium,Visualization UI,Interaktiva analysverktyg,5
+Task,Export av visualiseringar,Implementera export-funktion som kan exportera screenshots eller video av visualiseringar.,Low-Medium,Visualization UI,Interaktiva analysverktyg,3
+Task,Lazy loading av positions,Implementera lazy loading så att endast synliga positions laddas för stora tracks.,Medium,Performance Optimization,Optimering av kartvisning,5
+Task,Clustering av markörer vid låg zoom,Implementera marker clustering så att många markörer grupperas ihop vid låg zoom.,Medium,Performance Optimization,Optimering av kartvisning,3
+Task,Debouncing av kartuppdateringar,Implementera debouncing för kartuppdateringar för att minska antal renders.,Medium,Performance Optimization,Optimering av kartvisning,2
+Task,Indexering för snabbare queries,"Lägg till databas-index på vanliga query-fält (t.ex. track_id, timestamp).",Medium,Performance Optimization Database,"Databasoptimering",2
+Task,Paginering av positions-listor,Implementera paginering för positions-listor i API:er för att minska query-tid.,Medium,Performance Optimization Database,Databasoptimering,3
+Task,Caching av ofta använda queries,"Implementera caching (t.ex. Redis eller in-memory cache) för ofta använda queries.",Medium,Performance Optimization Database,Databasoptimering,5
+Task,Memoization av beräkningar,Använd React.memo och useMemo för att memoize beräkningar i frontend.,Medium,Performance Optimization Frontend,Frontend-prestanda,3
+Task,Virtualisering av långa listor,Använd react-window eller liknande för att virtualisera långa listor i UI.,Medium,Performance Optimization Frontend,Frontend-prestanda,3
+Task,Optimering av re-renders,Analysera och optimera re-renders med React DevTools och useCallback.,Medium,Performance Optimization Frontend,Frontend-prestanda,2
+Task,Realtids-synkronisering mellan användare,Implementera WebSocket eller liknande för realtids-synkronisering mellan användare.,Low,Advanced Features,Flera samtidiga användare,8
+Task,Konflikthantering för samtidiga redigeringar,Implementera strategi för att hantera konflikter när flera användare redigerar samma data samtidigt.,Low,Advanced Features,Flera samtidiga användare,5
+Task,Användarhantering och behörigheter,"Implementera användarhantering med roller och behörigheter (admin, editor, viewer, etc.).",Low,Advanced Features,"Flera samtidiga användare",8
+Task,Mobilapp med React Native,Skapa React Native-app för iOS och Android med GPS-spårning.,Low,Advanced Features Mobile,Mobilapp,13
+Task,Mobilapp som PWA,"Alternativt skapa Progressive Web App (PWA) med offline-stöd istället för native app.",Low,Advanced Features Mobile,Mobilapp,5
+Task,GPS-spårning direkt från mobilen,Implementera GPS-spårning som fungerar när appen körs i bakgrunden.,Low,Advanced Features Mobile,Mobilapp,8
+Task,Offline-stöd i mobilapp,Implementera offline-stöd så att data sparas lokalt och synkas när anslutning återställs.,Low,Advanced Features Mobile,Mobilapp,5
+Task,REST API för externa system,Dokumentera och testa REST API för externa system att integrera med.,Low,Advanced Features API,API för extern integration,3
+Task,Webhooks för händelser,"Implementera webhook-system så att externa system kan få notiser om händelser (t.ex. ny position, avvikelse).",Low,Advanced Features API,"API för extern integration",5
+Task,OAuth-autentisering,Implementera OAuth 2.0 för autentisering av externa system.,Low,Advanced Features API,API för extern integration,5
+Task,API-endpoint för tile-status,Skapa GET /api/tiles/status endpoint som returnerar information om tillgängliga lokala tiles.,Medium,Tech Improvements Backend,Backend-förbättringar,2
+Task,Förbättrad felhantering och logging,"Implementera konsekvent felhantering och logging (t.ex. med structlog eller liknande).",Medium,Tech Improvements Backend,Backend-förbättringar,3
+Task,API-dokumentation med exempel,Förbättra Swagger/OpenAPI-dokumentation med exempel och bättre beskrivningar.,Medium,Tech Improvements Backend,Backend-förbättringar,2
+Task,Automatiska backups av databas,"Implementera automatiska backups av databas (t.ex. daglig backup till S3 eller liknande).",Medium,Tech Improvements Backend,Backend-förbättringar,3
+Task,Förbättrad responsiv design för mobil,"Optimera UI för mobil-skärmar (t.ex. mindre knappar, bättre touch-targets).",Medium,Tech Improvements Frontend,"Frontend-förbättringar",3
+Task,Tillgänglighetsförbättringar (a11y),"Förbättra tillgänglighet med ARIA-labels, keyboard-navigation, screen reader support.",Medium,Tech Improvements Frontend,"Frontend-förbättringar",5
+Task,Dark mode support,Implementera dark mode som kan växlas av användaren.,Medium,Tech Improvements Frontend,Frontend-förbättringar,3
+Task,Internationellisering (i18n),"Implementera i18n för engelska och svenska med react-i18next eller liknande.",Medium,Tech Improvements Frontend,Frontend-förbättringar,5
+Task,CI/CD pipeline,Skapa CI/CD pipeline med GitHub Actions eller liknande för automatisk build och deployment.,Medium,Tech Improvements DevOps,DevOps-förbättringar,5
+Task,Automatiserade tester,"Implementera automatiserade tester (unit, integration, E2E) med pytest, jest, cypress.",Medium,Tech Improvements DevOps,"DevOps-förbättringar",8
+Task,Docker Compose för lokal utveckling,Skapa docker-compose.yml för enkel lokal utveckling med alla services.,Medium,Tech Improvements DevOps,DevOps-förbättringar,3
+Task,Monitoring och alerting,"Implementera monitoring (t.ex. Prometheus) och alerting för att övervaka systemets hälsa.",Medium,Tech Improvements DevOps,DevOps-förbättringar,5

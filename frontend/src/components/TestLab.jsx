@@ -179,7 +179,7 @@ const TestLab = () => {
             minZoom: 3,
             zoomControl: true,
         }).setView([59.334, 18.066], 14)
-        
+
         console.log('Map created, center:', map.getCenter(), 'zoom:', map.getZoom())
 
         // Skapa olika tile layers med olika zoom-stöd
@@ -211,7 +211,8 @@ const TestLab = () => {
         // Ladda tiles från backend API (serveras som statiska filer på /static/tiles)
         const localHighResLayer = L.tileLayer(`${API_BASE}/static/tiles/{z}/{x}/{y}.png`, {
             attribution: '© Lokal högupplösning',
-            maxZoom: 20,
+            maxZoom: 23, // Tillåt zoom upp till 23 för maximal detaljnivå
+            minZoom: 10, // Minsta zoom för lokala tiles
             tileSize: 512, // Standard, uppdateras när tiles kontrolleras
             zoomOffset: 0,
             // Ta bort errorTileUrl så Leaflet visar standard fel-tile (grå ruta)
@@ -232,7 +233,7 @@ const TestLab = () => {
 
         // Börja med Esri Street Map (hög zoom-stöd)
         esriStreetLayer.addTo(map)
-        
+
         // Debug: Kontrollera att tile layer faktiskt laddas
         esriStreetLayer.on('tileload', () => {
             console.log('Tile loaded successfully')
@@ -243,7 +244,7 @@ const TestLab = () => {
 
         // Lägg till layer control
         L.control.layers(baseMaps).addTo(map)
-        
+
         // Debug: Kontrollera att kartan är korrekt initierad
         console.log('Map initialized:', {
             center: map.getCenter(),
@@ -316,11 +317,19 @@ const TestLab = () => {
                 setLocalTilesAvailable(true)
                 if (response.data.tile_size) {
                     setTileSize(response.data.tile_size)
-                    // Uppdatera tile layer med rätt storlek
+                    // Uppdatera tile layer med rätt storlek och zoom-nivåer
                     if (mapInstanceRef.current) {
                         mapInstanceRef.current.eachLayer((layer) => {
                             if (layer.options && layer.options.attribution === '© Lokal högupplösning') {
-                                layer.setOptions({ tileSize: response.data.tile_size })
+                                const zoomLevels = response.data.zoom_levels || []
+                                const minZoom = zoomLevels.length > 0 ? Math.min(...zoomLevels) : 10
+                                const maxZoom = zoomLevels.length > 0 ? Math.max(...zoomLevels) : 23
+                                layer.setOptions({
+                                    tileSize: response.data.tile_size,
+                                    minZoom: minZoom,
+                                    maxZoom: maxZoom
+                                })
+                                console.log('Updated local tile layer:', { tileSize: response.data.tile_size, minZoom, maxZoom, zoomLevels })
                             }
                         })
                     }
@@ -1111,15 +1120,15 @@ const TestLab = () => {
                                         if (maxRange > 0.1) {
                                             // Stort område (>10km)
                                             minZoom = 10
-                                            maxZoom = 16
+                                            maxZoom = 18  // Öka för bättre detaljer
                                         } else if (maxRange > 0.01) {
                                             // Medelstort område (1-10km)
                                             minZoom = 12
-                                            maxZoom = 18
+                                            maxZoom = 22  // Mycket högre zoom för detaljerad justering
                                         } else {
                                             // Litet område (<1km)
                                             minZoom = 14
-                                            maxZoom = 20
+                                            maxZoom = 23  // Max zoom för maximal detaljnivå
                                         }
 
                                         const zoomLevels = []
