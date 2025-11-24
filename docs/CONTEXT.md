@@ -89,7 +89,56 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
 - `handleMarkCorrect` navigerar automatiskt till nästa position i batch-läge
 - `handleSelectPosition` aktiverar justering automatiskt när batch-läge är aktivt
 
+### Tile-hantering och CORS-fixar (Session 2024-12-XX)
+- ✅ **CORS-konfiguration fixad för Railway**
+  - Använder `allow_origin_regex` för att matcha alla Railway-domäner dynamiskt
+  - Fixat så `/tiles/convert` och `/tiles/status` endpoints fungerar korrekt
+  - StaticFiles mountad på `/static/tiles` för att undvika route-konflikt med API-endpoints
+  
+- ✅ **Statisk fil-server för tiles**
+  - Tiles sparas i `backend/tiles` och serveras som statiska filer
+  - Frontend laddar tiles från `${API_BASE}/static/tiles/{z}/{x}/{y}.png`
+  - Fungerar både lokalt och på Railway
+  
+- ✅ **Förbättrad tile-konvertering**
+  - Ökade zoom-nivåer för tile-konvertering:
+    - Stort område: zoom 10-18 (tidigare 10-16)
+    - Medelstort område: zoom 12-22 (tidigare 12-18)
+    - Litet område: zoom 14-23 (tidigare 14-20)
+  - Ny endpoint `/tiles/status` för att kontrollera tillgänglighet och tile-storlek
+  - Automatisk detektering av lokala tiles vid start
+  - Dynamisk anpassning av minZoom/maxZoom baserat på tillgängliga tiles
+  
+- ✅ **Dependencies fixade**
+  - Lagt till `pillow` och `requests` i root `requirements.txt` (Railway använder root-filen)
+  - Fixat `get_tile_bounds` funktion i backend (fel parameterordning)
+  - Förbättrad felhantering i tile-endpoints
+
+### Snabbjusteringsläge (Session 2024-12-XX)
+- ✅ **Förbättrad justeringsworkflow**
+  - Klicka direkt på kartan för att flytta position (fungerar även utan batch-läge)
+  - Automatisk framsteg till nästa position efter "Korrekt" (fungerar även utan batch-läge)
+  - Justering förblir aktivt automatiskt för nästa position
+  - Snapping avstängt som standard för bättre kontroll
+  
+- ✅ **UI-förbättringar**
+  - Tydligare instruktioner när justering är aktivt
+  - Knappen heter nu "🎯 Justera position (klicka på kartan)"
+  - Visar tips om snabbjustering när det är aktivt
+
+### Kända problem att fixa
+- ⚠️ **Tiles visas inte när man zoomar in närmare**
+  - Problem: Tiles laddas bara för vissa zoom-nivåer, men kartan kan zooma högre
+  - Lösning: Ökade zoom-nivåer för tile-konvertering (se ovan)
+  - Status: Fixat i kod, behöver testas efter deployment
+  
+- ⚠️ **Tiles kan vara tomma om de inte finns för aktuellt område/zoom**
+  - Lösning: Dynamisk anpassning av minZoom/maxZoom baserat på tillgängliga tiles
+  - Status: Implementerat, behöver testas
+
 ### Next Steps (Pending)
+- Testa tile-konvertering med nya zoom-nivåer efter deployment
+- Verifiera att tiles fungerar korrekt när man zoomar in närmare
 - Continue testing annotation workflow
 - Future: ML model training with annotated data
 
