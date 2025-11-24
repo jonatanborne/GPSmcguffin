@@ -1861,14 +1861,17 @@ class TileConvertRequest(BaseModel):
 
 # Statisk fil-server för tiles
 # Spara tiles i backend/tiles så de kan serveras direkt
+# Mounta på /static/tiles för att inte krocka med /tiles/convert endpoint
 try:
     backend_dir = Path(__file__).parent
     tiles_static_dir = backend_dir / "tiles"
     tiles_static_dir.mkdir(exist_ok=True)
 
     # Mounta tiles-mappen som statiska filer
-    # Tiles kommer vara tillgängliga på /tiles/{z}/{x}/{y}.png
-    app.mount("/tiles", StaticFiles(directory=str(tiles_static_dir)), name="tiles")
+    # Tiles kommer vara tillgängliga på /static/tiles/{z}/{x}/{y}.png
+    app.mount(
+        "/static/tiles", StaticFiles(directory=str(tiles_static_dir)), name="tiles"
+    )
 except Exception as e:
     print(f"Warning: Could not mount tiles static directory: {e}")
 

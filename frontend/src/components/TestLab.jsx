@@ -199,8 +199,8 @@ const TestLab = () => {
 
         // Lokal högupplösning tile layer (om tiles finns)
         // tileSize kommer uppdateras dynamiskt när tiles kontrolleras
-        // Ladda tiles från backend API (serveras som statiska filer)
-        const localHighResLayer = L.tileLayer(`${API_BASE}/tiles/{z}/{x}/{y}.png`, {
+        // Ladda tiles från backend API (serveras som statiska filer på /static/tiles)
+        const localHighResLayer = L.tileLayer(`${API_BASE}/static/tiles/{z}/{x}/{y}.png`, {
             attribution: '© Lokal högupplösning',
             maxZoom: 20,
             tileSize: 512, // Standard, uppdateras när tiles kontrolleras
