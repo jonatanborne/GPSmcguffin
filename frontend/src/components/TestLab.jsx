@@ -199,7 +199,8 @@ const TestLab = () => {
 
         // Lokal högupplösning tile layer (om tiles finns)
         // tileSize kommer uppdateras dynamiskt när tiles kontrolleras
-        const localHighResLayer = L.tileLayer('/tiles/{z}/{x}/{y}.png', {
+        // Ladda tiles från backend API (serveras som statiska filer)
+        const localHighResLayer = L.tileLayer(`${API_BASE}/tiles/{z}/{x}/{y}.png`, {
             attribution: '© Lokal högupplösning',
             maxZoom: 20,
             tileSize: 512, // Standard, uppdateras när tiles kontrolleras
@@ -264,7 +265,7 @@ const TestLab = () => {
                 const message = batchAdjustMode
                     ? 'Position justerad. Klicka "Korrekt" för att godkänna eller fortsätt justera fler.'
                     : 'Position justerad. Klicka "Korrekt" för att godkänna.'
-                
+
                 const positionIdToSave = draggingPositionIdRef.current || selectedPositionId
                 if (positionIdToSave) {
                     saveAnnotation(positionIdToSave, {

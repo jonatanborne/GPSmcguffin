@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Any
 from datetime import datetime
@@ -1857,13 +1859,27 @@ class TileConvertRequest(BaseModel):
     scale_factor: int = Field(2, ge=1, le=4)
 
 
+# Statisk fil-server för tiles
+# Spara tiles i backend/tiles så de kan serveras direkt
+try:
+    backend_dir = Path(__file__).parent
+    tiles_static_dir = backend_dir / "tiles"
+    tiles_static_dir.mkdir(exist_ok=True)
+
+    # Mounta tiles-mappen som statiska filer
+    # Tiles kommer vara tillgängliga på /tiles/{z}/{x}/{y}.png
+    app.mount("/tiles", StaticFiles(directory=str(tiles_static_dir)), name="tiles")
+except Exception as e:
+    print(f"Warning: Could not mount tiles static directory: {e}")
+
+
 @app.get("/tiles/status")
 def get_tiles_status():
     """
     Kontrollera om lokala tiles finns och deras storlek.
     """
     from pathlib import Path
-    
+
     try:
         from PIL import Image
     except ImportError:
@@ -1871,33 +1887,32 @@ def get_tiles_status():
             "available": False,
             "tile_size": None,
             "zoom_levels": [],
-            "message": "PIL/Pillow not installed"
+            "message": "PIL/Pillow not installed",
         }
-    
+
     try:
         backend_dir = Path(__file__).parent
-        project_root = backend_dir.parent
-        tiles_dir = project_root / "frontend" / "public" / "tiles"
-        
+        tiles_dir = backend_dir / "tiles"
+
         if not tiles_dir.exists():
             return {
                 "available": False,
                 "tile_size": None,
                 "zoom_levels": [],
-                "message": "No tiles directory found"
+                "message": "No tiles directory found",
             }
-        
+
         # Hitta första tile-filen för att bestämma storlek
         tile_size = None
         zoom_levels = []
-        
+
         # Sök efter zoom-mappar
         try:
             for zoom_dir in tiles_dir.iterdir():
                 if zoom_dir.is_dir() and zoom_dir.name.isdigit():
                     zoom_level = int(zoom_dir.name)
                     zoom_levels.append(zoom_level)
-                    
+
                     # Hitta första tile i denna zoom-nivå
                     if tile_size is None:
                         try:
@@ -1921,34 +1936,32 @@ def get_tiles_status():
                 "available": False,
                 "tile_size": None,
                 "zoom_levels": [],
-                "message": f"Error reading tiles directory: {str(e)}"
+                "message": f"Error reading tiles directory: {str(e)}",
             }
-        
+
         zoom_levels.sort()
-        
+
         if tile_size is None:
             return {
                 "available": False,
                 "tile_size": None,
                 "zoom_levels": [],
-                "message": "Tiles directory exists but no tiles found"
+                "message": "Tiles directory exists but no tiles found",
             }
-        
+
         return {
             "available": True,
             "tile_size": tile_size,
             "zoom_levels": zoom_levels,
-            "message": f"Tiles available: {len(zoom_levels)} zoom levels, size {tile_size}x{tile_size}"
+            "message": f"Tiles available: {len(zoom_levels)} zoom levels, size {tile_size}x{tile_size}",
         }
-        
+
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
         return {
             "available": False,
             "tile_size": None,
             "zoom_levels": [],
-            "message": f"Error checking tiles: {str(e)}"
+            "message": f"Error checking tiles: {str(e)}",
         }
 
 
@@ -1967,12 +1980,10 @@ def convert_tiles(payload: TileConvertRequest):
     try:
         # Hämta projektets root directory
         backend_dir = Path(__file__).parent
-        project_root = backend_dir.parent
 
-        # Skapa public-mappen om den inte finns (Vite använder public/ för statiska filer)
-        public_dir = project_root / "frontend" / "public"
-        public_dir.mkdir(parents=True, exist_ok=True)
-        output_dir = public_dir / "tiles"
+        # Spara tiles i backend/tiles så de kan serveras som statiska filer
+        # Detta fungerar både lokalt och på Railway
+        output_dir = backend_dir / "tiles"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Kontrollera att output_dir är skrivbar
@@ -2029,9 +2040,13 @@ def convert_tiles(payload: TileConvertRequest):
             except requests.exceptions.Timeout:
                 output_messages.append(f"Timeout vid nedladdning av tile {z}/{x}/{y}")
             except requests.exceptions.RequestException as e:
-                output_messages.append(f"Fel vid nedladdning av tile {z}/{x}/{y}: {str(e)}")
+                output_messages.append(
+                    f"Fel vid nedladdning av tile {z}/{x}/{y}: {str(e)}"
+                )
             except Exception as e:
-                output_messages.append(f"Oväntat fel vid nedladdning av tile {z}/{x}/{y}: {str(e)}")
+                output_messages.append(
+                    f"Oväntat fel vid nedladdning av tile {z}/{x}/{y}: {str(e)}"
+                )
             return None
 
         def upscale_tile(image: Image.Image, scale_factor: int = 2):
@@ -2045,9 +2060,10 @@ def convert_tiles(payload: TileConvertRequest):
         # Konvertera bounds till tuple och validera
         if len(payload.bounds) != 4:
             raise HTTPException(
-                status_code=400, detail="Bounds must contain exactly 4 values: [min_lat, min_lon, max_lat, max_lon]"
+                status_code=400,
+                detail="Bounds must contain exactly 4 values: [min_lat, min_lon, max_lat, max_lon]",
             )
-        
+
         bounds = (
             payload.bounds[0],
             payload.bounds[1],
@@ -2063,13 +2079,14 @@ def convert_tiles(payload: TileConvertRequest):
             )
         if not (-180 <= min_lon <= 180) or not (-180 <= max_lon <= 180):
             raise HTTPException(
-                status_code=400, detail="Invalid longitude: must be between -180 and 180"
+                status_code=400,
+                detail="Invalid longitude: must be between -180 and 180",
             )
         if min_lat >= max_lat or min_lon >= max_lon:
             raise HTTPException(
                 status_code=400, detail="Invalid bounds: min must be less than max"
             )
-        
+
         # Validera zoom levels
         if not payload.zoom_levels or len(payload.zoom_levels) == 0:
             raise HTTPException(
@@ -2078,7 +2095,8 @@ def convert_tiles(payload: TileConvertRequest):
         for zoom in payload.zoom_levels:
             if not isinstance(zoom, int) or zoom < 0 or zoom > 23:
                 raise HTTPException(
-                    status_code=400, detail=f"Invalid zoom level: {zoom} (must be integer between 0 and 23)"
+                    status_code=400,
+                    detail=f"Invalid zoom level: {zoom} (must be integer between 0 and 23)",
                 )
 
         total_tiles = 0
@@ -2113,9 +2131,9 @@ def convert_tiles(payload: TileConvertRequest):
                     try:
                         # Öppna bild
                         img = Image.open(io.BytesIO(tile_data))
-                        
+
                         # Validera bildformat
-                        if img.format not in ['PNG', 'JPEG', 'JPG']:
+                        if img.format not in ["PNG", "JPEG", "JPG"]:
                             output_messages.append(
                                 f"Okänt bildformat för {zoom}/{x}/{y}: {img.format}"
                             )
@@ -2157,7 +2175,7 @@ def convert_tiles(payload: TileConvertRequest):
         return {
             "status": "success",
             "message": "Tiles konverterade och förstorade",
-            "output_dir": str(output_dir.relative_to(project_root)),
+            "output_dir": str(output_dir.relative_to(backend_dir)),
             "tile_size": 256 * payload.scale_factor,
             "stdout": output_text,
             "downloaded_tiles": downloaded_tiles,
