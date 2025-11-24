@@ -18,13 +18,14 @@ app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
 
 # CORS - Tillåt anrop från alla domäner (för development/prototyping)
 # I Railway: tillåt både frontend-domänen och alla Railway-domäner
-# Regex tillåter: localhost, 127.0.0.1, och alla *.up.railway.app domäner
+# Använd regex för att matcha alla Railway-domäner dynamiskt
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.up\.railway\.app)(:\d+)?",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Postgres Database setup
@@ -1862,7 +1863,16 @@ def get_tiles_status():
     Kontrollera om lokala tiles finns och deras storlek.
     """
     from pathlib import Path
-    from PIL import Image
+    
+    try:
+        from PIL import Image
+    except ImportError:
+        return {
+            "available": False,
+            "tile_size": None,
+            "zoom_levels": [],
+            "message": "PIL/Pillow not installed"
+        }
     
     try:
         backend_dir = Path(__file__).parent
@@ -1882,26 +1892,37 @@ def get_tiles_status():
         zoom_levels = []
         
         # Sök efter zoom-mappar
-        for zoom_dir in tiles_dir.iterdir():
-            if zoom_dir.is_dir() and zoom_dir.name.isdigit():
-                zoom_level = int(zoom_dir.name)
-                zoom_levels.append(zoom_level)
-                
-                # Hitta första tile i denna zoom-nivå
-                if tile_size is None:
-                    for x_dir in zoom_dir.iterdir():
-                        if x_dir.is_dir():
-                            for tile_file in x_dir.glob("*.png"):
-                                try:
-                                    img = Image.open(tile_file)
-                                    tile_size = img.width
+        try:
+            for zoom_dir in tiles_dir.iterdir():
+                if zoom_dir.is_dir() and zoom_dir.name.isdigit():
+                    zoom_level = int(zoom_dir.name)
+                    zoom_levels.append(zoom_level)
+                    
+                    # Hitta första tile i denna zoom-nivå
+                    if tile_size is None:
+                        try:
+                            for x_dir in zoom_dir.iterdir():
+                                if x_dir.is_dir():
+                                    for tile_file in x_dir.glob("*.png"):
+                                        try:
+                                            img = Image.open(tile_file)
+                                            tile_size = img.width
+                                            break
+                                        except Exception:
+                                            continue
+                                if tile_size is not None:
                                     break
-                                except Exception:
-                                    continue
-                        if tile_size is not None:
-                            break
-                if tile_size is not None:
-                    break
+                        except Exception:
+                            continue
+                    if tile_size is not None:
+                        break
+        except Exception as e:
+            return {
+                "available": False,
+                "tile_size": None,
+                "zoom_levels": [],
+                "message": f"Error reading tiles directory: {str(e)}"
+            }
         
         zoom_levels.sort()
         
@@ -1921,6 +1942,8 @@ def get_tiles_status():
         }
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         return {
             "available": False,
             "tile_size": None,
