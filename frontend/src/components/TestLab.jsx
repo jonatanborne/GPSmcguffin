@@ -165,13 +165,22 @@ const TestLab = () => {
     }, [selectedPosition, isAdjusting])
 
     const initializeMap = () => {
-        if (mapInstanceRef.current || !mapRef.current) return
+        if (mapInstanceRef.current || !mapRef.current) {
+            console.log('Map already initialized or mapRef not ready', {
+                hasInstance: !!mapInstanceRef.current,
+                hasRef: !!mapRef.current
+            })
+            return
+        }
 
+        console.log('Initializing map...', mapRef.current)
         const map = L.map(mapRef.current, {
             maxZoom: 23, // Tillåt mycket närmare zoom (för detaljerad positionering)
             minZoom: 3,
             zoomControl: true,
         }).setView([59.334, 18.066], 14)
+        
+        console.log('Map created, center:', map.getCenter(), 'zoom:', map.getZoom())
 
         // Skapa olika tile layers med olika zoom-stöd
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -205,7 +214,8 @@ const TestLab = () => {
             maxZoom: 20,
             tileSize: 512, // Standard, uppdateras när tiles kontrolleras
             zoomOffset: 0,
-            errorTileUrl: '', // Dölj fel-tiles
+            // Ta bort errorTileUrl så Leaflet visar standard fel-tile (grå ruta)
+            // Detta gör det tydligt när tiles saknas
         })
 
         // Lägg till layer control för att växla mellan karttyper
@@ -222,9 +232,28 @@ const TestLab = () => {
 
         // Börja med Esri Street Map (hög zoom-stöd)
         esriStreetLayer.addTo(map)
+        
+        // Debug: Kontrollera att tile layer faktiskt laddas
+        esriStreetLayer.on('tileload', () => {
+            console.log('Tile loaded successfully')
+        })
+        esriStreetLayer.on('tileerror', (error, tile) => {
+            console.error('Tile load error:', error, tile)
+        })
 
         // Lägg till layer control
         L.control.layers(baseMaps).addTo(map)
+        
+        // Debug: Kontrollera att kartan är korrekt initierad
+        console.log('Map initialized:', {
+            center: map.getCenter(),
+            zoom: map.getZoom(),
+            activeLayers: map.eachLayer((layer) => {
+                if (layer instanceof L.TileLayer) {
+                    console.log('Active tile layer:', layer.options.attribution)
+                }
+            })
+        })
 
         markersLayerRef.current = L.layerGroup().addTo(map)
         humanTrackLayerRef.current = L.layerGroup().addTo(map)
