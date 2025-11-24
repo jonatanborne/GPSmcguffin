@@ -62,12 +62,13 @@ const TestLab = () => {
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState(null)
     const [error, setError] = useState(null)
-    const [snappingEnabled, setSnappingEnabled] = useState(true)
+    const [snappingEnabled, setSnappingEnabled] = useState(false) // Standard: avstängt så användaren har full kontroll
     const [snappingDistance, setSnappingDistance] = useState(10) // meter
     const snapIndicatorRef = useRef(null) // Visuell feedback för snapping
     const [batchAdjustMode, setBatchAdjustMode] = useState(false) // Batch-justeringsläge
     const [convertingTiles, setConvertingTiles] = useState(false) // Tile conversion status
     const [localTilesAvailable, setLocalTilesAvailable] = useState(false) // Om lokala tiles finns
+    const [tileSize, setTileSize] = useState(512) // Standard tile-storlek (förstoringsfaktor 2)
 
     const selectedPosition = useMemo(
         () => {
@@ -81,6 +82,7 @@ const TestLab = () => {
     useEffect(() => {
         initializeMap()
         loadTracks()
+        checkTilesAvailability()
 
         return () => {
             if (mapInstanceRef.current) {
@@ -196,10 +198,11 @@ const TestLab = () => {
         })
 
         // Lokal högupplösning tile layer (om tiles finns)
+        // tileSize kommer uppdateras dynamiskt när tiles kontrolleras
         const localHighResLayer = L.tileLayer('/tiles/{z}/{x}/{y}.png', {
             attribution: '© Lokal högupplösning',
             maxZoom: 20,
-            tileSize: 512, // Om förstorade med faktor 2
+            tileSize: 512, // Standard, uppdateras när tiles kontrolleras
             zoomOffset: 0,
             errorTileUrl: '', // Dölj fel-tiles
         })
@@ -225,36 +228,80 @@ const TestLab = () => {
         markersLayerRef.current = L.layerGroup().addTo(map)
         humanTrackLayerRef.current = L.layerGroup().addTo(map)
 
-        // I batch-läge: hantera klick på kartan som alternativ till att dra markören
-        // Båda metoderna fungerar parallellt - användaren kan välja vilken som passar bäst
+        // Snabbjustering: hantera klick på kartan för att flytta position direkt
+        // Fungerar när justering är aktiv (både i batch-läge och normalt läge)
         map.on('click', (e) => {
-            if (batchAdjustMode && selectedPositionId && isAdjusting && draggableMarkerRef.current) {
+            if (selectedPositionId && isAdjusting) {
+                // Använd exakt klickad position - snapping ska bara gälla om det är explicit aktiverat
                 let targetLatLng = e.latlng
 
-                // Om snapping är aktiverat, kontrollera om vi ska snappa (endast för hundspår)
-                if (snappingEnabled && selectedPositionTrackType === 'dog' && humanTrack) {
+                // Snapping ska BARA gälla om:
+                // 1. Snapping är explicit aktiverat (snappingEnabled === true)
+                // 2. Det är ett hundspår som justeras
+                // 3. Det finns ett människaspår att snappa till
+                if (snappingEnabled === true && selectedPositionTrackType === 'dog' && humanTrack) {
                     const nearest = findNearestHumanPosition(e.latlng.lat, e.latlng.lng)
                     if (nearest) {
                         targetLatLng = L.latLng(nearest.position.lat, nearest.position.lng)
                     }
                 }
+                // Om snapping är avstängt, använd exakt klickad position utan någon modifiering
+
+                // Om markören inte finns ännu, skapa den först genom att anropa updateDraggableMarker
+                if (!draggableMarkerRef.current && selectedPosition) {
+                    // updateDraggableMarker kommer att skapa markören korrekt med alla event handlers
+                    updateDraggableMarker()
+                }
 
                 // Flytta markören till klickad position (samma som att dra den)
-                draggableMarkerRef.current.setLatLng(targetLatLng)
+                if (draggableMarkerRef.current) {
+                    draggableMarkerRef.current.setLatLng(targetLatLng)
+                }
 
-                // Spara ändringen direkt med status "pending" (samma som när man drar och släpper)
+                // Spara ändringen direkt
+                // I batch-läge: spara med "pending", annars med "incorrect"
+                const status = batchAdjustMode ? 'pending' : 'incorrect'
+                const message = batchAdjustMode
+                    ? 'Position justerad. Klicka "Korrekt" för att godkänna eller fortsätt justera fler.'
+                    : 'Position justerad. Klicka "Korrekt" för att godkänna.'
+                
                 const positionIdToSave = draggingPositionIdRef.current || selectedPositionId
                 if (positionIdToSave) {
                     saveAnnotation(positionIdToSave, {
-                        verified_status: 'pending',
+                        verified_status: status,
                         corrected_position: { lat: targetLatLng.lat, lng: targetLatLng.lng },
                         annotation_notes: notes,
-                    }, 'Position justerad. Klicka "Korrekt" för att godkänna eller fortsätt justera.')
+                    }, message)
                 }
             }
         })
 
         mapInstanceRef.current = map
+    }
+
+    const checkTilesAvailability = async () => {
+        try {
+            const response = await axios.get(`${API_BASE}/tiles/status`)
+            if (response.data.available) {
+                setLocalTilesAvailable(true)
+                if (response.data.tile_size) {
+                    setTileSize(response.data.tile_size)
+                    // Uppdatera tile layer med rätt storlek
+                    if (mapInstanceRef.current) {
+                        mapInstanceRef.current.eachLayer((layer) => {
+                            if (layer.options && layer.options.attribution === '© Lokal högupplösning') {
+                                layer.setOptions({ tileSize: response.data.tile_size })
+                            }
+                        })
+                    }
+                }
+            } else {
+                setLocalTilesAvailable(false)
+            }
+        } catch (err) {
+            console.log('Inga lokala tiles tillgängliga:', err.message)
+            setLocalTilesAvailable(false)
+        }
     }
 
     const loadTracks = async () => {
@@ -507,15 +554,17 @@ const TestLab = () => {
         })
     }
 
-    const handleSelectPosition = (positionId, trackType) => {
+    const handleSelectPosition = (positionId, trackType, keepAdjusting = false) => {
         // Konvertera till number om det är en sträng
         const numericPositionId = typeof positionId === 'string' ? Number(positionId) : positionId
 
         setSelectedPositionId(numericPositionId)
         setSelectedPositionTrackType(trackType)
 
-        // I batch-läge: aktivera justering automatiskt, annars stäng av
-        if (batchAdjustMode) {
+        // I batch-läge: aktivera justering automatiskt
+        // Om keepAdjusting är true: behåll justering aktivt (används när vi går till nästa position)
+        // Annars: stäng av justering om inte batch-läge är på
+        if (batchAdjustMode || keepAdjusting) {
             draggingPositionIdRef.current = numericPositionId
             setIsAdjusting(true)
         } else {
@@ -629,7 +678,8 @@ const TestLab = () => {
 
     // Hantera drag med snapping
     const handleCorrectionDrag = () => {
-        if (!draggableMarkerRef.current || !snappingEnabled) return
+        // Snapping ska BARA gälla om det är explicit aktiverat
+        if (!draggableMarkerRef.current || snappingEnabled !== true) return
         // Snapping fungerar bara när vi justerar hundspår och människaspår finns
         if (selectedPositionTrackType !== 'dog' || !humanTrack) return
 
@@ -684,8 +734,9 @@ const TestLab = () => {
 
         let { lat, lng } = draggableMarkerRef.current.getLatLng()
 
+        // Snapping ska BARA gälla om det är explicit aktiverat
         // Om snapping är aktiverat, kontrollera om vi ska snappa (endast för hundspår)
-        if (snappingEnabled && trackTypeToSave === 'dog' && humanTrack) {
+        if (snappingEnabled === true && trackTypeToSave === 'dog' && humanTrack) {
             const nearest = findNearestHumanPosition(lat, lng)
             if (nearest) {
                 lat = nearest.position.lat
@@ -694,6 +745,7 @@ const TestLab = () => {
                 draggableMarkerRef.current.setLatLng([lat, lng])
             }
         }
+        // Om snapping är avstängt, använd exakt position där markören släpptes
 
         // I batch-läge: spara med "pending", annars spara med "incorrect" (som tidigare)
         const status = batchAdjustMode ? 'pending' : 'incorrect'
@@ -793,22 +845,17 @@ const TestLab = () => {
         // Spara korrigeringen - använd selectedPositionId direkt för att säkerställa rätt position
         await saveAnnotation(selectedPositionId, payload, 'Markerad som korrekt.')
 
-        // I batch-läge: gå automatiskt till nästa position efter godkännande
-        if (batchAdjustMode) {
-            const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
-            const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
-            const hasNext = currentIndex < positions.length - 1
+        // Gå automatiskt till nästa position efter godkännande (fungerar både i batch-läge och normalt läge)
+        const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+        const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
+        const hasNext = currentIndex < positions.length - 1
 
-            if (hasNext) {
-                const nextPosition = positions[currentIndex + 1]
-                handleSelectPosition(nextPosition.id, selectedPositionTrackType)
-                // Justering är redan aktivt från handleSelectPosition i batch-läge
-            } else {
-                // Inga fler positioner, stäng av justering
-                setIsAdjusting(false)
-            }
+        if (hasNext) {
+            const nextPosition = positions[currentIndex + 1]
+            // Gå till nästa position och behåll justering aktivt (keepAdjusting = true)
+            handleSelectPosition(nextPosition.id, selectedPositionTrackType, true)
         } else {
-            // Stäng av justering EFTER att korrigeringen har sparats (normal-läge)
+            // Inga fler positioner, stäng av justering
             setIsAdjusting(false)
         }
 
@@ -1069,6 +1116,20 @@ const TestLab = () => {
 
                                         setMessage(`✅ ${response.data.message}. Tiles sparade för hela spårområdet (${allPositions.length} positioner). Växla till "Lokal Högupplösning" i kartväljaren.`)
                                         setLocalTilesAvailable(true)
+                                        // Uppdatera tile-storlek baserat på response
+                                        if (response.data.tile_size) {
+                                            setTileSize(response.data.tile_size)
+                                            // Uppdatera tile layer med rätt storlek
+                                            if (mapInstanceRef.current) {
+                                                mapInstanceRef.current.eachLayer((layer) => {
+                                                    if (layer.options && layer.options.attribution === '© Lokal högupplösning') {
+                                                        layer.setOptions({ tileSize: response.data.tile_size })
+                                                    }
+                                                })
+                                            }
+                                        }
+                                        // Kontrollera tiles igen för att få fullständig info
+                                        await checkTilesAvailability()
 
                                     } catch (err) {
                                         console.error('Fel vid konvertering av tiles:', err)
@@ -1166,8 +1227,13 @@ const TestLab = () => {
                                 </button>
                             </div>
                             {batchAdjustMode && (
-                                <div className="text-[10px] text-slate-500 mt-1">
-                                    I batch-läge kan du justera flera positioner i rad. Använd "Nästa"-knappen för att automatiskt aktivera justering på nästa position.
+                                <div className="text-[10px] text-blue-600 font-semibold mt-1">
+                                    I batch-läge kan du justera flera positioner i rad. Klicka på kartan för att flytta positioner snabbt.
+                                </div>
+                            )}
+                            {!batchAdjustMode && isAdjusting && (
+                                <div className="text-[10px] text-blue-600 font-semibold mt-1">
+                                    💡 Snabbjustering aktivt: Klicka direkt på kartan för att flytta positionen. Efter "Korrekt" går du automatiskt till nästa position.
                                 </div>
                             )}
                         </div>
@@ -1397,13 +1463,19 @@ const TestLab = () => {
                                                 // När justering avslutas, rensa ref
                                                 draggingPositionIdRef.current = null
                                             }
-                                            setIsAdjusting((prev) => !prev)
+                                            if (!isAdjusting) {
+                                                setIsAdjusting(true)
+                                                setMessage('Justering aktivt: Klicka på kartan för att flytta positionen, eller dra markören.')
+                                            } else {
+                                                setIsAdjusting(false)
+                                                setMessage(null)
+                                            }
                                         }}
                                         disabled={loading}
                                         className={`px-3 py-2 rounded text-xs font-semibold ${isAdjusting ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                             } disabled:bg-blue-200`}
                                     >
-                                        {isAdjusting ? '✅ Klar med justering' : '🎯 Justera position på kartan'}
+                                        {isAdjusting ? '✅ Klar med justering' : '🎯 Justera position (klicka på kartan)'}
                                     </button>
                                     <button
                                         onClick={handleResetCorrection}

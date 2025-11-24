@@ -17,9 +17,11 @@ from psycopg2.extras import RealDictCursor
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
 
 # CORS - Tillåt anrop från alla domäner (för development/prototyping)
+# I Railway: tillåt både frontend-domänen och alla Railway-domäner
+# Regex tillåter: localhost, 127.0.0.1, och alla *.up.railway.app domäner
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # I produktion, sätt specifika domäner
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.up\.railway\.app)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1844,7 +1846,7 @@ def delete_hiding_spot(track_id: int, spot_id: int):
     return {"deleted": spot_id}
 
 
-# Tile converter endpoint
+# Tile converter endpoints
 class TileConvertRequest(BaseModel):
     bounds: List[float] = Field(
         ..., min_length=4, max_length=4
@@ -1854,13 +1856,85 @@ class TileConvertRequest(BaseModel):
     scale_factor: int = Field(2, ge=1, le=4)
 
 
+@app.get("/tiles/status")
+def get_tiles_status():
+    """
+    Kontrollera om lokala tiles finns och deras storlek.
+    """
+    from pathlib import Path
+    from PIL import Image
+    
+    try:
+        backend_dir = Path(__file__).parent
+        project_root = backend_dir.parent
+        tiles_dir = project_root / "frontend" / "public" / "tiles"
+        
+        if not tiles_dir.exists():
+            return {
+                "available": False,
+                "tile_size": None,
+                "zoom_levels": [],
+                "message": "No tiles directory found"
+            }
+        
+        # Hitta första tile-filen för att bestämma storlek
+        tile_size = None
+        zoom_levels = []
+        
+        # Sök efter zoom-mappar
+        for zoom_dir in tiles_dir.iterdir():
+            if zoom_dir.is_dir() and zoom_dir.name.isdigit():
+                zoom_level = int(zoom_dir.name)
+                zoom_levels.append(zoom_level)
+                
+                # Hitta första tile i denna zoom-nivå
+                if tile_size is None:
+                    for x_dir in zoom_dir.iterdir():
+                        if x_dir.is_dir():
+                            for tile_file in x_dir.glob("*.png"):
+                                try:
+                                    img = Image.open(tile_file)
+                                    tile_size = img.width
+                                    break
+                                except Exception:
+                                    continue
+                        if tile_size is not None:
+                            break
+                if tile_size is not None:
+                    break
+        
+        zoom_levels.sort()
+        
+        if tile_size is None:
+            return {
+                "available": False,
+                "tile_size": None,
+                "zoom_levels": [],
+                "message": "Tiles directory exists but no tiles found"
+            }
+        
+        return {
+            "available": True,
+            "tile_size": tile_size,
+            "zoom_levels": zoom_levels,
+            "message": f"Tiles available: {len(zoom_levels)} zoom levels, size {tile_size}x{tile_size}"
+        }
+        
+    except Exception as e:
+        return {
+            "available": False,
+            "tile_size": None,
+            "zoom_levels": [],
+            "message": f"Error checking tiles: {str(e)}"
+        }
+
+
 @app.post("/tiles/convert")
 def convert_tiles(payload: TileConvertRequest):
     """
     Konvertera och förstora tiles för aktuellt kartområde.
     Anropar tile-konverteringsfunktioner direkt istället för via subprocess.
     """
-    import sys
     import io
     import requests
     from PIL import Image
@@ -1915,8 +1989,8 @@ def convert_tiles(payload: TileConvertRequest):
             min_lat: float, min_lon: float, max_lat: float, max_lon: float, zoom: int
         ):
             """Hämta tile bounds för ett område"""
-            x_min, y_max = deg2num(min_lat, min_lon, zoom)
-            x_max, y_min = deg2num(max_lat, max_lon, zoom)
+            x_min, y_max = deg2num(max_lat, min_lon, zoom)
+            x_max, y_min = deg2num(min_lat, max_lon, zoom)
             return (x_min, y_min, x_max, y_max)
 
         def download_tile(
@@ -1926,10 +2000,15 @@ def convert_tiles(payload: TileConvertRequest):
             try:
                 url = url_template.format(s=subdomain, x=x, y=y, z=z)
                 response = requests.get(url, timeout=10)
-                if response.status_code == 200:
+                response.raise_for_status()
+                if response.status_code == 200 and response.content:
                     return response.content
-            except Exception:
-                pass
+            except requests.exceptions.Timeout:
+                output_messages.append(f"Timeout vid nedladdning av tile {z}/{x}/{y}")
+            except requests.exceptions.RequestException as e:
+                output_messages.append(f"Fel vid nedladdning av tile {z}/{x}/{y}: {str(e)}")
+            except Exception as e:
+                output_messages.append(f"Oväntat fel vid nedladdning av tile {z}/{x}/{y}: {str(e)}")
             return None
 
         def upscale_tile(image: Image.Image, scale_factor: int = 2):
@@ -1940,7 +2019,12 @@ def convert_tiles(payload: TileConvertRequest):
             upscaled = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             return upscaled
 
-        # Konvertera bounds till tuple
+        # Konvertera bounds till tuple och validera
+        if len(payload.bounds) != 4:
+            raise HTTPException(
+                status_code=400, detail="Bounds must contain exactly 4 values: [min_lat, min_lon, max_lat, max_lon]"
+            )
+        
         bounds = (
             payload.bounds[0],
             payload.bounds[1],
@@ -1948,6 +2032,31 @@ def convert_tiles(payload: TileConvertRequest):
             payload.bounds[3],
         )
         min_lat, min_lon, max_lat, max_lon = bounds
+
+        # Validera bounds
+        if not (-90 <= min_lat <= 90) or not (-90 <= max_lat <= 90):
+            raise HTTPException(
+                status_code=400, detail="Invalid latitude: must be between -90 and 90"
+            )
+        if not (-180 <= min_lon <= 180) or not (-180 <= max_lon <= 180):
+            raise HTTPException(
+                status_code=400, detail="Invalid longitude: must be between -180 and 180"
+            )
+        if min_lat >= max_lat or min_lon >= max_lon:
+            raise HTTPException(
+                status_code=400, detail="Invalid bounds: min must be less than max"
+            )
+        
+        # Validera zoom levels
+        if not payload.zoom_levels or len(payload.zoom_levels) == 0:
+            raise HTTPException(
+                status_code=400, detail="At least one zoom level must be specified"
+            )
+        for zoom in payload.zoom_levels:
+            if not isinstance(zoom, int) or zoom < 0 or zoom > 23:
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid zoom level: {zoom} (must be integer between 0 and 23)"
+                )
 
         total_tiles = 0
         downloaded_tiles = 0
@@ -1981,6 +2090,13 @@ def convert_tiles(payload: TileConvertRequest):
                     try:
                         # Öppna bild
                         img = Image.open(io.BytesIO(tile_data))
+                        
+                        # Validera bildformat
+                        if img.format not in ['PNG', 'JPEG', 'JPG']:
+                            output_messages.append(
+                                f"Okänt bildformat för {zoom}/{x}/{y}: {img.format}"
+                            )
+                            continue
 
                         # Förstora om scale_factor > 1
                         if payload.scale_factor > 1:
@@ -1998,9 +2114,14 @@ def convert_tiles(payload: TileConvertRequest):
                         # Vänta lite för att inte överbelasta servern
                         time.sleep(0.1)
 
+                    except Image.UnidentifiedImageError:
+                        output_messages.append(
+                            f"Kunde inte identifiera bildformat för {zoom}/{x}/{y}"
+                        )
+                        continue
                     except Exception as e:
                         output_messages.append(
-                            f"Fel vid bearbetning av {zoom}/{x}/{y}: {e}"
+                            f"Fel vid bearbetning av {zoom}/{x}/{y}: {str(e)}"
                         )
                         continue
 
