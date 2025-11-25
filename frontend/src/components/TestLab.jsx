@@ -185,7 +185,8 @@ const TestLab = () => {
         // Skapa olika tile layers med olika zoom-stöd
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
+            maxZoom: 23, // Ökat från 19 för bättre zoom vid annotering
+            maxNativeZoom: 19, // OSM har tiles till zoom 19, men Leaflet kan zooma vidare
         })
 
         // Esri World Imagery - stöder zoom upp till 23 med hög upplösning
