@@ -213,7 +213,7 @@ const TestLab = () => {
             attribution: '© Lokal högupplösning',
             maxZoom: 23, // Tillåt zoom upp till 23 för maximal detaljnivå
             minZoom: 10, // Minsta zoom för lokala tiles
-            tileSize: 512, // Standard, uppdateras när tiles kontrolleras
+            tileSize: 1024, // 4x förstoring (256x256 → 1024x1024), uppdateras när tiles kontrolleras
             zoomOffset: 0,
             // Ta bort errorTileUrl så Leaflet visar standard fel-tile (grå ruta)
             // Detta gör det tydligt när tiles saknas
@@ -998,7 +998,25 @@ const TestLab = () => {
     }
 
     return (
-        <div className="h-full flex overflow-hidden">
+        <div className="h-full flex overflow-hidden relative">
+            {/* Loading overlay för tile-konvertering */}
+            {convertingTiles && (
+                <div className="absolute inset-0 bg-black bg-opacity-60 z-[9999] flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md mx-4 text-center">
+                        <div className="mb-4">
+                            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">Arbetar med tiles</h3>
+                        <p className="text-gray-600 mb-4">
+                            Laddar ner och förstorar kartbilder för högupplöst zoom...
+                        </p>
+                        <div className="text-sm text-gray-500">
+                            <p>Detta kan ta 1-5 minuter beroende på områdets storlek.</p>
+                            <p className="mt-2 font-semibold">Vänligen vänta...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="w-72 bg-slate-100 border-r border-slate-200 flex flex-col overflow-hidden">
                 <div className="p-4 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0">
                     <div>
@@ -1150,7 +1168,7 @@ const TestLab = () => {
                                             ],
                                             zoom_levels: zoomLevels,
                                             server: activeServer,
-                                            scale_factor: 2,
+                                            scale_factor: 4, // Ökad från 2 till 4 för 4x bättre zoom (256x256 → 1024x1024)
                                         })
 
                                         setMessage(`✅ ${response.data.message}. Tiles sparade för hela spårområdet (${allPositions.length} positioner). Växla till "Lokal Högupplösning" i kartväljaren.`)
@@ -1181,7 +1199,7 @@ const TestLab = () => {
                                 disabled={convertingTiles || loading}
                                 className="w-full px-3 py-2 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition"
                             >
-                                {convertingTiles ? '🔄 Konverterar tiles...' : '📥 Förstora spårområde'}
+                                {convertingTiles ? '🔄 Arbetar...' : '📥 Ladda ner högupplösta kartor (4x zoom)'}
                             </button>
                             {localTilesAvailable && (
                                 <div className="text-[10px] text-green-600 font-semibold">

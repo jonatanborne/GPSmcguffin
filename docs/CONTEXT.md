@@ -4,13 +4,32 @@
 
 ## Overview
 
-Dogtracks is a companion project for a dog tracking sport. Users lay out custom tracks of varying shapes and sizes. After marking the track, they return to the starting point and send their dog to follow the track while carrying a phone or GPS collar.
+**Dogtracks** ([dogtracks.se](https://dogtracks.se)) is a commercial company in the dog tracking sport industry. This is a companion project built to solve GPS accuracy problems for their platform.
+
+**Project Nature:**
+
+- Commercial project for Dogtracks company
+- No hard deadlines - focus on quality and working solution
+- Potential role/employment opportunity if problem is successfully solved
+- Demonstration of technical competence and problem-solving ability
+
+**Use Case:**
+Users lay out custom tracks of varying shapes and sizes. After marking the track, they return to the starting point and send their dog to follow the track while carrying a phone or GPS collar.
 
 ## Problem We Are Solving
 
-- GPS readings fluctuate even when someone walks the exact same path.
+- GPS readings fluctuate even when someone walks the exact same path (5-50m error).
 - The recorded track therefore appears distorted despite the dog following the original path.
 - We want to detect when the dog is actually on the laid track, and when it deviates, with as much accuracy as possible.
+
+**Critical Context:**
+The system is used for both **training** and **competitions**. In competition settings, GPS accuracy directly affects:
+
+- Official results and scores
+- Fair competition between participants
+- User trust in the platform
+
+**Therefore**: Accuracy is paramount, especially for competition use where results determine winners and rankings.
 
 ## Approach
 
@@ -36,11 +55,13 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
 ## Current Status (Latest Session)
 
 ### Database Migration
+
 - ✅ Migrated from SQLite to PostgreSQL on Railway for persistent storage
 - ✅ Backend supports both SQLite (local dev) and PostgreSQL (Railway) with automatic detection
 - ✅ Data migration scripts available (`migrate_sqlite_to_postgres.py`, `migrate_from_railway_api.py`)
 
 ### TestLab Improvements (Completed Today)
+
 - ✅ Fixed corrected positions: Both original and corrected positions are now displayed clearly
   - Original position shown as small grey point when corrected
   - Corrected position shown as main marker with connecting line
@@ -55,21 +76,25 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
 - ✅ Prevented marker clicks from changing selected position when one is already selected in dropdown
 
 ### Known Issues Fixed
+
 - ✅ Position #1 no longer gets updated when adjusting position #2
 - ✅ Corrected positions are preserved when marking as correct
 - ✅ Marker stays in place after correction is saved
 
 ### Technical Details
+
 - Uses `draggingPositionIdRef` to track which position is being adjusted during drag operations
 - Uses `draggableMarkerPositionIdRef` to track which position the marker belongs to
 - All annotation functions now use `selectedPositionId` directly instead of `selectedPosition.id` to avoid closure issues
 - Sidebar has proper scroll structure with `overflow-y-auto` on inner container
 
 ### Code Cleanup (Completed)
+
 - ✅ Removed all debug console.log statements from TestLab.jsx and GeofenceEditor.jsx
 - Console.warn and console.error statements kept for actual error handling
 
 ### Batch-Justeringsläge (Completed Today)
+
 - ✅ Implementerat batch-justeringsläge i TestLab för effektiv massjustering av positioner
 - ✅ Växlingsknapp för att aktivera/inaktivera batch-läge
 - ✅ I batch-läge: ändringar sparas med status "pending" istället för "incorrect"
@@ -83,6 +108,7 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
 - ✅ Fixat scroll i sidebar så bara sidebar scrollar, inte kartan
 
 ### Technical Details (Batch-läge)
+
 - Använder `batchAdjustMode` state för att växla mellan normal-läge och batch-läge
 - I batch-läge: `handleCorrectionDragEnd` sparar med status "pending" istället för "incorrect"
 - Klick-hantering på kartan flyttar markören och sparar ändringen direkt
@@ -90,16 +116,15 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
 - `handleSelectPosition` aktiverar justering automatiskt när batch-läge är aktivt
 
 ### Tile-hantering och CORS-fixar (Session 2024-12-XX)
+
 - ✅ **CORS-konfiguration fixad för Railway**
   - Använder `allow_origin_regex` för att matcha alla Railway-domäner dynamiskt
   - Fixat så `/tiles/convert` och `/tiles/status` endpoints fungerar korrekt
   - StaticFiles mountad på `/static/tiles` för att undvika route-konflikt med API-endpoints
-  
 - ✅ **Statisk fil-server för tiles**
   - Tiles sparas i `backend/tiles` och serveras som statiska filer
   - Frontend laddar tiles från `${API_BASE}/static/tiles/{z}/{x}/{y}.png`
   - Fungerar både lokalt och på Railway
-  
 - ✅ **Förbättrad tile-konvertering**
   - Ökade zoom-nivåer för tile-konvertering:
     - Stort område: zoom 10-18 (tidigare 10-16)
@@ -108,38 +133,36 @@ Dogtracks is a companion project for a dog tracking sport. Users lay out custom 
   - Ny endpoint `/tiles/status` för att kontrollera tillgänglighet och tile-storlek
   - Automatisk detektering av lokala tiles vid start
   - Dynamisk anpassning av minZoom/maxZoom baserat på tillgängliga tiles
-  
 - ✅ **Dependencies fixade**
   - Lagt till `pillow` och `requests` i root `requirements.txt` (Railway använder root-filen)
   - Fixat `get_tile_bounds` funktion i backend (fel parameterordning)
   - Förbättrad felhantering i tile-endpoints
 
 ### Snabbjusteringsläge (Session 2024-12-XX)
+
 - ✅ **Förbättrad justeringsworkflow**
   - Klicka direkt på kartan för att flytta position (fungerar även utan batch-läge)
   - Automatisk framsteg till nästa position efter "Korrekt" (fungerar även utan batch-läge)
   - Justering förblir aktivt automatiskt för nästa position
   - Snapping avstängt som standard för bättre kontroll
-  
 - ✅ **UI-förbättringar**
   - Tydligare instruktioner när justering är aktivt
   - Knappen heter nu "🎯 Justera position (klicka på kartan)"
   - Visar tips om snabbjustering när det är aktivt
 
 ### Kända problem att fixa
+
 - ⚠️ **Tiles visas inte när man zoomar in närmare**
   - Problem: Tiles laddas bara för vissa zoom-nivåer, men kartan kan zooma högre
   - Lösning: Ökade zoom-nivåer för tile-konvertering (se ovan)
   - Status: Fixat i kod, behöver testas efter deployment
-  
 - ⚠️ **Tiles kan vara tomma om de inte finns för aktuellt område/zoom**
   - Lösning: Dynamisk anpassning av minZoom/maxZoom baserat på tillgängliga tiles
   - Status: Implementerat, behöver testas
 
 ### Next Steps (Pending)
+
 - Testa tile-konvertering med nya zoom-nivåer efter deployment
 - Verifiera att tiles fungerar korrekt när man zoomar in närmare
 - Continue testing annotation workflow
 - Future: ML model training with annotated data
-
-
