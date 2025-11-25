@@ -200,10 +200,11 @@ const TestLab = () => {
             maxZoom: 23,
         })
 
-        // CartoDB Positron - stöder zoom upp till 20
+        // CartoDB Positron - stöder zoom upp till 20 officiellt, men 23 fungerar ofta
         const cartoPositronLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap contributors © CARTO',
-            maxZoom: 20,
+            maxZoom: 23, // Ökat från 20 för bättre zoom vid annotering
+            maxNativeZoom: 20, // Server har tiles till zoom 20, men Leaflet kan zooma vidare
         })
 
         // Lokal högupplösning tile layer (om tiles finns)
