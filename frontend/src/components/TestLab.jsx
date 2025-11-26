@@ -67,6 +67,7 @@ const TestLab = () => {
     const snapIndicatorRef = useRef(null) // Visuell feedback för snapping
     const [batchAdjustMode, setBatchAdjustMode] = useState(false) // Batch-justeringsläge
     const [convertingTiles, setConvertingTiles] = useState(false) // Tile conversion status
+    const [renamingTracks, setRenamingTracks] = useState(false) // Track renaming status
     const [localTilesAvailable, setLocalTilesAvailable] = useState(false) // Om lokala tiles finns
     const [tileSize, setTileSize] = useState(512) // Standard tile-storlek (förstoringsfaktor 2)
     const [statusFilter, setStatusFilter] = useState('all') // Filter för status: 'all', 'pending', 'correct', 'incorrect'
@@ -1286,6 +1287,25 @@ const TestLab = () => {
                     </div>
                 </div>
             )}
+
+            {/* Loading overlay för spåromdöpning */}
+            {renamingTracks && (
+                <div className="absolute inset-0 bg-black bg-opacity-60 z-[9999] flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md mx-4 text-center">
+                        <div className="mb-4">
+                            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">Döper om spår</h3>
+                        <p className="text-gray-600 mb-4">
+                            Uppdaterar spårnamn från generiska namn till unika namn...
+                        </p>
+                        <div className="text-sm text-gray-500">
+                            <p>Detta tar bara några sekunder.</p>
+                            <p className="mt-2 font-semibold">Vänligen vänta...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="w-72 bg-slate-100 border-r border-slate-200 flex flex-col overflow-hidden">
                 <div className="p-4 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0">
                     <div>
@@ -1591,12 +1611,12 @@ const TestLab = () => {
                             <button
                                 onClick={async () => {
                                     try {
-                                        setLoading(true)
+                                        setRenamingTracks(true)
                                         setError(null)
                                         setMessage(null)
 
                                         const response = await axios.post(`${API_BASE}/tracks/rename-generic`)
-
+                                        
                                         if (response.data.updated > 0) {
                                             setMessage(`✨ ${response.data.updated} spår omdöpta! Uppdaterar listan...`)
                                             // Ladda om tracks för att visa nya namn
@@ -1611,10 +1631,10 @@ const TestLab = () => {
                                         setError('Kunde inte döpa om spår.')
                                         setTimeout(() => setError(null), 3000)
                                     } finally {
-                                        setLoading(false)
+                                        setRenamingTracks(false)
                                     }
                                 }}
-                                disabled={loading}
+                                disabled={renamingTracks || loading}
                                 className="w-full px-3 py-2 rounded bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition shadow-sm"
                             >
                                 ✨ Döp om generiska spår
