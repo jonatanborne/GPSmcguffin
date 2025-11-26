@@ -1585,6 +1585,41 @@ const TestLab = () => {
                                 ))}
                             </select>
                         </div>
+
+                        {/* Knapp för att döpa om generiska spår */}
+                        {tracks.length > 0 && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setLoading(true)
+                                        setError(null)
+                                        setMessage(null)
+
+                                        const response = await axios.post(`${API_BASE}/tracks/rename-generic`)
+
+                                        if (response.data.updated > 0) {
+                                            setMessage(`✨ ${response.data.updated} spår omdöpta! Uppdaterar listan...`)
+                                            // Ladda om tracks för att visa nya namn
+                                            await loadTracks()
+                                            setTimeout(() => setMessage(null), 4000)
+                                        } else {
+                                            setMessage(response.data.message)
+                                            setTimeout(() => setMessage(null), 3000)
+                                        }
+                                    } catch (err) {
+                                        console.error('Fel vid omdöpning av spår:', err)
+                                        setError('Kunde inte döpa om spår.')
+                                        setTimeout(() => setError(null), 3000)
+                                    } finally {
+                                        setLoading(false)
+                                    }
+                                }}
+                                disabled={loading}
+                                className="w-full px-3 py-2 rounded bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition shadow-sm"
+                            >
+                                ✨ Döp om generiska spår
+                            </button>
+                        )}
                     </div>
 
                     {/* Spår-info */}
