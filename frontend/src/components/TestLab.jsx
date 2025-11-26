@@ -134,7 +134,16 @@ const TestLab = () => {
         loadTracks()
         checkTilesAvailability()
 
-        // Piltangents-navigering
+        return () => {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove()
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    // Piltangents-navigering i separat useEffect
+    useEffect(() => {
         const handleKeyDown = (e) => {
             if (!selectedPositionId || !selectedPositionTrackType) return
 
@@ -155,9 +164,6 @@ const TestLab = () => {
         window.addEventListener('keydown', handleKeyDown)
 
         return () => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove()
-            }
             window.removeEventListener('keydown', handleKeyDown)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
