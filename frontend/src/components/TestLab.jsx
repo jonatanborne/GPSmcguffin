@@ -135,8 +135,24 @@ const TestLab = () => {
         checkTilesAvailability()
 
         return () => {
+            // Cleanup map instance
             if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove()
+                try {
+                    mapInstanceRef.current.remove()
+                } catch (e) {
+                    console.log('Error removing map:', e)
+                }
+                mapInstanceRef.current = null
+            }
+            // Reset layer refs
+            markersLayerRef.current = null
+            humanTrackLayerRef.current = null
+            draggableMarkerRef.current = null
+
+            // Rensa Leaflet-data från DOM-elementet
+            if (mapRef.current) {
+                delete mapRef.current._leaflet_id
+                mapRef.current.innerHTML = ''
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -242,11 +258,21 @@ const TestLab = () => {
     }, [selectedPosition, isAdjusting])
 
     const initializeMap = () => {
-        if (mapInstanceRef.current || !mapRef.current) {
-            console.log('Map already initialized or mapRef not ready', {
-                hasInstance: !!mapInstanceRef.current,
-                hasRef: !!mapRef.current
-            })
+        // Kontrollera om kartan redan är initierad
+        if (mapInstanceRef.current) {
+            console.log('Map already exists in mapInstanceRef')
+            return
+        }
+
+        // Kontrollera om mapRef är redo
+        if (!mapRef.current) {
+            console.log('mapRef not ready yet')
+            return
+        }
+
+        // Kontrollera om Leaflet redan har initierat på detta DOM-element
+        if (mapRef.current._leaflet_id) {
+            console.log('Leaflet already initialized on this DOM element')
             return
         }
 
