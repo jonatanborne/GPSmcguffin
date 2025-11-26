@@ -483,6 +483,14 @@ const TestLab = () => {
         return Math.round((annotated / track.positions.length) * 100)
     }
 
+    // Få färg baserat på progress
+    const getProgressColor = (progress) => {
+        if (progress === 100) return { backgroundColor: '#d1fae5', color: '#065f46' } // Grön
+        if (progress >= 50) return { backgroundColor: '#fef3c7', color: '#92400e' } // Gul/Amber
+        if (progress > 0) return { backgroundColor: '#fee2e2', color: '#991b1b' } // Ljusröd
+        return {} // Standard (vit)
+    }
+
     const fetchTrack = async (trackId, trackType) => {
         try {
             setLoading(true)
@@ -1595,12 +1603,12 @@ const TestLab = () => {
                                 <option value="">-- Välj människaspår --</option>
                                 {tracks.filter(t => t.track_type === 'human').map((track) => {
                                     const progress = calculateTrackProgress(track)
-                                    const isComplete = progress === 100
+                                    const progressStyle = getProgressColor(progress)
                                     return (
                                         <option
                                             key={track.id}
                                             value={track.id}
-                                            style={isComplete ? { backgroundColor: '#d1fae5', fontWeight: 'bold' } : {}}
+                                            style={{ ...progressStyle, fontWeight: progress >= 50 ? 'bold' : 'normal' }}
                                         >
                                             {track.name} ({track.positions?.length || 0} pos) (% avklarat: {progress}%)
                                         </option>
@@ -1619,12 +1627,12 @@ const TestLab = () => {
                                 <option value="">-- Välj hundspår --</option>
                                 {tracks.filter(t => t.track_type === 'dog').map((track) => {
                                     const progress = calculateTrackProgress(track)
-                                    const isComplete = progress === 100
+                                    const progressStyle = getProgressColor(progress)
                                     return (
                                         <option
                                             key={track.id}
                                             value={track.id}
-                                            style={isComplete ? { backgroundColor: '#d1fae5', fontWeight: 'bold' } : {}}
+                                            style={{ ...progressStyle, fontWeight: progress >= 50 ? 'bold' : 'normal' }}
                                         >
                                             {track.name} ({track.positions?.length || 0} pos) (% avklarat: {progress}%)
                                         </option>
