@@ -69,6 +69,7 @@ const TestLab = () => {
     const [convertingTiles, setConvertingTiles] = useState(false) // Tile conversion status
     const [localTilesAvailable, setLocalTilesAvailable] = useState(false) // Om lokala tiles finns
     const [tileSize, setTileSize] = useState(512) // Standard tile-storlek (förstoringsfaktor 2)
+    const [statusFilter, setStatusFilter] = useState('all') // Filter för status: 'all', 'pending', 'correct', 'incorrect'
 
     const selectedPosition = useMemo(
         () => {
@@ -79,18 +80,88 @@ const TestLab = () => {
         [selectedPositionId, selectedPositionTrackType, humanPositions, dogPositions],
     )
 
+    // Filtrera positioner baserat på status-filter
+    const filteredHumanPositions = useMemo(() => {
+        if (statusFilter === 'all') return humanPositions
+        return humanPositions.filter(p => (p.verified_status || 'pending') === statusFilter)
+    }, [humanPositions, statusFilter])
+
+    const filteredDogPositions = useMemo(() => {
+        if (statusFilter === 'all') return dogPositions
+        return dogPositions.filter(p => (p.verified_status || 'pending') === statusFilter)
+    }, [dogPositions, statusFilter])
+
+    // Beräkna statistik för dashboard
+    const statistics = useMemo(() => {
+        const allPositions = [...humanPositions, ...dogPositions]
+
+        const pending = allPositions.filter(p => (p.verified_status || 'pending') === 'pending').length
+        const correct = allPositions.filter(p => p.verified_status === 'correct').length
+        const incorrect = allPositions.filter(p => p.verified_status === 'incorrect').length
+        const total = allPositions.length
+
+        // Beräkna genomsnittligt korrigeringsavstånd (endast för korrigerade positioner)
+        const correctedPositions = allPositions.filter(p => p.corrected_position)
+        let avgCorrectionDistance = 0
+        if (correctedPositions.length > 0) {
+            const totalDistance = correctedPositions.reduce((sum, pos) => {
+                const distance = haversineDistance(
+                    { lat: pos.position.lat, lng: pos.position.lng },
+                    { lat: pos.corrected_position.lat, lng: pos.corrected_position.lng }
+                )
+                return sum + distance
+            }, 0)
+            avgCorrectionDistance = totalDistance / correctedPositions.length
+        }
+
+        const annotatedCount = correct + incorrect
+        const progressPercentage = total > 0 ? Math.round((annotatedCount / total) * 100) : 0
+
+        return {
+            pending,
+            correct,
+            incorrect,
+            total,
+            correctedCount: correctedPositions.length,
+            avgCorrectionDistance,
+            annotatedCount,
+            progressPercentage
+        }
+    }, [humanPositions, dogPositions])
+
     useEffect(() => {
         initializeMap()
         loadTracks()
         checkTilesAvailability()
 
+        // Piltangents-navigering
+        const handleKeyDown = (e) => {
+            if (!selectedPositionId || !selectedPositionTrackType) return
+
+            const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+            const currentIndex = positions.findIndex(p => p.id === selectedPositionId)
+
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                e.preventDefault()
+                const previousPosition = positions[currentIndex - 1]
+                handleSelectPosition(previousPosition.id, selectedPositionTrackType, batchAdjustMode)
+            } else if (e.key === 'ArrowRight' && currentIndex < positions.length - 1) {
+                e.preventDefault()
+                const nextPosition = positions[currentIndex + 1]
+                handleSelectPosition(nextPosition.id, selectedPositionTrackType, batchAdjustMode)
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+
         return () => {
             if (mapInstanceRef.current) {
                 mapInstanceRef.current.remove()
             }
+            window.removeEventListener('keydown', handleKeyDown)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [selectedPositionId, selectedPositionTrackType, humanPositions, dogPositions, batchAdjustMode])
 
     // Ladda människaspår
     useEffect(() => {
@@ -157,7 +228,7 @@ const TestLab = () => {
     useEffect(() => {
         renderMarkers()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [humanPositions, dogPositions, selectedPositionId])
+    }, [humanPositions, dogPositions, selectedPositionId, statusFilter])
 
     useEffect(() => {
         updateDraggableMarker()
@@ -440,8 +511,10 @@ const TestLab = () => {
 
         markersLayerRef.current.clearLayers()
 
-        // Rita människaspår-positioner
-        humanPositions.forEach((pos, index) => {
+        // Rita människaspår-positioner (använd filtrerade positioner)
+        filteredHumanPositions.forEach((pos) => {
+            // Hitta rätt index i det ofiltrerade spåret för korrekt numrering
+            const index = humanPositions.findIndex(p => p.id === pos.id)
             const positionNumber = index + 1
             const originalLatLng = [pos.position.lat, pos.position.lng]
             const correctedLatLng = pos.corrected_position
@@ -456,6 +529,20 @@ const TestLab = () => {
 
             // Original point marker (smaller, grey) - alltid visa original om korrigerad finns
             if (pos.corrected_position) {
+                // Beräkna korrigeringsavstånd
+                const correctionDistance = haversineDistance(
+                    { lat: originalLatLng[0], lng: originalLatLng[1] },
+                    { lat: correctedLatLng[0], lng: correctedLatLng[1] }
+                )
+
+                // Färgkodning baserat på korrigeringsavstånd
+                let correctionColor = '#22c55e' // Grön: < 5m
+                if (correctionDistance > 15) {
+                    correctionColor = '#ef4444' // Röd: > 15m
+                } else if (correctionDistance > 5) {
+                    correctionColor = '#f59e0b' // Gul/Amber: 5-15m
+                }
+
                 // Original position - alltid visa som liten grå punkt
                 L.circleMarker(originalLatLng, {
                     radius: 3,
@@ -469,12 +556,26 @@ const TestLab = () => {
                 ).addTo(markersLayerRef.current)
 
                 // Line showing correction offset (streckad linje från original till korrigerad)
-                L.polyline([originalLatLng, correctedLatLng], {
-                    color: '#f59e0b', // Amber för att visa korrigering
+                const correctionLine = L.polyline([originalLatLng, correctedLatLng], {
+                    color: correctionColor,
                     dashArray: '5, 5',
                     weight: 2,
-                    opacity: 0.7,
-                }).addTo(markersLayerRef.current)
+                    opacity: 0.8,
+                })
+
+                // Tooltip med avstånd på linjen
+                correctionLine.bindTooltip(
+                    `<div style="text-align: center; font-size: 11px; font-weight: bold;">
+                        📏 ${correctionDistance.toFixed(1)}m
+                    </div>`,
+                    {
+                        permanent: false,
+                        direction: 'center',
+                        className: 'correction-distance-tooltip'
+                    }
+                )
+
+                correctionLine.addTo(markersLayerRef.current)
             }
 
             // Main marker: visa korrigerad position om den finns, annars original
@@ -517,8 +618,10 @@ const TestLab = () => {
             marker.addTo(markersLayerRef.current)
         })
 
-        // Rita hundspår-positioner
-        dogPositions.forEach((pos, index) => {
+        // Rita hundspår-positioner (använd filtrerade positioner)
+        filteredDogPositions.forEach((pos) => {
+            // Hitta rätt index i det ofiltrerade spåret för korrekt numrering
+            const index = dogPositions.findIndex(p => p.id === pos.id)
             const positionNumber = index + 1
             const originalLatLng = [pos.position.lat, pos.position.lng]
             const correctedLatLng = pos.corrected_position
@@ -533,6 +636,20 @@ const TestLab = () => {
 
             // Original point marker (smaller, grey) - alltid visa original om korrigerad finns
             if (pos.corrected_position) {
+                // Beräkna korrigeringsavstånd
+                const correctionDistance = haversineDistance(
+                    { lat: originalLatLng[0], lng: originalLatLng[1] },
+                    { lat: correctedLatLng[0], lng: correctedLatLng[1] }
+                )
+
+                // Färgkodning baserat på korrigeringsavstånd
+                let correctionColor = '#22c55e' // Grön: < 5m
+                if (correctionDistance > 15) {
+                    correctionColor = '#ef4444' // Röd: > 15m
+                } else if (correctionDistance > 5) {
+                    correctionColor = '#f59e0b' // Gul/Amber: 5-15m
+                }
+
                 // Original position - alltid visa som liten grå punkt
                 L.circleMarker(originalLatLng, {
                     radius: 3,
@@ -546,12 +663,26 @@ const TestLab = () => {
                 ).addTo(markersLayerRef.current)
 
                 // Line showing correction offset (streckad linje från original till korrigerad)
-                L.polyline([originalLatLng, correctedLatLng], {
-                    color: '#f59e0b', // Amber för att visa korrigering
+                const correctionLine = L.polyline([originalLatLng, correctedLatLng], {
+                    color: correctionColor,
                     dashArray: '5, 5',
                     weight: 2,
-                    opacity: 0.7,
-                }).addTo(markersLayerRef.current)
+                    opacity: 0.8,
+                })
+
+                // Tooltip med avstånd på linjen
+                correctionLine.bindTooltip(
+                    `<div style="text-align: center; font-size: 11px; font-weight: bold;">
+                        📏 ${correctionDistance.toFixed(1)}m
+                    </div>`,
+                    {
+                        permanent: false,
+                        direction: 'center',
+                        className: 'correction-distance-tooltip'
+                    }
+                )
+
+                correctionLine.addTo(markersLayerRef.current)
             }
 
             // Main marker: visa korrigerad position om den finns, annars original
@@ -999,6 +1130,110 @@ const TestLab = () => {
         }
     }
 
+    const handleExportAnnotations = (format = 'json') => {
+        const allPositions = [...humanPositions, ...dogPositions]
+
+        // Filtrera endast annoterade positioner (har corrected_position eller verified_status !== 'pending')
+        const annotatedPositions = allPositions.filter(p =>
+            p.corrected_position || p.verified_status !== 'pending'
+        )
+
+        if (annotatedPositions.length === 0) {
+            setMessage('Inga annoterade positioner att exportera.')
+            setTimeout(() => setMessage(null), 2500)
+            return
+        }
+
+        // Förbered data för export
+        const exportData = annotatedPositions.map(pos => {
+            const correctionDistance = pos.corrected_position
+                ? haversineDistance(
+                    { lat: pos.position.lat, lng: pos.position.lng },
+                    { lat: pos.corrected_position.lat, lng: pos.corrected_position.lng }
+                )
+                : 0
+
+            return {
+                id: pos.id,
+                track_type: humanPositions.includes(pos) ? 'human' : 'dog',
+                timestamp: pos.timestamp,
+                verified_status: pos.verified_status || 'pending',
+                original_position: {
+                    lat: pos.position.lat,
+                    lng: pos.position.lng
+                },
+                corrected_position: pos.corrected_position ? {
+                    lat: pos.corrected_position.lat,
+                    lng: pos.corrected_position.lng
+                } : null,
+                correction_distance_meters: correctionDistance,
+                accuracy: pos.accuracy || null,
+                annotation_notes: pos.annotation_notes || ''
+            }
+        })
+
+        if (format === 'json') {
+            // Export som JSON
+            const jsonStr = JSON.stringify(exportData, null, 2)
+            const blob = new Blob([jsonStr], { type: 'application/json' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `annotations_${new Date().toISOString().split('T')[0]}.json`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+        } else if (format === 'csv') {
+            // Export som CSV
+            const headers = [
+                'id',
+                'track_type',
+                'timestamp',
+                'verified_status',
+                'original_lat',
+                'original_lng',
+                'corrected_lat',
+                'corrected_lng',
+                'correction_distance_m',
+                'accuracy',
+                'notes'
+            ]
+
+            const rows = exportData.map(pos => [
+                pos.id,
+                pos.track_type,
+                pos.timestamp,
+                pos.verified_status,
+                pos.original_position.lat,
+                pos.original_position.lng,
+                pos.corrected_position?.lat || '',
+                pos.corrected_position?.lng || '',
+                pos.correction_distance_meters.toFixed(2),
+                pos.accuracy || '',
+                `"${(pos.annotation_notes || '').replace(/"/g, '""')}"`
+            ])
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n')
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `annotations_${new Date().toISOString().split('T')[0]}.csv`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+        }
+
+        setMessage(`✅ ${annotatedPositions.length} positioner exporterade som ${format.toUpperCase()}!`)
+        setTimeout(() => setMessage(null), 3000)
+    }
+
     return (
         <div className="h-full flex overflow-hidden relative">
             {/* Loading overlay för tile-konvertering */}
@@ -1027,6 +1262,81 @@ const TestLab = () => {
                             Välj människaspår och hundspår för jämförelse. Justera positioner på kartan.
                         </p>
                     </div>
+
+                    {/* Statistik-dashboard */}
+                    {statistics.total > 0 && (
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 space-y-3 text-xs shadow-sm">
+                            <div className="font-semibold text-blue-900 flex items-center gap-2 text-sm">
+                                📊 Statistik
+                            </div>
+
+                            {/* Progress bar */}
+                            <div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-blue-800 font-medium">Framsteg</span>
+                                    <span className="text-blue-900 font-bold">{statistics.progressPercentage}%</span>
+                                </div>
+                                <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                                    <div
+                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
+                                        style={{ width: `${statistics.progressPercentage}%` }}
+                                    />
+                                </div>
+                                <div className="text-[10px] text-blue-600 mt-1">
+                                    {statistics.annotatedCount} av {statistics.total} positioner märkta
+                                </div>
+                            </div>
+
+                            {/* Status-översikt */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-white rounded p-2 text-center border border-amber-200">
+                                    <div className="text-lg font-bold text-amber-600">{statistics.pending}</div>
+                                    <div className="text-[10px] text-amber-700">⏳ Ej märkt</div>
+                                </div>
+                                <div className="bg-white rounded p-2 text-center border border-green-200">
+                                    <div className="text-lg font-bold text-green-600">{statistics.correct}</div>
+                                    <div className="text-[10px] text-green-700">✅ Korrekt</div>
+                                </div>
+                                <div className="bg-white rounded p-2 text-center border border-red-200">
+                                    <div className="text-lg font-bold text-red-600">{statistics.incorrect}</div>
+                                    <div className="text-[10px] text-red-700">❌ Fel</div>
+                                </div>
+                            </div>
+
+                            {/* Korrigeringsstatistik */}
+                            {statistics.correctedCount > 0 && (
+                                <div className="bg-white rounded p-2 border border-blue-200">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-blue-700 font-medium">📏 Genomsnittlig korrigering</span>
+                                        <span className="text-blue-900 font-bold">{statistics.avgCorrectionDistance.toFixed(1)}m</span>
+                                    </div>
+                                    <div className="text-[10px] text-blue-600 mt-1">
+                                        {statistics.correctedCount} position{statistics.correctedCount !== 1 ? 'er' : ''} korrigerad{statistics.correctedCount !== 1 ? 'e' : ''}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Export-knappar */}
+                            {statistics.annotatedCount > 0 && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleExportAnnotations('json')}
+                                        disabled={loading}
+                                        className="flex-1 px-3 py-2 rounded bg-purple-600 text-white text-[10px] font-semibold hover:bg-purple-700 disabled:bg-purple-300 transition"
+                                    >
+                                        📥 JSON
+                                    </button>
+                                    <button
+                                        onClick={() => handleExportAnnotations('csv')}
+                                        disabled={loading}
+                                        className="flex-1 px-3 py-2 rounded bg-purple-600 text-white text-[10px] font-semibold hover:bg-purple-700 disabled:bg-purple-300 transition"
+                                    >
+                                        📥 CSV
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Godkänn alla justerade - synlig längst upp när batch-läge är aktivt */}
                     {batchAdjustMode && (() => {
@@ -1298,6 +1608,31 @@ const TestLab = () => {
                         </div>
                     )}
 
+                    {/* Status-filter */}
+                    {(humanTrack || dogTrack) && (
+                        <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
+                            <div className="font-semibold text-slate-700">🔍 Filter</div>
+                            <div>
+                                <label className="block text-slate-600 mb-1">Visa positioner:</label>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-xs"
+                                >
+                                    <option value="all">Alla positioner</option>
+                                    <option value="pending">⏳ Ej märkta</option>
+                                    <option value="correct">✅ Korrekta</option>
+                                    <option value="incorrect">❌ Felaktiga</option>
+                                </select>
+                            </div>
+                            {statusFilter !== 'all' && (
+                                <div className="text-[10px] text-blue-600 font-semibold">
+                                    Visar endast {statusFilter === 'pending' ? 'ej märkta' : statusFilter === 'correct' ? 'korrekta' : 'felaktiga'} positioner på kartan.
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Snapping-inställningar - endast när båda spår är valda */}
                     {humanTrack && dogTrack && (
                         <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
@@ -1438,23 +1773,58 @@ const TestLab = () => {
                             }
                         }
 
+                        const handleJumpToNextPending = () => {
+                            // Hitta nästa position med status "pending"
+                            const nextPendingIndex = positions.findIndex((p, idx) =>
+                                idx > currentIndex && p.verified_status === 'pending'
+                            )
+
+                            if (nextPendingIndex !== -1) {
+                                const nextPendingPosition = positions[nextPendingIndex]
+                                handleSelectPosition(nextPendingPosition.id, selectedPositionTrackType, batchAdjustMode)
+                            } else {
+                                // Om ingen finns efter nuvarande, leta från början
+                                const firstPendingIndex = positions.findIndex(p => p.verified_status === 'pending')
+                                if (firstPendingIndex !== -1 && firstPendingIndex !== currentIndex) {
+                                    const firstPendingPosition = positions[firstPendingIndex]
+                                    handleSelectPosition(firstPendingPosition.id, selectedPositionTrackType, batchAdjustMode)
+                                } else {
+                                    setMessage('Inga fler ej märkta positioner.')
+                                    setTimeout(() => setMessage(null), 2000)
+                                }
+                            }
+                        }
+
+                        const hasPending = positions.some(p => p.verified_status === 'pending')
+
                         return (
-                            <div className="flex gap-2 my-2">
-                                <button
-                                    onClick={handlePrevious}
-                                    disabled={!hasPrevious || loading}
-                                    className="flex-1 px-3 py-2 rounded bg-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition"
-                                >
-                                    ⬅️ Föregående
-                                </button>
-                                <button
-                                    onClick={handleNext}
-                                    disabled={!hasNext || loading}
-                                    className="flex-1 px-3 py-2 rounded bg-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition"
-                                >
-                                    Nästa ➡️
-                                </button>
-                            </div>
+                            <>
+                                <div className="flex gap-2 my-2">
+                                    <button
+                                        onClick={handlePrevious}
+                                        disabled={!hasPrevious || loading}
+                                        className="flex-1 px-3 py-2 rounded bg-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition"
+                                    >
+                                        ⬅️ Föregående
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!hasNext || loading}
+                                        className="flex-1 px-3 py-2 rounded bg-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition"
+                                    >
+                                        Nästa ➡️
+                                    </button>
+                                </div>
+                                {hasPending && (
+                                    <button
+                                        onClick={handleJumpToNextPending}
+                                        disabled={loading}
+                                        className="w-full px-3 py-2 rounded bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 disabled:bg-amber-200 disabled:cursor-not-allowed transition"
+                                    >
+                                        ⏩ Hoppa till nästa ej märkt
+                                    </button>
+                                )}
+                            </>
                         )
                     })()}
 
