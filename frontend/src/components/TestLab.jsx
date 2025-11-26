@@ -1610,7 +1610,7 @@ const TestLab = () => {
                                             value={track.id}
                                             style={{ ...progressStyle, fontWeight: progress >= 50 ? 'bold' : 'normal' }}
                                         >
-                                            {track.name} ({track.positions?.length || 0} pos) (% avklarat: {progress}%)
+                                            {track.name} ({track.positions?.length || 0} pos) ({progress}%)
                                         </option>
                                     )
                                 })}
@@ -1634,7 +1634,7 @@ const TestLab = () => {
                                             value={track.id}
                                             style={{ ...progressStyle, fontWeight: progress >= 50 ? 'bold' : 'normal' }}
                                         >
-                                            {track.name} ({track.positions?.length || 0} pos) (% avklarat: {progress}%)
+                                            {track.name} ({track.positions?.length || 0} pos) ({progress}%)
                                         </option>
                                     )
                                 })}
