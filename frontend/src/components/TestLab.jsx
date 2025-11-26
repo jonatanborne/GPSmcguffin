@@ -472,6 +472,17 @@ const TestLab = () => {
         }
     }
 
+    // Beräkna progress för ett specifikt spår
+    const calculateTrackProgress = (track) => {
+        if (!track.positions || track.positions.length === 0) return 0
+
+        const annotated = track.positions.filter(p =>
+            p.verified_status === 'correct' || p.verified_status === 'incorrect'
+        ).length
+
+        return Math.round((annotated / track.positions.length) * 100)
+    }
+
     const fetchTrack = async (trackId, trackType) => {
         try {
             setLoading(true)
@@ -1582,11 +1593,19 @@ const TestLab = () => {
                                 className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
                             >
                                 <option value="">-- Välj människaspår --</option>
-                                {tracks.filter(t => t.track_type === 'human').map((track) => (
-                                    <option key={track.id} value={track.id}>
-                                        {track.name} ({track.positions?.length || 0} pos)
-                                    </option>
-                                ))}
+                                {tracks.filter(t => t.track_type === 'human').map((track) => {
+                                    const progress = calculateTrackProgress(track)
+                                    const isComplete = progress === 100
+                                    return (
+                                        <option
+                                            key={track.id}
+                                            value={track.id}
+                                            style={isComplete ? { backgroundColor: '#d1fae5', fontWeight: 'bold' } : {}}
+                                        >
+                                            {track.name} ({track.positions?.length || 0} pos) (% avklarat: {progress}%)
+                                        </option>
+                                    )
+                                })}
                             </select>
                         </div>
 
@@ -1598,11 +1617,19 @@ const TestLab = () => {
                                 className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
                             >
                                 <option value="">-- Välj hundspår --</option>
-                                {tracks.filter(t => t.track_type === 'dog').map((track) => (
-                                    <option key={track.id} value={track.id}>
-                                        {track.name} ({track.positions?.length || 0} pos)
-                                    </option>
-                                ))}
+                                {tracks.filter(t => t.track_type === 'dog').map((track) => {
+                                    const progress = calculateTrackProgress(track)
+                                    const isComplete = progress === 100
+                                    return (
+                                        <option
+                                            key={track.id}
+                                            value={track.id}
+                                            style={isComplete ? { backgroundColor: '#d1fae5', fontWeight: 'bold' } : {}}
+                                        >
+                                            {track.name} ({track.positions?.length || 0} pos) (% avklarat: {progress}%)
+                                        </option>
+                                    )
+                                })}
                             </select>
                         </div>
 
@@ -1616,7 +1643,7 @@ const TestLab = () => {
                                         setMessage(null)
 
                                         const response = await axios.post(`${API_BASE}/tracks/rename-generic`)
-                                        
+
                                         if (response.data.updated > 0) {
                                             setMessage(`✨ ${response.data.updated} spår omdöpta! Uppdaterar listan...`)
                                             // Ladda om tracks för att visa nya namn
