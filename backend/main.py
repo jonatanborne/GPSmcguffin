@@ -1899,6 +1899,7 @@ def export_track_positions(
     )
 
 
+@app.get("/export/annotations-to-ml")
 @app.post("/export/annotations-to-ml")
 def export_annotations_to_ml(filename: str = "annotations.json"):
     """
