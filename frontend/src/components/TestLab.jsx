@@ -1701,6 +1701,80 @@ const TestLab = () => {
                         </div>
                     )}
 
+                    {/* GPS Smoothing - Experimentell */}
+                    {(humanTrack || dogTrack) && (
+                        <div className="bg-amber-50 border border-amber-300 rounded p-3 space-y-2 text-xs">
+                            <div className="font-semibold text-amber-800">🔬 GPS Smoothing (Experimentell)</div>
+                            <div className="text-[10px] text-amber-700">
+                                Applicera moving average för att jämna ut GPS-noise. Detta är för visualisering/jämförelse, inte ML-träning.
+                            </div>
+                            {humanTrack && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            setLoading(true)
+                                            setError(null)
+                                            setMessage(null)
+
+                                            const response = await axios.post(`${API_BASE}/tracks/${humanTrackId}/smooth`, {
+                                                window_size: 3,
+                                                apply_filters: true
+                                            })
+
+                                            console.log('Smoothing results:', response.data)
+                                            setMessage(`✨ Smoothing tillämpat på ${humanTrack.name}! 
+                                                       Behöll ${response.data.improvement_stats.after_filtering}/${response.data.original_count} positioner.
+                                                       Borttagna: ${response.data.improvement_stats.total_removed}`)
+                                            setTimeout(() => setMessage(null), 5000)
+                                        } catch (err) {
+                                            console.error('Fel vid smoothing:', err)
+                                            setError('Kunde inte applicera smoothing.')
+                                            setTimeout(() => setError(null), 3000)
+                                        } finally {
+                                            setLoading(false)
+                                        }
+                                    }}
+                                    disabled={loading}
+                                    className="w-full px-3 py-2 rounded bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 disabled:bg-amber-300 transition"
+                                >
+                                    🔬 Tillämpa smoothing på människaspår
+                                </button>
+                            )}
+                            {dogTrack && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            setLoading(true)
+                                            setError(null)
+                                            setMessage(null)
+
+                                            const response = await axios.post(`${API_BASE}/tracks/${dogTrackId}/smooth`, {
+                                                window_size: 3,
+                                                apply_filters: true
+                                            })
+
+                                            console.log('Smoothing results:', response.data)
+                                            setMessage(`✨ Smoothing tillämpat på ${dogTrack.name}! 
+                                                       Behöll ${response.data.improvement_stats.after_filtering}/${response.data.original_count} positioner.
+                                                       Borttagna: ${response.data.improvement_stats.total_removed}`)
+                                            setTimeout(() => setMessage(null), 5000)
+                                        } catch (err) {
+                                            console.error('Fel vid smoothing:', err)
+                                            setError('Kunde inte applicera smoothing.')
+                                            setTimeout(() => setError(null), 3000)
+                                        } finally {
+                                            setLoading(false)
+                                        }
+                                    }}
+                                    disabled={loading}
+                                    className="w-full px-3 py-2 rounded bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 disabled:bg-amber-300 transition"
+                                >
+                                    🔬 Tillämpa smoothing på hundspår
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     {/* Batch-justeringsläge */}
                     {(humanTrack || dogTrack) && (
                         <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
