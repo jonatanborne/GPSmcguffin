@@ -1433,16 +1433,24 @@ const TestLab = () => {
 
                                                     const filenameInput = document.getElementById('ml-filename-input')
                                                     let filename = filenameInput.value || 'annotations'
-                                                    
+
                                                     // Säkerställ .json extension
                                                     if (!filename.endsWith('.json')) {
                                                         filename = `${filename}.json`
                                                     }
 
-                                                    const response = await axios.post(`${API_BASE}/export/annotations-to-ml`, null, {
-                                                        params: { filename }
-                                                    })
+                                                    // Samla track_ids för de valda spåren
+                                                    const trackIds = []
+                                                    if (humanTrack) trackIds.push(humanTrack.id)
+                                                    if (dogTrack) trackIds.push(dogTrack.id)
                                                     
+                                                    const response = await axios.post(`${API_BASE}/export/annotations-to-ml`, null, {
+                                                        params: { 
+                                                            filename,
+                                                            track_ids: trackIds.join(',') // Skicka som komma-separerad sträng
+                                                        }
+                                                    })
+
                                                     // Ladda ner JSON-filen lokalt
                                                     const jsonStr = JSON.stringify(response.data.data, null, 2)
                                                     const blob = new Blob([jsonStr], { type: 'application/json' })
@@ -1454,7 +1462,7 @@ const TestLab = () => {
                                                     a.click()
                                                     document.body.removeChild(a)
                                                     URL.revokeObjectURL(url)
-                                                    
+
                                                     setMessage(`✅ ${response.data.annotation_count} positioner exporterade!
                                                                Filen "${filename}" laddades ner.
                                                                Flytta den till ml/data/ mappen i projektet.

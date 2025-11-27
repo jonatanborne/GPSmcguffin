@@ -1901,12 +1901,15 @@ def export_track_positions(
 
 @app.get("/export/annotations-to-ml")
 @app.post("/export/annotations-to-ml")
-def export_annotations_to_ml(filename: str = "annotations.json"):
+def export_annotations_to_ml(
+    filename: str = "annotations.json", track_ids: Optional[str] = None
+):
     """
     Export annoterade positioner direkt till ml/data/ mappen för ML-träning.
 
     Args:
         filename: Namnet på filen (läggs automatiskt till .json om inte angivet)
+        track_ids: Komma-separerad lista av track_ids att exportera (om None, exportera alla)
 
     Returns:
         Success message med filnamn och antal positioner
@@ -1920,7 +1923,28 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
         conn = get_db()
         cursor = get_cursor(conn)
 
-        query = """
+        # Bygg WHERE-klausul
+        where_conditions = [
+            "(tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')",
+            "(tp.corrected_lat IS NOT NULL AND tp.corrected_lng IS NOT NULL)",
+        ]
+
+        # Filtrera på track_ids om de är angivna
+        params = []
+        placeholder = "%s" if DATABASE_URL else "?"
+        if track_ids:
+            track_id_list = [
+                int(tid.strip()) for tid in track_ids.split(",") if tid.strip()
+            ]
+            if track_id_list:
+                # Skapa IN-klausul med rätt antal placeholders
+                placeholders = ",".join([placeholder] * len(track_id_list))
+                where_conditions.append(f"tp.track_id IN ({placeholders})")
+                params.extend(track_id_list)
+
+        where_clause = " AND ".join(where_conditions)
+
+        query = f"""
             SELECT
                 tp.id,
                 tp.track_id,
@@ -1936,12 +1960,11 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
                 tp.annotation_notes
             FROM track_positions tp
             JOIN tracks t ON tp.track_id = t.id
-            WHERE (tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')
-            AND (tp.corrected_lat IS NOT NULL AND tp.corrected_lng IS NOT NULL)
+            WHERE {where_clause}
             ORDER BY tp.track_id, tp.timestamp
         """
 
-        execute_query(cursor, query)
+        execute_query(cursor, query, params if params else None)
         rows = cursor.fetchall()
         conn.close()
 
