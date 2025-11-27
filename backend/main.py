@@ -1911,45 +1911,46 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
     Returns:
         Success message med filnamn och antal positioner
     """
-    # Säkerställ att filnamnet slutar med .json
-    if not filename.endswith('.json'):
-        filename = f"{filename}.json"
-    
-    # Hämta alla annoterade positioner (endast correct eller incorrect, inte pending)
-    conn = get_db()
-    cursor = get_cursor(conn)
-    
-    query = """
-        SELECT
-            tp.id,
-            tp.track_id,
-            t.name as track_name,
-            t.track_type,
-            tp.position_lat,
-            tp.position_lng,
-            tp.timestamp,
-            tp.accuracy,
-            tp.verified_status,
-            tp.corrected_position_lat as corrected_lat,
-            tp.corrected_position_lng as corrected_lng,
-            tp.annotation_notes
-        FROM track_positions tp
-        JOIN tracks t ON tp.track_id = t.id
-        WHERE (tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')
-        AND (tp.corrected_position_lat IS NOT NULL AND tp.corrected_position_lng IS NOT NULL)
-        ORDER BY tp.track_id, tp.timestamp
-    """
-    
-    execute_query(cursor, query)
-    rows = cursor.fetchall()
-    conn.close()
-    
-    if not rows:
-        raise HTTPException(status_code=404, detail="Inga annoterade positioner hittades")
-    
-    # Konvertera till JSON-format
-    annotations = []
-    for row in rows:
+    try:
+        # Säkerställ att filnamnet slutar med .json
+        if not filename.endswith('.json'):
+            filename = f"{filename}.json"
+        
+        # Hämta alla annoterade positioner (endast correct eller incorrect, inte pending)
+        conn = get_db()
+        cursor = get_cursor(conn)
+        
+        query = """
+            SELECT
+                tp.id,
+                tp.track_id,
+                t.name as track_name,
+                t.track_type,
+                tp.position_lat,
+                tp.position_lng,
+                tp.timestamp,
+                tp.accuracy,
+                tp.verified_status,
+                tp.corrected_position_lat as corrected_lat,
+                tp.corrected_position_lng as corrected_lng,
+                tp.annotation_notes
+            FROM track_positions tp
+            JOIN tracks t ON tp.track_id = t.id
+            WHERE (tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')
+            AND (tp.corrected_position_lat IS NOT NULL AND tp.corrected_position_lng IS NOT NULL)
+            ORDER BY tp.track_id, tp.timestamp
+        """
+        
+        execute_query(cursor, query)
+        rows = cursor.fetchall()
+        conn.close()
+        
+        if not rows:
+            raise HTTPException(status_code=404, detail="Inga annoterade positioner hittades")
+        
+        # Konvertera till JSON-format
+        annotations = []
+        for row in rows:
         # Beräkna korrigeringsavstånd
         orig_lat = get_row_value(row, "position_lat")
         orig_lng = get_row_value(row, "position_lng")
@@ -1992,13 +1993,29 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
     
     # Returnera JSON-data direkt (frontend sparar lokalt)
     # Vi försöker INTE spara till fil på Railway (ephemeral filesystem)
-    return {
-        "message": f"Annotationer exporterade ({len(annotations)} positioner)",
-        "filename": filename,
-        "annotation_count": len(annotations),
-        "tracks": list(set(a["track_name"] for a in annotations if a.get("track_name"))),
-        "data": annotations  # Returnera själva datan så frontend kan spara
-    }
+    
+    # Hämta unika spårnamn (filtrera bort None/empty)
+    unique_tracks = list(set(
+        a.get("track_name") or f"Track_{a.get('track_id', 'unknown')}"
+        for a in annotations
+        if a.get("track_name") or a.get("track_id")
+    ))
+    
+        return {
+            "message": f"Annotationer exporterade ({len(annotations)} positioner)",
+            "filename": filename,
+            "annotation_count": len(annotations),
+            "tracks": unique_tracks,
+            "data": annotations  # Returnera själva datan så frontend kan spara
+        }
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in export_annotations_to_ml: {error_details}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid export: {str(e)}"
+        )
 
 
 # Hiding spots endpoints
