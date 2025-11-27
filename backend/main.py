@@ -1931,13 +1931,13 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
                 tp.timestamp,
                 tp.accuracy,
                 tp.verified_status,
-                tp.corrected_position_lat as corrected_lat,
-                tp.corrected_position_lng as corrected_lng,
+                tp.corrected_lat,
+                tp.corrected_lng,
                 tp.annotation_notes
             FROM track_positions tp
             JOIN tracks t ON tp.track_id = t.id
             WHERE (tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')
-            AND (tp.corrected_position_lat IS NOT NULL AND tp.corrected_position_lng IS NOT NULL)
+            AND (tp.corrected_lat IS NOT NULL AND tp.corrected_lng IS NOT NULL)
             ORDER BY tp.track_id, tp.timestamp
         """
 
