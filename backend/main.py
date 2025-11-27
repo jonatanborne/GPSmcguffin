@@ -1175,6 +1175,135 @@ def rename_generic_tracks_endpoint():
     return rename_generic_tracks()
 
 
+@app.post("/tracks/{track_id}/smooth")
+def smooth_track(
+    track_id: int,
+    window_size: int = 3,
+    max_speed_kmh: Optional[float] = None,
+    max_accuracy_m: float = 50.0,
+    apply_filters: bool = True
+):
+    """
+    Apply GPS smoothing and filtering to a track.
+    
+    Args:
+        track_id: ID of the track to smooth
+        window_size: Moving average window size (default: 3)
+        max_speed_kmh: Max speed threshold in km/h (auto-set if None)
+        max_accuracy_m: Max acceptable GPS accuracy in meters (default: 50)
+        apply_filters: Whether to apply outlier filters before smoothing
+        
+    Returns:
+        Smoothed track data with statistics
+    """
+    from utils.gps_filter import apply_full_filter_pipeline, smooth_track_positions
+    
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    
+    # Get track
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
+    track = cursor.fetchone()
+    
+    if track is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Track not found")
+    
+    track_type = get_row_value(track, "track_type")
+    
+    # Get positions
+    execute_query(
+        cursor,
+        f"""
+        SELECT
+            id,
+            track_id,
+            position_lat,
+            position_lng,
+            timestamp,
+            accuracy,
+            verified_status,
+            corrected_position_lat,
+            corrected_position_lng,
+            annotation_notes
+        FROM track_positions
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp
+        """,
+        (track_id,),
+    )
+    
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        return {
+            "message": "No positions found for this track",
+            "track_id": track_id,
+            "original_count": 0
+        }
+    
+    # Convert to position objects
+    positions = []
+    for row in rows:
+        pos = {
+            "id": get_row_value(row, "id"),
+            "track_id": get_row_value(row, "track_id"),
+            "position": {
+                "lat": get_row_value(row, "position_lat"),
+                "lng": get_row_value(row, "position_lng"),
+            },
+            "timestamp": get_row_value(row, "timestamp"),
+            "accuracy": get_row_value(row, "accuracy"),
+            "verified_status": get_row_value(row, "verified_status"),
+            "annotation_notes": get_row_value(row, "annotation_notes"),
+        }
+        
+        # Add corrected position if exists
+        corr_lat = get_row_value(row, "corrected_position_lat")
+        corr_lng = get_row_value(row, "corrected_position_lng")
+        if corr_lat and corr_lng:
+            pos["corrected_position"] = {"lat": corr_lat, "lng": corr_lng}
+        
+        positions.append(pos)
+    
+    # Apply smoothing/filtering
+    if apply_filters:
+        result = apply_full_filter_pipeline(
+            positions,
+            track_type=track_type,
+            smooth_window=window_size,
+            max_speed_kmh=max_speed_kmh,
+            max_accuracy_m=max_accuracy_m
+        )
+    else:
+        # Just apply smoothing without filters
+        smoothed = smooth_track_positions(positions, window_size)
+        result = {
+            'original_count': len(positions),
+            'filtered_positions': positions,
+            'smoothed_positions': smoothed,
+            'speed_outliers': [],
+            'accuracy_outliers': [],
+            'improvement_stats': {
+                'original_count': len(positions),
+                'after_filtering': len(positions),
+                'removed_by_accuracy': 0,
+                'removed_by_speed': 0,
+                'total_removed': 0,
+                'retention_rate': 1.0
+            }
+        }
+    
+    return {
+        "track_id": track_id,
+        "track_name": get_row_value(track, "name"),
+        "track_type": track_type,
+        **result
+    }
+
+
 @app.get("/tracks/{track_id}", response_model=Track)
 def get_track(track_id: int):
     conn = get_db()
