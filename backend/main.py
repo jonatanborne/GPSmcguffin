@@ -1181,37 +1181,37 @@ def smooth_track(
     window_size: int = 3,
     max_speed_kmh: Optional[float] = None,
     max_accuracy_m: float = 50.0,
-    apply_filters: bool = True
+    apply_filters: bool = True,
 ):
     """
     Apply GPS smoothing and filtering to a track.
-    
+
     Args:
         track_id: ID of the track to smooth
         window_size: Moving average window size (default: 3)
         max_speed_kmh: Max speed threshold in km/h (auto-set if None)
         max_accuracy_m: Max acceptable GPS accuracy in meters (default: 50)
         apply_filters: Whether to apply outlier filters before smoothing
-        
+
     Returns:
         Smoothed track data with statistics
     """
     from utils.gps_filter import apply_full_filter_pipeline, smooth_track_positions
-    
+
     conn = get_db()
     cursor = get_cursor(conn)
     placeholder = "%s" if DATABASE_URL else "?"
-    
+
     # Get track
     execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
     track = cursor.fetchone()
-    
+
     if track is None:
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
-    
+
     track_type = get_row_value(track, "track_type")
-    
+
     # Get positions
     execute_query(
         cursor,
@@ -1233,17 +1233,17 @@ def smooth_track(
         """,
         (track_id,),
     )
-    
+
     rows = cursor.fetchall()
     conn.close()
-    
+
     if not rows:
         return {
             "message": "No positions found for this track",
             "track_id": track_id,
-            "original_count": 0
+            "original_count": 0,
         }
-    
+
     # Convert to position objects
     positions = []
     for row in rows:
@@ -1259,15 +1259,15 @@ def smooth_track(
             "verified_status": get_row_value(row, "verified_status"),
             "annotation_notes": get_row_value(row, "annotation_notes"),
         }
-        
+
         # Add corrected position if exists
         corr_lat = get_row_value(row, "corrected_position_lat")
         corr_lng = get_row_value(row, "corrected_position_lng")
         if corr_lat and corr_lng:
             pos["corrected_position"] = {"lat": corr_lat, "lng": corr_lng}
-        
+
         positions.append(pos)
-    
+
     # Apply smoothing/filtering
     if apply_filters:
         result = apply_full_filter_pipeline(
@@ -1275,32 +1275,32 @@ def smooth_track(
             track_type=track_type,
             smooth_window=window_size,
             max_speed_kmh=max_speed_kmh,
-            max_accuracy_m=max_accuracy_m
+            max_accuracy_m=max_accuracy_m,
         )
     else:
         # Just apply smoothing without filters
         smoothed = smooth_track_positions(positions, window_size)
         result = {
-            'original_count': len(positions),
-            'filtered_positions': positions,
-            'smoothed_positions': smoothed,
-            'speed_outliers': [],
-            'accuracy_outliers': [],
-            'improvement_stats': {
-                'original_count': len(positions),
-                'after_filtering': len(positions),
-                'removed_by_accuracy': 0,
-                'removed_by_speed': 0,
-                'total_removed': 0,
-                'retention_rate': 1.0
-            }
+            "original_count": len(positions),
+            "filtered_positions": positions,
+            "smoothed_positions": smoothed,
+            "speed_outliers": [],
+            "accuracy_outliers": [],
+            "improvement_stats": {
+                "original_count": len(positions),
+                "after_filtering": len(positions),
+                "removed_by_accuracy": 0,
+                "removed_by_speed": 0,
+                "total_removed": 0,
+                "retention_rate": 1.0,
+            },
         }
-    
+
     return {
         "track_id": track_id,
         "track_name": get_row_value(track, "name"),
         "track_type": track_type,
-        **result
+        **result,
     }
 
 
@@ -1897,6 +1897,114 @@ def export_track_positions(
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@app.post("/export/annotations-to-ml")
+def export_annotations_to_ml(filename: str = "annotations.json"):
+    """
+    Export annoterade positioner direkt till ml/data/ mappen för ML-träning.
+    
+    Args:
+        filename: Namnet på filen (läggs automatiskt till .json om inte angivet)
+        
+    Returns:
+        Success message med filnamn och antal positioner
+    """
+    # Säkerställ att filnamnet slutar med .json
+    if not filename.endswith('.json'):
+        filename = f"{filename}.json"
+    
+    # Hämta alla annoterade positioner (endast correct eller incorrect, inte pending)
+    conn = get_db()
+    cursor = get_cursor(conn)
+    
+    query = """
+        SELECT
+            tp.id,
+            tp.track_id,
+            t.name as track_name,
+            t.track_type,
+            tp.position_lat,
+            tp.position_lng,
+            tp.timestamp,
+            tp.accuracy,
+            tp.verified_status,
+            tp.corrected_position_lat as corrected_lat,
+            tp.corrected_position_lng as corrected_lng,
+            tp.annotation_notes
+        FROM track_positions tp
+        JOIN tracks t ON tp.track_id = t.id
+        WHERE (tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')
+        AND (tp.corrected_position_lat IS NOT NULL AND tp.corrected_position_lng IS NOT NULL)
+        ORDER BY tp.track_id, tp.timestamp
+    """
+    
+    execute_query(cursor, query)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        raise HTTPException(status_code=404, detail="Inga annoterade positioner hittades")
+    
+    # Konvertera till JSON-format
+    annotations = []
+    for row in rows:
+        # Beräkna korrigeringsavstånd
+        orig_lat = get_row_value(row, "position_lat")
+        orig_lng = get_row_value(row, "position_lng")
+        corr_lat = get_row_value(row, "corrected_lat")
+        corr_lng = get_row_value(row, "corrected_lng")
+        
+        # Haversine distance
+        R = 6371000  # Earth radius in meters
+        phi1 = math.radians(orig_lat)
+        phi2 = math.radians(corr_lat)
+        delta_phi = math.radians(corr_lat - orig_lat)
+        delta_lambda = math.radians(corr_lng - orig_lng)
+        
+        a = math.sin(delta_phi / 2) ** 2 + \
+            math.cos(phi1) * math.cos(phi2) * \
+            math.sin(delta_lambda / 2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        correction_distance = R * c
+        
+        annotation = {
+            "id": get_row_value(row, "id"),
+            "track_id": get_row_value(row, "track_id"),
+            "track_name": get_row_value(row, "track_name"),
+            "track_type": get_row_value(row, "track_type"),
+            "timestamp": str(get_row_value(row, "timestamp")),
+            "verified_status": get_row_value(row, "verified_status"),
+            "original_position": {
+                "lat": orig_lat,
+                "lng": orig_lng
+            },
+            "corrected_position": {
+                "lat": corr_lat,
+                "lng": corr_lng
+            },
+            "correction_distance_meters": round(correction_distance, 2),
+            "accuracy": get_row_value(row, "accuracy"),
+            "annotation_notes": get_row_value(row, "annotation_notes") or ""
+        }
+        annotations.append(annotation)
+    
+    # Skapa ml/data mapp om den inte finns
+    ml_data_dir = Path("ml/data")
+    ml_data_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Spara till fil
+    file_path = ml_data_dir / filename
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(annotations, f, indent=2, ensure_ascii=False)
+    
+    return {
+        "message": f"Annotationer sparade till {file_path}",
+        "filename": filename,
+        "file_path": str(file_path),
+        "annotation_count": len(annotations),
+        "tracks": list(set(a["track_name"] for a in annotations))
+    }
 
 
 # Hiding spots endpoints

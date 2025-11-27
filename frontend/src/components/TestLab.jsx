@@ -1389,22 +1389,73 @@ const TestLab = () => {
 
                             {/* Export-knappar */}
                             {statistics.annotatedCount > 0 && (
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleExportAnnotations('json')}
-                                        disabled={loading}
-                                        className="flex-1 px-3 py-2 rounded bg-purple-600 text-white text-[10px] font-semibold hover:bg-purple-700 disabled:bg-purple-300 transition"
-                                    >
-                                        📥 JSON
-                                    </button>
-                                    <button
-                                        onClick={() => handleExportAnnotations('csv')}
-                                        disabled={loading}
-                                        className="flex-1 px-3 py-2 rounded bg-purple-600 text-white text-[10px] font-semibold hover:bg-purple-700 disabled:bg-purple-300 transition"
-                                    >
-                                        📥 CSV
-                                    </button>
-                                </div>
+                                <>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleExportAnnotations('json')}
+                                            disabled={loading}
+                                            className="flex-1 px-3 py-2 rounded bg-purple-600 text-white text-[10px] font-semibold hover:bg-purple-700 disabled:bg-purple-300 transition"
+                                        >
+                                            📥 JSON
+                                        </button>
+                                        <button
+                                            onClick={() => handleExportAnnotations('csv')}
+                                            disabled={loading}
+                                            className="flex-1 px-3 py-2 rounded bg-purple-600 text-white text-[10px] font-semibold hover:bg-purple-700 disabled:bg-purple-300 transition"
+                                        >
+                                            📥 CSV
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Spara direkt till ML-mapp */}
+                                    <div className="border-t border-blue-300 pt-2 mt-2 space-y-2">
+                                        <div className="text-[10px] text-blue-800 font-semibold">💾 Spara till ML-mapp (ml/data/)</div>
+                                        <input
+                                            type="text"
+                                            placeholder="Filnamn (t.ex. nightcrawler_batch1)"
+                                            defaultValue={(() => {
+                                                const tracks = []
+                                                if (humanTrack) tracks.push(humanTrack.name.toLowerCase().replace(/\s+/g, '_'))
+                                                if (dogTrack) tracks.push(dogTrack.name.toLowerCase().replace(/\s+/g, '_'))
+                                                const date = new Date().toISOString().split('T')[0]
+                                                return tracks.length > 0 ? `${tracks.join('_')}_${date}` : `annotations_${date}`
+                                            })()}
+                                            id="ml-filename-input"
+                                            className="w-full border border-blue-300 rounded px-2 py-1 text-[10px]"
+                                        />
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    setLoading(true)
+                                                    setError(null)
+                                                    setMessage(null)
+
+                                                    const filenameInput = document.getElementById('ml-filename-input')
+                                                    const filename = filenameInput.value || 'annotations'
+
+                                                    const response = await axios.post(`${API_BASE}/export/annotations-to-ml`, null, {
+                                                        params: { filename }
+                                                    })
+                                                    
+                                                    setMessage(`✅ ${response.data.message}
+                                                               ${response.data.annotation_count} positioner sparade!
+                                                               Spår: ${response.data.tracks.join(', ')}`)
+                                                    setTimeout(() => setMessage(null), 5000)
+                                                } catch (err) {
+                                                    console.error('Fel vid ML-export:', err)
+                                                    setError(err.response?.data?.detail || 'Kunde inte spara till ML-mapp.')
+                                                    setTimeout(() => setError(null), 3000)
+                                                } finally {
+                                                    setLoading(false)
+                                                }
+                                            }}
+                                            disabled={loading}
+                                            className="w-full px-3 py-2 rounded bg-green-600 text-white text-[10px] font-semibold hover:bg-green-700 disabled:bg-green-300 transition"
+                                        >
+                                            💾 Spara direkt till ML-mapp
+                                        </button>
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}
