@@ -1904,22 +1904,22 @@ def export_track_positions(
 def export_annotations_to_ml(filename: str = "annotations.json"):
     """
     Export annoterade positioner direkt till ml/data/ mappen för ML-träning.
-    
+
     Args:
         filename: Namnet på filen (läggs automatiskt till .json om inte angivet)
-        
+
     Returns:
         Success message med filnamn och antal positioner
     """
     try:
         # Säkerställ att filnamnet slutar med .json
-        if not filename.endswith('.json'):
+        if not filename.endswith(".json"):
             filename = f"{filename}.json"
-        
+
         # Hämta alla annoterade positioner (endast correct eller incorrect, inte pending)
         conn = get_db()
         cursor = get_cursor(conn)
-        
+
         query = """
             SELECT
                 tp.id,
@@ -1940,14 +1940,16 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
             AND (tp.corrected_position_lat IS NOT NULL AND tp.corrected_position_lng IS NOT NULL)
             ORDER BY tp.track_id, tp.timestamp
         """
-        
+
         execute_query(cursor, query)
         rows = cursor.fetchall()
         conn.close()
-        
+
         if not rows:
-            raise HTTPException(status_code=404, detail="Inga annoterade positioner hittades")
-        
+            raise HTTPException(
+                status_code=404, detail="Inga annoterade positioner hittades"
+            )
+
         # Konvertera till JSON-format
         annotations = []
         for row in rows:
@@ -1956,20 +1958,21 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
             orig_lng = get_row_value(row, "position_lng")
             corr_lat = get_row_value(row, "corrected_lat")
             corr_lng = get_row_value(row, "corrected_lng")
-            
+
             # Haversine distance
             R = 6371000  # Earth radius in meters
             phi1 = math.radians(orig_lat)
             phi2 = math.radians(corr_lat)
             delta_phi = math.radians(corr_lat - orig_lat)
             delta_lambda = math.radians(corr_lng - orig_lng)
-            
-            a = math.sin(delta_phi / 2) ** 2 + \
-                math.cos(phi1) * math.cos(phi2) * \
-                math.sin(delta_lambda / 2) ** 2
+
+            a = (
+                math.sin(delta_phi / 2) ** 2
+                + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+            )
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
             correction_distance = R * c
-            
+
             annotation = {
                 "id": get_row_value(row, "id"),
                 "track_id": get_row_value(row, "track_id"),
@@ -1977,44 +1980,50 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
                 "track_type": get_row_value(row, "track_type"),
                 "timestamp": str(get_row_value(row, "timestamp")),
                 "verified_status": get_row_value(row, "verified_status"),
-                "original_position": {
-                    "lat": orig_lat,
-                    "lng": orig_lng
-                },
-                "corrected_position": {
-                    "lat": corr_lat,
-                    "lng": corr_lng
-                },
+                "original_position": {"lat": orig_lat, "lng": orig_lng},
+                "corrected_position": {"lat": corr_lat, "lng": corr_lng},
                 "correction_distance_meters": round(correction_distance, 2),
                 "accuracy": get_row_value(row, "accuracy"),
-                "annotation_notes": get_row_value(row, "annotation_notes") or ""
+                "annotation_notes": get_row_value(row, "annotation_notes") or "",
             }
             annotations.append(annotation)
-        
+
         # Returnera JSON-data direkt (frontend sparar lokalt)
         # Vi försöker INTE spara till fil på Railway (ephemeral filesystem)
-        
+
         # Hämta unika spårnamn (filtrera bort None/empty)
-        unique_tracks = list(set(
-            a.get("track_name") or f"Track_{a.get('track_id', 'unknown')}"
-            for a in annotations
-            if a.get("track_name") or a.get("track_id")
-        ))
-        
+        unique_tracks = []
+        if annotations:
+            unique_tracks = list(
+                set(
+                    a.get("track_name") or f"Track_{a.get('track_id', 'unknown')}"
+                    for a in annotations
+                    if a.get("track_name") or a.get("track_id")
+                )
+            )
+
         return {
             "message": f"Annotationer exporterade ({len(annotations)} positioner)",
             "filename": filename,
             "annotation_count": len(annotations),
             "tracks": unique_tracks,
-            "data": annotations  # Returnera själva datan så frontend kan spara
+            "data": annotations,  # Returnera själva datan så frontend kan spara
         }
+    except HTTPException:
+        # Re-raise HTTP exceptions (som 404)
+        raise
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"Error in export_annotations_to_ml: {error_details}")
+        # Logga till Railway logs
+        print(f"ERROR in export_annotations_to_ml:")
+        print(f"Exception type: {type(e).__name__}")
+        print(f"Exception message: {str(e)}")
+        print(f"Traceback:\n{error_details}")
+        # Returnera mer detaljerat felmeddelande
         raise HTTPException(
             status_code=500,
-            detail=f"Fel vid export: {str(e)}"
+            detail=f"Fel vid export: {type(e).__name__}: {str(e)}"
         )
 
 
