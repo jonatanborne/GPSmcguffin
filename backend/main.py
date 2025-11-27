@@ -1990,21 +1990,14 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
         }
         annotations.append(annotation)
     
-    # Skapa ml/data mapp om den inte finns
-    ml_data_dir = Path("ml/data")
-    ml_data_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Spara till fil
-    file_path = ml_data_dir / filename
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(annotations, f, indent=2, ensure_ascii=False)
-    
+    # Returnera JSON-data direkt (frontend sparar lokalt)
+    # Vi försöker INTE spara till fil på Railway (ephemeral filesystem)
     return {
-        "message": f"Annotationer sparade till {file_path}",
+        "message": f"Annotationer exporterade ({len(annotations)} positioner)",
         "filename": filename,
-        "file_path": str(file_path),
         "annotation_count": len(annotations),
-        "tracks": list(set(a["track_name"] for a in annotations))
+        "tracks": list(set(a["track_name"] for a in annotations if a.get("track_name"))),
+        "data": annotations  # Returnera själva datan så frontend kan spara
     }
 
 

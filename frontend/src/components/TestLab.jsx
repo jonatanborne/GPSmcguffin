@@ -1406,10 +1406,11 @@ const TestLab = () => {
                                             📥 CSV
                                         </button>
                                     </div>
-                                    
-                                    {/* Spara direkt till ML-mapp */}
+
+                                    {/* Exportera för ML */}
                                     <div className="border-t border-blue-300 pt-2 mt-2 space-y-2">
-                                        <div className="text-[10px] text-blue-800 font-semibold">💾 Spara till ML-mapp (ml/data/)</div>
+                                        <div className="text-[10px] text-blue-800 font-semibold">💾 Exportera för ML-träning</div>
+                                        <div className="text-[9px] text-blue-600">Filen laddas ner - flytta den till ml/data/ i projektet</div>
                                         <input
                                             type="text"
                                             placeholder="Filnamn (t.ex. nightcrawler_batch1)"
@@ -1431,19 +1432,37 @@ const TestLab = () => {
                                                     setMessage(null)
 
                                                     const filenameInput = document.getElementById('ml-filename-input')
-                                                    const filename = filenameInput.value || 'annotations'
+                                                    let filename = filenameInput.value || 'annotations'
+                                                    
+                                                    // Säkerställ .json extension
+                                                    if (!filename.endsWith('.json')) {
+                                                        filename = `${filename}.json`
+                                                    }
 
                                                     const response = await axios.post(`${API_BASE}/export/annotations-to-ml`, null, {
                                                         params: { filename }
                                                     })
                                                     
-                                                    setMessage(`✅ ${response.data.message}
-                                                               ${response.data.annotation_count} positioner sparade!
+                                                    // Ladda ner JSON-filen lokalt
+                                                    const jsonStr = JSON.stringify(response.data.data, null, 2)
+                                                    const blob = new Blob([jsonStr], { type: 'application/json' })
+                                                    const url = URL.createObjectURL(blob)
+                                                    const a = document.createElement('a')
+                                                    a.href = url
+                                                    a.download = filename
+                                                    document.body.appendChild(a)
+                                                    a.click()
+                                                    document.body.removeChild(a)
+                                                    URL.revokeObjectURL(url)
+                                                    
+                                                    setMessage(`✅ ${response.data.annotation_count} positioner exporterade!
+                                                               Filen "${filename}" laddades ner.
+                                                               Flytta den till ml/data/ mappen i projektet.
                                                                Spår: ${response.data.tracks.join(', ')}`)
-                                                    setTimeout(() => setMessage(null), 5000)
+                                                    setTimeout(() => setMessage(null), 8000)
                                                 } catch (err) {
                                                     console.error('Fel vid ML-export:', err)
-                                                    setError(err.response?.data?.detail || 'Kunde inte spara till ML-mapp.')
+                                                    setError(err.response?.data?.detail || 'Kunde inte exportera data.')
                                                     setTimeout(() => setError(null), 3000)
                                                 } finally {
                                                     setLoading(false)
@@ -1452,7 +1471,7 @@ const TestLab = () => {
                                             disabled={loading}
                                             className="w-full px-3 py-2 rounded bg-green-600 text-white text-[10px] font-semibold hover:bg-green-700 disabled:bg-green-300 transition"
                                         >
-                                            💾 Spara direkt till ML-mapp
+                                            💾 Exportera för ML (ladda ner)
                                         </button>
                                     </div>
                                 </>
