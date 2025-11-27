@@ -1951,56 +1951,56 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
         # Konvertera till JSON-format
         annotations = []
         for row in rows:
-        # Beräkna korrigeringsavstånd
-        orig_lat = get_row_value(row, "position_lat")
-        orig_lng = get_row_value(row, "position_lng")
-        corr_lat = get_row_value(row, "corrected_lat")
-        corr_lng = get_row_value(row, "corrected_lng")
+            # Beräkna korrigeringsavstånd
+            orig_lat = get_row_value(row, "position_lat")
+            orig_lng = get_row_value(row, "position_lng")
+            corr_lat = get_row_value(row, "corrected_lat")
+            corr_lng = get_row_value(row, "corrected_lng")
+            
+            # Haversine distance
+            R = 6371000  # Earth radius in meters
+            phi1 = math.radians(orig_lat)
+            phi2 = math.radians(corr_lat)
+            delta_phi = math.radians(corr_lat - orig_lat)
+            delta_lambda = math.radians(corr_lng - orig_lng)
+            
+            a = math.sin(delta_phi / 2) ** 2 + \
+                math.cos(phi1) * math.cos(phi2) * \
+                math.sin(delta_lambda / 2) ** 2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+            correction_distance = R * c
+            
+            annotation = {
+                "id": get_row_value(row, "id"),
+                "track_id": get_row_value(row, "track_id"),
+                "track_name": get_row_value(row, "track_name"),
+                "track_type": get_row_value(row, "track_type"),
+                "timestamp": str(get_row_value(row, "timestamp")),
+                "verified_status": get_row_value(row, "verified_status"),
+                "original_position": {
+                    "lat": orig_lat,
+                    "lng": orig_lng
+                },
+                "corrected_position": {
+                    "lat": corr_lat,
+                    "lng": corr_lng
+                },
+                "correction_distance_meters": round(correction_distance, 2),
+                "accuracy": get_row_value(row, "accuracy"),
+                "annotation_notes": get_row_value(row, "annotation_notes") or ""
+            }
+            annotations.append(annotation)
         
-        # Haversine distance
-        R = 6371000  # Earth radius in meters
-        phi1 = math.radians(orig_lat)
-        phi2 = math.radians(corr_lat)
-        delta_phi = math.radians(corr_lat - orig_lat)
-        delta_lambda = math.radians(corr_lng - orig_lng)
+        # Returnera JSON-data direkt (frontend sparar lokalt)
+        # Vi försöker INTE spara till fil på Railway (ephemeral filesystem)
         
-        a = math.sin(delta_phi / 2) ** 2 + \
-            math.cos(phi1) * math.cos(phi2) * \
-            math.sin(delta_lambda / 2) ** 2
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        correction_distance = R * c
+        # Hämta unika spårnamn (filtrera bort None/empty)
+        unique_tracks = list(set(
+            a.get("track_name") or f"Track_{a.get('track_id', 'unknown')}"
+            for a in annotations
+            if a.get("track_name") or a.get("track_id")
+        ))
         
-        annotation = {
-            "id": get_row_value(row, "id"),
-            "track_id": get_row_value(row, "track_id"),
-            "track_name": get_row_value(row, "track_name"),
-            "track_type": get_row_value(row, "track_type"),
-            "timestamp": str(get_row_value(row, "timestamp")),
-            "verified_status": get_row_value(row, "verified_status"),
-            "original_position": {
-                "lat": orig_lat,
-                "lng": orig_lng
-            },
-            "corrected_position": {
-                "lat": corr_lat,
-                "lng": corr_lng
-            },
-            "correction_distance_meters": round(correction_distance, 2),
-            "accuracy": get_row_value(row, "accuracy"),
-            "annotation_notes": get_row_value(row, "annotation_notes") or ""
-        }
-        annotations.append(annotation)
-    
-    # Returnera JSON-data direkt (frontend sparar lokalt)
-    # Vi försöker INTE spara till fil på Railway (ephemeral filesystem)
-    
-    # Hämta unika spårnamn (filtrera bort None/empty)
-    unique_tracks = list(set(
-        a.get("track_name") or f"Track_{a.get('track_id', 'unknown')}"
-        for a in annotations
-        if a.get("track_name") or a.get("track_id")
-    ))
-    
         return {
             "message": f"Annotationer exporterade ({len(annotations)} positioner)",
             "filename": filename,
