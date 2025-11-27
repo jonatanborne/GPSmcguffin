@@ -318,14 +318,14 @@ def execute_query(cursor, query, params=None):
 
 
 def get_row_value(row, key):
-    """Hämta värde från row - fungerar för både Postgres (dict) och SQLite (tuple/list)"""
+    """Hämta värde från row - fungerar för både Postgres (dict) och SQLite (Row)"""
     if DATABASE_URL:
         # Postgres: row är en dict
         return row[key]
     else:
-        # SQLite: row är en tuple/list, vi behöver index
-        # För "name" kolumnen (första kolumnen i SELECT name) använd index 0
-        return row[0]
+        # SQLite: row är en sqlite3.Row (dict-liknande)
+        # Row stödjer både row[key] och row[0] syntax
+        return row[key]
 
 
 def init_db():
@@ -2014,6 +2014,7 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
         raise
     except Exception as e:
         import traceback
+
         error_details = traceback.format_exc()
         # Logga till Railway logs
         print(f"ERROR in export_annotations_to_ml:")
@@ -2022,8 +2023,7 @@ def export_annotations_to_ml(filename: str = "annotations.json"):
         print(f"Traceback:\n{error_details}")
         # Returnera mer detaljerat felmeddelande
         raise HTTPException(
-            status_code=500,
-            detail=f"Fel vid export: {type(e).__name__}: {str(e)}"
+            status_code=500, detail=f"Fel vid export: {type(e).__name__}: {str(e)}"
         )
 
 
