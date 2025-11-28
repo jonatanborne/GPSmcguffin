@@ -148,6 +148,11 @@ const GeofenceEditor = () => {
                 localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify([]))
                 // Ta bort lokal kopia om vi fick ett server-ID
                 if (serverTrack.id !== localId) {
+                    // Flytta positioner från gammalt ID till nytt ID om de finns
+                    const oldPositions = JSON.parse(localStorage.getItem(`track_${localId}_positions`) || '[]')
+                    if (oldPositions.length > 0) {
+                        localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify(oldPositions))
+                    }
                     localStorage.removeItem(`track_${localId}`)
                     localStorage.removeItem(`track_${localId}_positions`)
                     // Uppdatera offline queue med rätt ID
@@ -183,6 +188,11 @@ const GeofenceEditor = () => {
 
     // Lägg till position till track (med offline-stöd)
     const addPositionToTrack = async (trackId, position, accuracy) => {
+        if (!trackId) {
+            console.error('addPositionToTrack anropad utan trackId!', { trackId, position, accuracy })
+            return
+        }
+
         // Spara lokalt oavsett online/offline status
         const localTrackKey = `track_${trackId}_positions`
         const existing = JSON.parse(localStorage.getItem(localTrackKey) || '[]')
@@ -429,18 +439,18 @@ const GeofenceEditor = () => {
 
                 // Använd lokalt ID för att hämta positioner (fungerar även om track.id är null)
                 const positions = JSON.parse(localStorage.getItem(`track_${localTrackId}_positions`) || '[]')
-                
+
                 // Hämta server-spår om det finns
                 const serverTrack = trackId ? serverTrackMap.get(trackId) : null
                 const existingPositionCount = serverTrack?.positions?.length || 0
                 const localPositionCount = positions.length
-                
+
                 // Hoppa över spår som redan är helt synkade (finns på server och har samma eller färre positioner lokalt)
                 if (isServerTrack && localPositionCount <= existingPositionCount) {
                     console.log(`Hoppar över spår ${track.name || trackId} - redan synkat (${localPositionCount} <= ${existingPositionCount})`)
                     continue
                 }
-                
+
                 localEntries.push({
                     key,
                     track,
@@ -889,9 +899,13 @@ const GeofenceEditor = () => {
             updateOfflineQueueState()
         }
 
+        // Viktigt: Uppdatera currentTrack med rätt ID (kan ha ändrats om track skapades på server)
         setCurrentTrack(track)
         setIsTracking(true)
         hasCenteredMapRef.current = false // Reset för nytt spår
+
+        // Logga för debugging
+        console.log('Startar spårning med track ID:', track.id, 'Type:', track.track_type)
 
         const options = {
             enableHighAccuracy: true,
@@ -920,8 +934,10 @@ const GeofenceEditor = () => {
 
                 setCurrentPosition(pos)
 
-                // Lägg till position till track
-                addPositionToTrack(track.id, pos, position.coords.accuracy)
+                // Lägg till position till track - använd currentTrack.id om det finns (kan ha ändrats)
+                const trackIdToUse = currentTrack?.id || track.id
+                console.log('Lägger till position till track ID:', trackIdToUse, 'Current track ID:', currentTrack?.id, 'Original track ID:', track.id)
+                addPositionToTrack(trackIdToUse, pos, position.coords.accuracy)
 
                 // Om hundspår, kontrollera avstånd till gömställen
                 if (trackType === 'dog' && humanTrackForDog && hidingSpots.length > 0) {
