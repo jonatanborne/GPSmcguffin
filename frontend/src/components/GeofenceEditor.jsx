@@ -36,6 +36,7 @@ const GeofenceEditor = () => {
     const offlineQueueRef = useRef([]) // Queue för positioner som ska skickas när online
     const [menuOpen, setMenuOpen] = useState(false) // För att visa/gömma meny
     const onlineCheckFailuresRef = useRef(0) // Räkna antal misslyckade kontroller innan vi markerar som offline
+    const isSyncingRef = useRef(false) // Ref för att spåra om synkning pågår (för att undvika dubbeltriggning)
     const [hidingSpots, setHidingSpots] = useState([]) // Gömställen för aktuellt valt spår
     const [isAddingHidingSpot, setIsAddingHidingSpot] = useState(false)
     const [selectedTrackForHidingSpots, setSelectedTrackForHidingSpots] = useState(null)
@@ -311,9 +312,17 @@ const GeofenceEditor = () => {
     }
 
     const syncOfflineQueue = async () => {
-        if (isSyncingOfflineData) return
-        if (offlineQueueRef.current.length === 0) return
+        if (isSyncingOfflineData || isSyncingRef.current) {
+            console.log('Synkning pågår redan, hoppar över')
+            return
+        }
+        if (offlineQueueRef.current.length === 0) {
+            console.log('Inga objekt att synka')
+            return
+        }
 
+        console.log(`Startar synkning av ${offlineQueueRef.current.length} objekt`)
+        isSyncingRef.current = true
         setIsSyncingOfflineData(true)
         const queue = [...offlineQueueRef.current]
         offlineQueueRef.current = []
@@ -370,14 +379,23 @@ const GeofenceEditor = () => {
         if (offlineQueueRef.current.length === 0) {
             // Ladda om tracks
             loadTracks().then(refreshTrackLayers)
+            console.log('Synkning klar - alla objekt uppladdade')
+        } else {
+            console.log(`Synkning klar - ${offlineQueueRef.current.length} objekt kvar i kön`)
         }
+        isSyncingRef.current = false
         setIsSyncingOfflineData(false)
         updateOfflineQueueState()
     }
 
     const forceSyncAllLocalTracks = async () => {
-        if (isSyncingOfflineData) return
+        if (isSyncingOfflineData || isSyncingRef.current) {
+            console.log('Synkning pågår redan, hoppar över forceSyncAllLocalTracks')
+            return
+        }
 
+        console.log('Startar forceSyncAllLocalTracks')
+        isSyncingRef.current = true
         setIsSyncingOfflineData(true)
         setForceSyncMessage('Synkar lokala spår…')
 
@@ -672,6 +690,7 @@ const GeofenceEditor = () => {
             console.error('Tvångssynk misslyckades:', error)
             setForceSyncMessage(`Synk misslyckades: ${error?.message || 'Okänt fel'}`)
         } finally {
+            isSyncingRef.current = false
             setIsSyncingOfflineData(false)
             updateOfflineQueueState()
         }
@@ -761,9 +780,14 @@ const GeofenceEditor = () => {
                 lastOnlineStatusRef.current = currentOnline
                 setIsOnline(currentOnline)
 
-                // Om vi blir online igen, synka queue
-                if (currentOnline && offlineQueueRef.current.length > 0) {
-                    syncOfflineQueue()
+                // Om vi blir online igen, synka queue (men bara om ingen synkning redan pågår)
+                if (currentOnline && offlineQueueRef.current.length > 0 && !isSyncingOfflineData) {
+                    // Vänta lite extra för att undvika dubbeltriggning med useEffect
+                    setTimeout(() => {
+                        if (!isSyncingOfflineData && offlineQueueRef.current.length > 0) {
+                            syncOfflineQueue()
+                        }
+                    }, 1500)
                 }
             }, 2000)
         }
@@ -786,7 +810,8 @@ const GeofenceEditor = () => {
             onlineStatusTimeoutRef.current = setTimeout(() => {
                 lastOnlineStatusRef.current = true
                 setIsOnline(true)
-                syncOfflineQueue()
+                // syncOfflineQueue kommer att triggas av useEffect när isOnline ändras
+                // Så vi behöver inte anropa den här också
             }, 1000)
         }
 
@@ -819,10 +844,16 @@ const GeofenceEditor = () => {
         }
     }, [])
 
-    // Synka automatiskt när man blir online
+    // Synka automatiskt när man blir online (men bara en gång)
     useEffect(() => {
-        if (isOnline && offlineQueueRef.current.length > 0) {
-            syncOfflineQueue()
+        if (isOnline && offlineQueueRef.current.length > 0 && !isSyncingOfflineData) {
+            // Vänta lite för att undvika dubbeltriggning
+            const timeoutId = setTimeout(() => {
+                if (!isSyncingOfflineData && offlineQueueRef.current.length > 0) {
+                    syncOfflineQueue()
+                }
+            }, 1000)
+            return () => clearTimeout(timeoutId)
         }
     }, [isOnline])
 
