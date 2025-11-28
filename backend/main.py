@@ -14,7 +14,6 @@ import random
 from io import StringIO
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import numpy as np
 
 
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
@@ -2611,25 +2610,29 @@ def get_model_info():
         # Lägg till feature importance om det finns
         try:
             import pickle
-            import numpy as np
+            try:
+                import numpy as np
+            except ImportError:
+                np = None  # Numpy inte tillgängligt
 
-            model_path = ml_dir / "gps_correction_model_best.pkl"
-            feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
+            if np is not None:
+                model_path = ml_dir / "gps_correction_model_best.pkl"
+                feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
 
-            if model_path.exists() and feature_names_path.exists():
-                with open(model_path, "rb") as f:
-                    model = pickle.load(f)
-                with open(feature_names_path, "rb") as f:
-                    feature_names = pickle.load(f)
+                if model_path.exists() and feature_names_path.exists():
+                    with open(model_path, "rb") as f:
+                        model = pickle.load(f)
+                    with open(feature_names_path, "rb") as f:
+                        feature_names = pickle.load(f)
 
-                if hasattr(model, "feature_importances_"):
-                    importances = model.feature_importances_
-                    feature_importance = [
-                        {"name": name, "importance": float(imp)}
-                        for name, imp in zip(feature_names, importances)
-                    ]
-                    feature_importance.sort(key=lambda x: x["importance"], reverse=True)
-                    model_info["feature_importance"] = feature_importance
+                    if hasattr(model, "feature_importances_"):
+                        importances = model.feature_importances_
+                        feature_importance = [
+                            {"name": name, "importance": float(imp)}
+                            for name, imp in zip(feature_names, importances)
+                        ]
+                        feature_importance.sort(key=lambda x: x["importance"], reverse=True)
+                        model_info["feature_importance"] = feature_importance
         except Exception as e:
             print(f"Kunde inte ladda feature importance: {e}")
 
