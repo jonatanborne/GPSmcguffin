@@ -14,6 +14,7 @@ import random
 from io import StringIO
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import numpy as np
 
 
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
@@ -2586,4 +2587,383 @@ def convert_tiles(payload: TileConvertRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Error converting tiles: {str(e)}\n\nDetails:\n{error_details}",
+        )
+
+
+# ============================================================================
+# ML ENDPOINTS
+# ============================================================================
+
+
+@app.get("/ml/model-info")
+def get_model_info():
+    """Hämta information om tränad ML-modell"""
+    try:
+        ml_dir = Path(__file__).parent.parent / "ml" / "output"
+        model_info_path = ml_dir / "gps_correction_model_info.json"
+
+        if not model_info_path.exists():
+            raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
+
+        with open(model_info_path, "r", encoding="utf-8") as f:
+            model_info = json.load(f)
+
+        # Lägg till feature importance om det finns
+        try:
+            import pickle
+            import numpy as np
+
+            model_path = ml_dir / "gps_correction_model_best.pkl"
+            feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
+
+            if model_path.exists() and feature_names_path.exists():
+                with open(model_path, "rb") as f:
+                    model = pickle.load(f)
+                with open(feature_names_path, "rb") as f:
+                    feature_names = pickle.load(f)
+
+                if hasattr(model, "feature_importances_"):
+                    importances = model.feature_importances_
+                    feature_importance = [
+                        {"name": name, "importance": float(imp)}
+                        for name, imp in zip(feature_names, importances)
+                    ]
+                    feature_importance.sort(key=lambda x: x["importance"], reverse=True)
+                    model_info["feature_importance"] = feature_importance
+        except Exception as e:
+            print(f"Kunde inte ladda feature importance: {e}")
+
+        return model_info
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Fel vid laddning av modellinfo: {str(e)}"
+        )
+
+
+@app.post("/ml/analyze")
+def run_ml_analysis():
+    """Kör fullständig ML-analys (tränar modell och genererar visualiseringar)"""
+    try:
+        import subprocess
+        import sys
+
+        ml_dir = Path(__file__).parent.parent / "ml"
+        analysis_script = ml_dir / "analysis.py"
+
+        if not analysis_script.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Analysscript hittades inte: {analysis_script}"
+            )
+
+        # Kör analysen
+        result = subprocess.run(
+            [sys.executable, str(analysis_script)],
+            cwd=str(ml_dir),
+            capture_output=True,
+            text=True,
+            timeout=600,  # 10 minuter timeout
+        )
+
+        if result.returncode != 0:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Analys misslyckades:\n{result.stderr}\n\nOutput:\n{result.stdout}",
+            )
+
+        # Läs modellinfo
+        output_dir = ml_dir / "output"
+        model_info_path = output_dir / "gps_correction_model_info.json"
+
+        if model_info_path.exists():
+            with open(model_info_path, "r", encoding="utf-8") as f:
+                model_info = json.load(f)
+
+            # Generera URL för grafer (om de finns)
+            graph_url = None
+            graph_path = output_dir / "gps_analysis.png"
+            if graph_path.exists():
+                # I production skulle vi behöva serve statiska filer
+                # För nu returnerar vi bara info
+                graph_url = f"/ml/output/gps_analysis.png"
+
+            return {
+                "status": "success",
+                "message": "ML-analys klar",
+                "total_positions": model_info.get("total_positions", 0),
+                "unique_tracks": model_info.get("unique_tracks", 0),
+                "best_model": model_info.get("best_model"),
+                "test_mae": model_info.get("test_mae"),
+                "test_rmse": model_info.get("test_rmse"),
+                "test_r2": model_info.get("test_r2"),
+                "graph_url": graph_url,
+                "stdout": result.stdout[-1000:],  # Sista 1000 tecknen
+            }
+        else:
+            return {
+                "status": "success",
+                "message": "Analys kördes men modellinfo hittades inte",
+                "stdout": result.stdout[-1000:],
+            }
+
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=500, detail="Analys tog för lång tid (>10 min)")
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid ML-analys: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.post("/ml/apply-correction/{track_id}")
+def apply_ml_correction(track_id: int):
+    """Använd ML-modellen för att automatiskt korrigera GPS-positioner i ett spår"""
+    try:
+        import pickle
+        import numpy as np
+        from datetime import datetime
+        import math
+
+        # Ladda modell och scaler
+        ml_dir = Path(__file__).parent.parent / "ml" / "output"
+        model_path = ml_dir / "gps_correction_model_best.pkl"
+        scaler_path = ml_dir / "gps_correction_scaler.pkl"
+        feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
+
+        if not model_path.exists():
+            raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
+
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
+        with open(scaler_path, "rb") as f:
+            scaler = pickle.load(f)
+        with open(feature_names_path, "rb") as f:
+            _ = pickle.load(f)  # Feature names behövs inte här men måste laddas
+
+        # Hämta spåret och positioner
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Hämta spår
+        execute_query(cursor, "SELECT * FROM tracks WHERE id = %s", (track_id,))
+        track_row = cursor.fetchone()
+        if not track_row:
+            conn.close()
+            raise HTTPException(
+                status_code=404, detail=f"Spår {track_id} hittades inte"
+            )
+
+        track_type = get_row_value(track_row, "track_type")
+
+        # Hämta positioner sorterade efter timestamp
+        execute_query(
+            cursor,
+            """
+            SELECT id, position_lat, position_lng, timestamp, accuracy
+            FROM track_positions
+            WHERE track_id = %s
+            ORDER BY timestamp ASC
+            """,
+            (track_id,),
+        )
+        positions = cursor.fetchall()
+
+        if not positions:
+            conn.close()
+            raise HTTPException(
+                status_code=404, detail="Inga positioner hittades för spåret"
+            )
+
+        # Förbered features för varje position
+        corrected_count = 0
+
+        for i, pos in enumerate(positions):
+            pos_id = get_row_value(pos, "id")
+            orig_lat = get_row_value(pos, "position_lat")
+            orig_lng = get_row_value(pos, "position_lng")
+            accuracy = get_row_value(pos, "accuracy") or 0.0
+            timestamp_str = get_row_value(pos, "timestamp")
+
+            # Beräkna features (samma som i prepare_features_advanced)
+            features = []
+
+            # GPS accuracy
+            features.append(accuracy)
+            features.append(accuracy**2)
+
+            # Position
+            features.extend([orig_lat, orig_lng])
+
+            # Normaliserad position (använd medelvärde för spåret)
+            if len(positions) > 1:
+                mean_lat = np.mean(
+                    [get_row_value(p, "position_lat") for p in positions]
+                )
+                mean_lng = np.mean(
+                    [get_row_value(p, "position_lng") for p in positions]
+                )
+                features.extend([orig_lat - mean_lat, orig_lng - mean_lng])
+            else:
+                features.extend([0.0, 0.0])
+
+            # Track type
+            features.append(1 if track_type == "human" else 0)
+
+            # Timestamp features
+            try:
+                if timestamp_str:
+                    dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                    hour = dt.hour
+                    weekday = dt.weekday()
+                    features.append(math.sin(2 * math.pi * hour / 24))
+                    features.append(math.cos(2 * math.pi * hour / 24))
+                    features.append(math.sin(2 * math.pi * weekday / 7))
+                    features.append(math.cos(2 * math.pi * weekday / 7))
+                else:
+                    features.extend([0.0, 1.0, 0.0, 1.0])
+            except Exception:
+                features.extend([0.0, 1.0, 0.0, 1.0])
+
+            # Hastighet, acceleration, etc. (förenklad - använd tidigare positioner)
+            speed = 0.0
+            acceleration = 0.0
+            distance_prev_1 = 0.0
+            distance_prev_2 = 0.0
+            distance_prev_3 = 0.0
+            bearing = 0.0
+
+            if i > 0:
+                prev_pos = positions[i - 1]
+                prev_lat = get_row_value(prev_pos, "position_lat")
+                prev_lng = get_row_value(prev_pos, "position_lng")
+
+                # Haversine distance
+                R = 6371000
+                phi1 = math.radians(prev_lat)
+                phi2 = math.radians(orig_lat)
+                delta_phi = math.radians(orig_lat - prev_lat)
+                delta_lambda = math.radians(orig_lng - prev_lng)
+                a = (
+                    math.sin(delta_phi / 2) ** 2
+                    + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+                )
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                distance_prev_1 = R * c
+
+                # Hastighet
+                try:
+                    curr_time = datetime.fromisoformat(
+                        timestamp_str.replace("Z", "+00:00")
+                    )
+                    prev_timestamp = get_row_value(prev_pos, "timestamp")
+                    prev_time = datetime.fromisoformat(
+                        prev_timestamp.replace("Z", "+00:00")
+                    )
+                    time_diff = (curr_time - prev_time).total_seconds()
+                    if time_diff > 0:
+                        speed = distance_prev_1 / time_diff
+                except Exception:
+                    pass
+
+                # Bearing
+                try:
+                    lat1_rad = math.radians(prev_lat)
+                    lat2_rad = math.radians(orig_lat)
+                    delta_lng = math.radians(orig_lng - prev_lng)
+                    y = math.sin(delta_lng) * math.cos(lat2_rad)
+                    x = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(
+                        lat1_rad
+                    ) * math.cos(lat2_rad) * math.cos(delta_lng)
+                    bearing = math.degrees(math.atan2(y, x))
+                    if bearing < 0:
+                        bearing += 360
+                except Exception:
+                    pass
+
+                # Acceleration
+                if i > 1:
+                    # Förenklad - hoppa över komplexa beräkningar
+                    distance_prev_2 = 0.0
+                    distance_prev_3 = 0.0
+
+            features.extend(
+                [
+                    speed,
+                    acceleration,
+                    distance_prev_1,
+                    distance_prev_2,
+                    distance_prev_3,
+                    bearing,
+                ]
+            )
+
+            # Rolling statistics (förenklad)
+            recent_mean = 0.0
+            recent_std = 0.0
+            features.extend([recent_mean, recent_std])
+
+            # Interaktioner
+            features.extend(
+                [accuracy * speed, accuracy * distance_prev_1, speed * distance_prev_1]
+            )
+
+            # Förutsäg korrigeringsavstånd
+            X = np.array([features])
+            X_scaled = scaler.transform(X)
+            predicted_correction = model.predict(X_scaled)[0]
+
+            # Beräkna korrigerad position (förenklad - använd riktning från bearing)
+            # I verkligheten skulle vi behöva mer sofistikerad logik
+            if predicted_correction > 0.1:  # Bara korrigera om förutsägelsen är > 10cm
+                # Förenklad korrigering: flytta mot medelvärdet för spåret
+                if len(positions) > 1:
+                    mean_lat = np.mean(
+                        [get_row_value(p, "position_lat") for p in positions]
+                    )
+                    mean_lng = np.mean(
+                        [get_row_value(p, "position_lng") for p in positions]
+                    )
+
+                    # Korrigera mot medelvärdet (proportionellt till förutsägt fel)
+                    correction_factor = min(
+                        predicted_correction / 10.0, 0.5
+                    )  # Max 50% korrigering
+                    corrected_lat = orig_lat + (mean_lat - orig_lat) * correction_factor
+                    corrected_lng = orig_lng + (mean_lng - orig_lng) * correction_factor
+
+                    # Uppdatera positionen
+                    execute_query(
+                        cursor,
+                        """
+                        UPDATE track_positions
+                        SET corrected_lat = %s, corrected_lng = %s
+                        WHERE id = %s
+                        """,
+                        (corrected_lat, corrected_lng, pos_id),
+                    )
+                    corrected_count += 1
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"ML-korrigering tillämpad på {corrected_count} positioner",
+            "corrected_count": corrected_count,
+            "total_positions": len(positions),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid ML-korrigering: {str(e)}\n\n{traceback.format_exc()}",
         )

@@ -1,0 +1,5246 @@
+[
+  {
+    "id": 5430,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:38.670289",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688626,
+      "lng": 17.985248
+    },
+    "corrected_position": {
+      "lat": 59.368889838742525,
+      "lng": 17.98507209867239
+    },
+    "correction_distance_meters": 10.42,
+    "accuracy": 12.505000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5431,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:39.290855",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688629,
+      "lng": 17.9852359
+    },
+    "corrected_position": {
+      "lat": 59.36888078495781,
+      "lng": 17.985065728425983
+    },
+    "correction_distance_meters": 9.84,
+    "accuracy": 9.600000381469727,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5432,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:40.106324",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368846,
+      "lng": 17.9852033
+    },
+    "corrected_position": {
+      "lat": 59.36887224364923,
+      "lng": 17.98506271094084
+    },
+    "correction_distance_meters": 8.48,
+    "accuracy": 8.147000312805176,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5433,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:41.110785",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688373,
+      "lng": 17.985169
+    },
+    "corrected_position": {
+      "lat": 59.368862335728615,
+      "lng": 17.98505768179894
+    },
+    "correction_distance_meters": 6.89,
+    "accuracy": 7.276000022888184,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5434,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:42.095961",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688299,
+      "lng": 17.9851455
+    },
+    "corrected_position": {
+      "lat": 59.36884730301594,
+      "lng": 17.985055670142177
+    },
+    "correction_distance_meters": 5.44,
+    "accuracy": 4.051000118255615,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5435,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:43.126947",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688221,
+      "lng": 17.985124
+    },
+    "corrected_position": {
+      "lat": 59.368836028477055,
+      "lng": 17.98504896461964
+    },
+    "correction_distance_meters": 4.52,
+    "accuracy": 4.006999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5436,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:44.095936",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688113,
+      "lng": 17.9851116
+    },
+    "corrected_position": {
+      "lat": 59.36882543724012,
+      "lng": 17.985042259097103
+    },
+    "correction_distance_meters": 4.23,
+    "accuracy": 3.7899999618530273,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5437,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:45.130629",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687982,
+      "lng": 17.9851034
+    },
+    "corrected_position": {
+      "lat": 59.368809721205096,
+      "lng": 17.985040917992595
+    },
+    "correction_distance_meters": 3.76,
+    "accuracy": 3.7899999618530273,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5438,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:46.631031",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687823,
+      "lng": 17.9850988
+    },
+    "corrected_position": {
+      "lat": 59.368791955243644,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 3.85,
+    "accuracy": 4.76800012588501,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5439,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:46.681916",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687841,
+      "lng": 17.9850984
+    },
+    "corrected_position": {
+      "lat": 59.36878102233967,
+      "lng": 17.98502549529076
+    },
+    "correction_distance_meters": 4.14,
+    "accuracy": 4.241000175476074,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5440,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:46.779022",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687777,
+      "lng": 17.9850983
+    },
+    "corrected_position": {
+      "lat": 59.36877213935259,
+      "lng": 17.985022813081745
+    },
+    "correction_distance_meters": 4.32,
+    "accuracy": 5.201000213623047,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5441,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:47.125245",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687732,
+      "lng": 17.9850982
+    },
+    "corrected_position": {
+      "lat": 59.368759839828186,
+      "lng": 17.985016107559208
+    },
+    "correction_distance_meters": 4.88,
+    "accuracy": 5.046000003814697,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5442,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:47.221524",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687718,
+      "lng": 17.9850974
+    },
+    "corrected_position": {
+      "lat": 59.368749590221114,
+      "lng": 17.985018789768223
+    },
+    "correction_distance_meters": 5.09,
+    "accuracy": 5.10099983215332,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5443,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:47.699244",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368768,
+      "lng": 17.9850984
+    },
+    "corrected_position": {
+      "lat": 59.368735240766036,
+      "lng": 17.98502549529076
+    },
+    "correction_distance_meters": 5.51,
+    "accuracy": 5.078999996185303,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5444,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:48.113194",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687608,
+      "lng": 17.9850971
+    },
+    "corrected_position": {
+      "lat": 59.36872430784376,
+      "lng": 17.985028177499775
+    },
+    "correction_distance_meters": 5.63,
+    "accuracy": 4.952000141143799,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5445,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:48.219686",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687577,
+      "lng": 17.9850964
+    },
+    "corrected_position": {
+      "lat": 59.36871610814978,
+      "lng": 17.985029518604282
+    },
+    "correction_distance_meters": 5.98,
+    "accuracy": 4.973999977111816,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5446,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:49.106692",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368744,
+      "lng": 17.9850961
+    },
+    "corrected_position": {
+      "lat": 59.36870449191323,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 5.64,
+    "accuracy": 4.8460001945495605,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5447,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:49.190939",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368741,
+      "lng": 17.9850965
+    },
+    "corrected_position": {
+      "lat": 59.368698342139304,
+      "lng": 17.985037565231327
+    },
+    "correction_distance_meters": 5.8,
+    "accuracy": 4.833000183105469,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5448,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:49.605752",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687351,
+      "lng": 17.9850982
+    },
+    "corrected_position": {
+      "lat": 59.3686894591306,
+      "lng": 17.985044270753864
+    },
+    "correction_distance_meters": 5.92,
+    "accuracy": 4.78000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5449,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:50.146870",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687272,
+      "lng": 17.9850987
+    },
+    "corrected_position": {
+      "lat": 59.36868330935396,
+      "lng": 17.98504695296288
+    },
+    "correction_distance_meters": 5.69,
+    "accuracy": 4.677000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5450,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:50.706105",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368717,
+      "lng": 17.9851
+    },
+    "corrected_position": {
+      "lat": 59.3686757929588,
+      "lng": 17.985048294067386
+    },
+    "correction_distance_meters": 5.44,
+    "accuracy": 4.604000091552734,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5451,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:51.631251",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687109,
+      "lng": 17.9850994
+    },
+    "corrected_position": {
+      "lat": 59.36867169310618,
+      "lng": 17.98505231738091
+    },
+    "correction_distance_meters": 5.11,
+    "accuracy": 4.361999988555908,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5452,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:51.706631",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687011,
+      "lng": 17.9851001
+    },
+    "corrected_position": {
+      "lat": 59.36866690994417,
+      "lng": 17.98505634069443
+    },
+    "correction_distance_meters": 4.54,
+    "accuracy": 3.7950000762939453,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5453,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:52.483048",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686963,
+      "lng": 17.9851019
+    },
+    "corrected_position": {
+      "lat": 59.368662810090484,
+      "lng": 17.985059022903446
+    },
+    "correction_distance_meters": 4.45,
+    "accuracy": 3.746000051498413,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5454,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:52.483174",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686942,
+      "lng": 17.9851033
+    },
+    "corrected_position": {
+      "lat": 59.36865871023629,
+      "lng": 17.98506304621697
+    },
+    "correction_distance_meters": 4.56,
+    "accuracy": 3.6589999198913574,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5455,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:52.719879",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686877,
+      "lng": 17.9851058
+    },
+    "corrected_position": {
+      "lat": 59.36865051052646,
+      "lng": 17.985068410634998
+    },
+    "correction_distance_meters": 4.65,
+    "accuracy": 3.555999994277954,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5456,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:53.076807",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686822,
+      "lng": 17.9851078
+    },
+    "corrected_position": {
+      "lat": 59.36864641067079,
+      "lng": 17.985071092844013
+    },
+    "correction_distance_meters": 4.49,
+    "accuracy": 3.5190000534057617,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5457,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:53.250847",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686791,
+      "lng": 17.9851087
+    },
+    "corrected_position": {
+      "lat": 59.36864162750521,
+      "lng": 17.985075116157535
+    },
+    "correction_distance_meters": 4.58,
+    "accuracy": 3.427999973297119,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5458,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:53.648866",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686734,
+      "lng": 17.9851104
+    },
+    "corrected_position": {
+      "lat": 59.36863684433897,
+      "lng": 17.98507779836655
+    },
+    "correction_distance_meters": 4.46,
+    "accuracy": 3.4230000972747803,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5459,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:54.108791",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686674,
+      "lng": 17.9851105
+    },
+    "corrected_position": {
+      "lat": 59.36863274448165,
+      "lng": 17.985080480575565
+    },
+    "correction_distance_meters": 4.21,
+    "accuracy": 3.384999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5460,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:54.197561",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686653,
+      "lng": 17.9851104
+    },
+    "corrected_position": {
+      "lat": 59.368630011243155,
+      "lng": 17.985081821680073
+    },
+    "correction_distance_meters": 4.24,
+    "accuracy": 3.3610000610351562,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5461,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:54.805871",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368657,
+      "lng": 17.9851115
+    },
+    "corrected_position": {
+      "lat": 59.36862659469473,
+      "lng": 17.985084503889087
+    },
+    "correction_distance_meters": 3.71,
+    "accuracy": 3.2809998989105225,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5462,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:55.115131",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686527,
+      "lng": 17.9851121
+    },
+    "corrected_position": {
+      "lat": 59.36862386145575,
+      "lng": 17.985085844993595
+    },
+    "correction_distance_meters": 3.53,
+    "accuracy": 3.250999927520752,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5463,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:55.230767",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686505,
+      "lng": 17.9851127
+    },
+    "corrected_position": {
+      "lat": 59.368619078287,
+      "lng": 17.985087186098102
+    },
+    "correction_distance_meters": 3.78,
+    "accuracy": 3.2190001010894775,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5464,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:55.787186",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686425,
+      "lng": 17.9851149
+    },
+    "corrected_position": {
+      "lat": 59.36861566173747,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 3.3,
+    "accuracy": 3.1689999103546143,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5465,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:56.105621",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686385,
+      "lng": 17.9851171
+    },
+    "corrected_position": {
+      "lat": 59.368610878567566,
+      "lng": 17.98509389162064
+    },
+    "correction_distance_meters": 3.34,
+    "accuracy": 3.1579999923706055,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5466,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:56.282880",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686357,
+      "lng": 17.9851182
+    },
+    "corrected_position": {
+      "lat": 59.36860746201723,
+      "lng": 17.985095232725147
+    },
+    "correction_distance_meters": 3.4,
+    "accuracy": 3.1530001163482666,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5467,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:56.831267",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686284,
+      "lng": 17.9851209
+    },
+    "corrected_position": {
+      "lat": 59.368604728776674,
+      "lng": 17.985096573829654
+    },
+    "correction_distance_meters": 2.97,
+    "accuracy": 3.11899995803833,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5468,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:57.096850",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686248,
+      "lng": 17.9851224
+    },
+    "corrected_position": {
+      "lat": 59.36859994560525,
+      "lng": 17.98510327935219
+    },
+    "correction_distance_meters": 2.97,
+    "accuracy": 3.115000009536743,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5469,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:57.284901",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686218,
+      "lng": 17.9851237
+    },
+    "corrected_position": {
+      "lat": 59.36859447912276,
+      "lng": 17.9851046204567
+    },
+    "correction_distance_meters": 3.22,
+    "accuracy": 3.0999999046325684,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5470,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:57.840122",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686144,
+      "lng": 17.9851261
+    },
+    "corrected_position": {
+      "lat": 59.36859174588119,
+      "lng": 17.985105961561207
+    },
+    "correction_distance_meters": 2.77,
+    "accuracy": 3.0789999961853027,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5471,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:58.101828",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686114,
+      "lng": 17.9851275
+    },
+    "corrected_position": {
+      "lat": 59.36858901263939,
+      "lng": 17.98510864377022
+    },
+    "correction_distance_meters": 2.71,
+    "accuracy": 3.0789999961853027,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5472,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:58.524038",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686055,
+      "lng": 17.9851294
+    },
+    "corrected_position": {
+      "lat": 59.36858559608684,
+      "lng": 17.985112667083744
+    },
+    "correction_distance_meters": 2.41,
+    "accuracy": 3.0769999027252197,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5473,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:59.081413",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685977,
+      "lng": 17.9851312
+    },
+    "corrected_position": {
+      "lat": 59.36858252118927,
+      "lng": 17.985113337635998
+    },
+    "correction_distance_meters": 1.97,
+    "accuracy": 3.072999954223633,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5474,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:59.472398",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685918,
+      "lng": 17.9851333
+    },
+    "corrected_position": {
+      "lat": 59.36857739635932,
+      "lng": 17.985116690397266
+    },
+    "correction_distance_meters": 1.86,
+    "accuracy": 3.072999954223633,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5475,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:05:59.877910",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685863,
+      "lng": 17.9851356
+    },
+    "corrected_position": {
+      "lat": 59.36857466311637,
+      "lng": 17.98511937260628
+    },
+    "correction_distance_meters": 1.59,
+    "accuracy": 3.053999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5476,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:00.075196",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685829,
+      "lng": 17.9851371
+    },
+    "corrected_position": {
+      "lat": 59.368569196629814,
+      "lng": 17.985123395919803
+    },
+    "correction_distance_meters": 1.71,
+    "accuracy": 3.0510001182556152,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5477,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:00.528687",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685763,
+      "lng": 17.9851383
+    },
+    "corrected_position": {
+      "lat": 59.36856509676433,
+      "lng": 17.98512473702431
+    },
+    "correction_distance_meters": 1.46,
+    "accuracy": 3.053999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5478,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:01.036523",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685693,
+      "lng": 17.9851387
+    },
+    "corrected_position": {
+      "lat": 59.368559630276216,
+      "lng": 17.985128760337833
+    },
+    "correction_distance_meters": 1.21,
+    "accuracy": 3.0510001182556152,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5479,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:01.566795",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685614,
+      "lng": 17.9851401
+    },
+    "corrected_position": {
+      "lat": 59.368553480476066,
+      "lng": 17.985134124755863
+    },
+    "correction_distance_meters": 0.94,
+    "accuracy": 3.0510001182556152,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5480,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:02.027552",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685556,
+      "lng": 17.9851413
+    },
+    "corrected_position": {
+      "lat": 59.36855074723118,
+      "lng": 17.985139489173893
+    },
+    "correction_distance_meters": 0.55,
+    "accuracy": 3.046999931335449,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5484,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:04.809088",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685166,
+      "lng": 17.9851494
+    },
+    "corrected_position": {
+      "lat": 59.368516581651676,
+      "lng": 17.985158264636997
+    },
+    "correction_distance_meters": 0.5,
+    "accuracy": 3.065999984741211,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5485,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:05.093900",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685124,
+      "lng": 17.9851498
+    },
+    "corrected_position": {
+      "lat": 59.36851111515576,
+      "lng": 17.985163629055027
+    },
+    "correction_distance_meters": 0.8,
+    "accuracy": 3.0969998836517334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5486,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:05.178534",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685107,
+      "lng": 17.9851496
+    },
+    "corrected_position": {
+      "lat": 59.36850701528325,
+      "lng": 17.985164970159534
+    },
+    "correction_distance_meters": 0.96,
+    "accuracy": 3.134000062942505,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5487,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:05.877382",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685022,
+      "lng": 17.9851499
+    },
+    "corrected_position": {
+      "lat": 59.3685015487858,
+      "lng": 17.985168993473057
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 3.190999984741211,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5488,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:06.116247",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684986,
+      "lng": 17.9851518
+    },
+    "corrected_position": {
+      "lat": 59.368494715662735,
+      "lng": 17.98517301678658
+    },
+    "correction_distance_meters": 1.28,
+    "accuracy": 3.244999885559082,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5489,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:06.227857",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684962,
+      "lng": 17.9851523
+    },
+    "corrected_position": {
+      "lat": 59.368489249163304,
+      "lng": 17.98517838120461
+    },
+    "correction_distance_meters": 1.67,
+    "accuracy": 3.2839999198913574,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5490,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:07.120380",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684852,
+      "lng": 17.9851534
+    },
+    "corrected_position": {
+      "lat": 59.36848446597557,
+      "lng": 17.985181063413624
+    },
+    "correction_distance_meters": 1.57,
+    "accuracy": 3.371000051498413,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5491,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:07.380289",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368481,
+      "lng": 17.9851519
+    },
+    "corrected_position": {
+      "lat": 59.368478999474455,
+      "lng": 17.985185086727146
+    },
+    "correction_distance_meters": 1.89,
+    "accuracy": 3.4590001106262207,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5492,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:07.931291",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684743,
+      "lng": 17.9851493
+    },
+    "corrected_position": {
+      "lat": 59.36847353297251,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 2.11,
+    "accuracy": 3.565000057220459,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5493,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:08.104148",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684717,
+      "lng": 17.9851495
+    },
+    "corrected_position": {
+      "lat": 59.368468066469646,
+      "lng": 17.98518911004067
+    },
+    "correction_distance_meters": 2.28,
+    "accuracy": 3.6649999618530273,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5494,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:08.430079",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684666,
+      "lng": 17.9851476
+    },
+    "corrected_position": {
+      "lat": 59.36846396659194,
+      "lng": 17.98518911004067
+    },
+    "correction_distance_meters": 2.37,
+    "accuracy": 3.7790000438690186,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5495,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:08.919379",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684603,
+      "lng": 17.9851444
+    },
+    "corrected_position": {
+      "lat": 59.36845645014818,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 2.42,
+    "accuracy": 3.9010000228881836,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5496,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:09.090059",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684577,
+      "lng": 17.9851452
+    },
+    "corrected_position": {
+      "lat": 59.36845030032929,
+      "lng": 17.98518374562264
+    },
+    "correction_distance_meters": 2.33,
+    "accuracy": 4.006999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5497,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:09.435660",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684526,
+      "lng": 17.9851422
+    },
+    "corrected_position": {
+      "lat": 59.36844415050932,
+      "lng": 17.985174357891086
+    },
+    "correction_distance_meters": 2.05,
+    "accuracy": 4.125,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5498,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:10.000226",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684454,
+      "lng": 17.9851367
+    },
+    "corrected_position": {
+      "lat": 59.36844005062871,
+      "lng": 17.98516631126404
+    },
+    "correction_distance_meters": 1.78,
+    "accuracy": 4.236000061035156,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5499,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:10.103981",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684436,
+      "lng": 17.9851379
+    },
+    "corrected_position": {
+      "lat": 59.36843458412046,
+      "lng": 17.985160946846012
+    },
+    "correction_distance_meters": 1.65,
+    "accuracy": 4.328000068664551,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5500,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:10.534447",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684373,
+      "lng": 17.985133
+    },
+    "corrected_position": {
+      "lat": 59.368428434297634,
+      "lng": 17.985154241323475
+    },
+    "correction_distance_meters": 1.56,
+    "accuracy": 4.428999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5501,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:11.009065",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684317,
+      "lng": 17.9851277
+    },
+    "corrected_position": {
+      "lat": 59.36842228447369,
+      "lng": 17.985148876905445
+    },
+    "correction_distance_meters": 1.59,
+    "accuracy": 4.525000095367432,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5502,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:11.478625",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684246,
+      "lng": 17.9851254
+    },
+    "corrected_position": {
+      "lat": 59.36841613464862,
+      "lng": 17.985142171382908
+    },
+    "correction_distance_meters": 1.34,
+    "accuracy": 4.709000110626221,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5503,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:12.100718",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684174,
+      "lng": 17.985118
+    },
+    "corrected_position": {
+      "lat": 59.36840930150838,
+      "lng": 17.985134124755863
+    },
+    "correction_distance_meters": 1.28,
+    "accuracy": 4.822000026702881,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5504,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:12.568556",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684112,
+      "lng": 17.9851163
+    },
+    "corrected_position": {
+      "lat": 59.368401785052505,
+      "lng": 17.985128760337833
+    },
+    "correction_distance_meters": 1.26,
+    "accuracy": 4.9039998054504395,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5505,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:13.072563",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684051,
+      "lng": 17.9851101
+    },
+    "corrected_position": {
+      "lat": 59.368394268594976,
+      "lng": 17.98512607812882
+    },
+    "correction_distance_meters": 1.51,
+    "accuracy": 5.03000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5506,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:13.629694",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683978,
+      "lng": 17.9851063
+    },
+    "corrected_position": {
+      "lat": 59.36838811876482,
+      "lng": 17.98512071371079
+    },
+    "correction_distance_meters": 1.35,
+    "accuracy": 5.086999893188477,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5507,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:14.079306",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368393,
+      "lng": 17.9851021
+    },
+    "corrected_position": {
+      "lat": 59.36838333556283,
+      "lng": 17.985118031501774
+    },
+    "correction_distance_meters": 1.4,
+    "accuracy": 5.185999870300293,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5508,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:14.668858",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683857,
+      "lng": 17.9850989
+    },
+    "corrected_position": {
+      "lat": 59.36837991898957,
+      "lng": 17.985116690397266
+    },
+    "correction_distance_meters": 1.2,
+    "accuracy": 5.229000091552734,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5509,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:15.086503",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683787,
+      "lng": 17.9851092
+    },
+    "corrected_position": {
+      "lat": 59.36837752738807,
+      "lng": 17.985114678740505
+    },
+    "correction_distance_meters": 0.34,
+    "accuracy": 5.144000053405762,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5516,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:17.340593",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683493,
+      "lng": 17.9850964
+    },
+    "corrected_position": {
+      "lat": 59.3683478031841,
+      "lng": 17.985098585486416
+    },
+    "correction_distance_meters": 0.21,
+    "accuracy": 4.13100004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5517,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:17.887192",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683432,
+      "lng": 17.9850918
+    },
+    "corrected_position": {
+      "lat": 59.36834233666098,
+      "lng": 17.985096573829654
+    },
+    "correction_distance_meters": 0.29,
+    "accuracy": 4.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5518,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:18.091768",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368341,
+      "lng": 17.9850911
+    },
+    "corrected_position": {
+      "lat": 59.368338920083595,
+      "lng": 17.985096573829654
+    },
+    "correction_distance_meters": 0.39,
+    "accuracy": 3.9769999980926514,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5519,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:18.537654",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683379,
+      "lng": 17.9850891
+    },
+    "corrected_position": {
+      "lat": 59.36833345355905,
+      "lng": 17.98509389162064
+    },
+    "correction_distance_meters": 0.56,
+    "accuracy": 3.8480000495910645,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5520,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:18.831997",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683317,
+      "lng": 17.9850847
+    },
+    "corrected_position": {
+      "lat": 59.36832935366507,
+      "lng": 17.985095232725147
+    },
+    "correction_distance_meters": 0.65,
+    "accuracy": 3.753999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5521,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:19.107079",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683286,
+      "lng": 17.9850834
+    },
+    "corrected_position": {
+      "lat": 59.36832593708638,
+      "lng": 17.985092550516132
+    },
+    "correction_distance_meters": 0.6,
+    "accuracy": 3.756999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5522,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:19.399556",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683237,
+      "lng": 17.9850806
+    },
+    "corrected_position": {
+      "lat": 59.36832115387561,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 0.6,
+    "accuracy": 3.6689999103546143,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5523,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:19.891736",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683174,
+      "lng": 17.9850766
+    },
+    "corrected_position": {
+      "lat": 59.36831500403223,
+      "lng": 17.985091209411625
+    },
+    "correction_distance_meters": 0.87,
+    "accuracy": 3.631999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5524,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:20.099765",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683147,
+      "lng": 17.9850761
+    },
+    "corrected_position": {
+      "lat": 59.368310220819936,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 0.93,
+    "accuracy": 3.6610000133514404,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5525,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:20.349287",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683104,
+      "lng": 17.9850748
+    },
+    "corrected_position": {
+      "lat": 59.368305437606956,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.02,
+    "accuracy": 3.697000026702881,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5526,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:20.923622",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683025,
+      "lng": 17.9850716
+    },
+    "corrected_position": {
+      "lat": 59.368300654393316,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.06,
+    "accuracy": 3.734999895095825,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5527,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:21.087860",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683002,
+      "lng": 17.985072
+    },
+    "corrected_position": {
+      "lat": 59.36829655449536,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 1.02,
+    "accuracy": 3.812999963760376,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5528,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:21.513501",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682942,
+      "lng": 17.98507
+    },
+    "corrected_position": {
+      "lat": 59.368291771280475,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 3.8889999389648438,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5529,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:21.931083",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682878,
+      "lng": 17.9850669
+    },
+    "corrected_position": {
+      "lat": 59.368285621431745,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 1.25,
+    "accuracy": 3.9630000591278076,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5530,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:22.088546",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682858,
+      "lng": 17.9850669
+    },
+    "corrected_position": {
+      "lat": 59.36828083821533,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 1.34,
+    "accuracy": 4.039000034332275,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5531,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:22.318072",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682844,
+      "lng": 17.9850666
+    },
+    "corrected_position": {
+      "lat": 59.3682760549982,
+      "lng": 17.985087186098102
+    },
+    "correction_distance_meters": 1.49,
+    "accuracy": 4.071000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5532,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:22.481096",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682719,
+      "lng": 17.9850554
+    },
+    "corrected_position": {
+      "lat": 59.36826922182971,
+      "lng": 17.985084503889087
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 4.138999938964844,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5533,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:22.957432",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682675,
+      "lng": 17.9850513
+    },
+    "corrected_position": {
+      "lat": 59.368262388659886,
+      "lng": 17.98508316278458
+    },
+    "correction_distance_meters": 1.89,
+    "accuracy": 4.208000183105469,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5534,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:23.101033",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682665,
+      "lng": 17.9850517
+    },
+    "corrected_position": {
+      "lat": 59.368256238805834,
+      "lng": 17.98508316278458
+    },
+    "correction_distance_meters": 2.12,
+    "accuracy": 4.267000198364258,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5535,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:23.517316",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682609,
+      "lng": 17.98505
+    },
+    "corrected_position": {
+      "lat": 59.36825145558525,
+      "lng": 17.985081821680073
+    },
+    "correction_distance_meters": 2.09,
+    "accuracy": 4.328000068664551,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5536,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:23.964143",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682551,
+      "lng": 17.9850475
+    },
+    "corrected_position": {
+      "lat": 59.368245989046635,
+      "lng": 17.985080480575565
+    },
+    "correction_distance_meters": 2.13,
+    "accuracy": 4.389999866485596,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5537,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:24.087508",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368254,
+      "lng": 17.985048
+    },
+    "corrected_position": {
+      "lat": 59.36824188914206,
+      "lng": 17.985075116157535
+    },
+    "correction_distance_meters": 2.04,
+    "accuracy": 4.446000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5538,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:24.608354",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682475,
+      "lng": 17.9850435
+    },
+    "corrected_position": {
+      "lat": 59.3682357392843,
+      "lng": 17.985073775053028
+    },
+    "correction_distance_meters": 2.16,
+    "accuracy": 4.499000072479248,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5539,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:25.063510",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682419,
+      "lng": 17.9850378
+    },
+    "corrected_position": {
+      "lat": 59.368231639378536,
+      "lng": 17.985071092844013
+    },
+    "correction_distance_meters": 2.2,
+    "accuracy": 4.552999973297119,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5540,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:25.554778",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682364,
+      "lng": 17.9850336
+    },
+    "corrected_position": {
+      "lat": 59.368226856154465,
+      "lng": 17.98506706953049
+    },
+    "correction_distance_meters": 2.17,
+    "accuracy": 4.6570000648498535,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5541,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:26.053737",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368231,
+      "lng": 17.9850272
+    },
+    "corrected_position": {
+      "lat": 59.3682227562476,
+      "lng": 17.985060364007953
+    },
+    "correction_distance_meters": 2.09,
+    "accuracy": 4.715000152587891,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5542,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:26.567394",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682252,
+      "lng": 17.9850234
+    },
+    "corrected_position": {
+      "lat": 59.368217289704354,
+      "lng": 17.985049635171894
+    },
+    "correction_distance_meters": 1.73,
+    "accuracy": 4.790999889373779,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5543,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:27.040329",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682197,
+      "lng": 17.985018
+    },
+    "corrected_position": {
+      "lat": 59.36821250647827,
+      "lng": 17.98504024744034
+    },
+    "correction_distance_meters": 1.49,
+    "accuracy": 4.821000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5544,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:27.625199",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682132,
+      "lng": 17.9850145
+    },
+    "corrected_position": {
+      "lat": 59.36820635661519,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 1.32,
+    "accuracy": 4.888999938964844,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5545,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:28.020061",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368209,
+      "lng": 17.9850093
+    },
+    "corrected_position": {
+      "lat": 59.36820020675099,
+      "lng": 17.985024154186252
+    },
+    "correction_distance_meters": 1.29,
+    "accuracy": 4.919000148773193,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5546,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:28.620740",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682031,
+      "lng": 17.9850028
+    },
+    "corrected_position": {
+      "lat": 59.36819405688568,
+      "lng": 17.985018789768223
+    },
+    "correction_distance_meters": 1.35,
+    "accuracy": 4.9670000076293945,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5547,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:29.095180",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681987,
+      "lng": 17.9849943
+    },
+    "corrected_position": {
+      "lat": 59.368189273656334,
+      "lng": 17.985010743141178
+    },
+    "correction_distance_meters": 1.4,
+    "accuracy": 5.019999980926514,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5548,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:29.579068",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681944,
+      "lng": 17.9849867
+    },
+    "corrected_position": {
+      "lat": 59.36818517374495,
+      "lng": 17.985005378723148
+    },
+    "correction_distance_meters": 1.47,
+    "accuracy": 5.0370001792907715,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5549,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:30.110949",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681896,
+      "lng": 17.9849781
+    },
+    "corrected_position": {
+      "lat": 59.36818039051433,
+      "lng": 17.98499867320061
+    },
+    "correction_distance_meters": 1.55,
+    "accuracy": 5.089000225067139,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5550,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:30.667068",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681828,
+      "lng": 17.9849726
+    },
+    "corrected_position": {
+      "lat": 59.36817560728306,
+      "lng": 17.984990626573566
+    },
+    "correction_distance_meters": 1.3,
+    "accuracy": 5.109000205993652,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5551,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:31.114716",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681776,
+      "lng": 17.9849697
+    },
+    "corrected_position": {
+      "lat": 59.3681708240511,
+      "lng": 17.984985262155536
+    },
+    "correction_distance_meters": 1.16,
+    "accuracy": 5.122000217437744,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5552,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:31.180855",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368176,
+      "lng": 17.9849684
+    },
+    "corrected_position": {
+      "lat": 59.36816604081847,
+      "lng": 17.984974533319477
+    },
+    "correction_distance_meters": 1.16,
+    "accuracy": 5.116000175476074,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5553,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:31.653417",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681711,
+      "lng": 17.9849627
+    },
+    "corrected_position": {
+      "lat": 59.36816057426609,
+      "lng": 17.984969168901447
+    },
+    "correction_distance_meters": 1.23,
+    "accuracy": 5.13100004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5554,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:32.096466",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681666,
+      "lng": 17.9849577
+    },
+    "corrected_position": {
+      "lat": 59.36815647435122,
+      "lng": 17.984963804483417
+    },
+    "correction_distance_meters": 1.18,
+    "accuracy": 5.136000156402588,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5555,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:32.179243",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681651,
+      "lng": 17.9849556
+    },
+    "corrected_position": {
+      "lat": 59.36815237443586,
+      "lng": 17.984958440065387
+    },
+    "correction_distance_meters": 1.42,
+    "accuracy": 5.1539998054504395,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5556,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:32.648674",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681599,
+      "lng": 17.9849482
+    },
+    "corrected_position": {
+      "lat": 59.36815083696745,
+      "lng": 17.9849560931325
+    },
+    "correction_distance_meters": 1.1,
+    "accuracy": 5.173999786376953,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5557,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:33.103799",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681554,
+      "lng": 17.9849469
+    },
+    "corrected_position": {
+      "lat": 59.36814955574372,
+      "lng": 17.98495290800929
+    },
+    "correction_distance_meters": 0.73,
+    "accuracy": 5.080999851226807,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5558,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:33.168570",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681539,
+      "lng": 17.9849466
+    },
+    "corrected_position": {
+      "lat": 59.36814870159456,
+      "lng": 17.984947375953197
+    },
+    "correction_distance_meters": 0.58,
+    "accuracy": 4.98199987411499,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5566,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:36.098453",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681154,
+      "lng": 17.9848968
+    },
+    "corrected_position": {
+      "lat": 59.368114791855184,
+      "lng": 17.984890043735508
+    },
+    "correction_distance_meters": 0.39,
+    "accuracy": 4.245999813079834,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5567,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:36.210027",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681131,
+      "lng": 17.9848941
+    },
+    "corrected_position": {
+      "lat": 59.368112229405,
+      "lng": 17.984888032078747
+    },
+    "correction_distance_meters": 0.36,
+    "accuracy": 4.125,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5568,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:36.649428",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681078,
+      "lng": 17.9848884
+    },
+    "corrected_position": {
+      "lat": 59.368107958654235,
+      "lng": 17.984884008765224
+    },
+    "correction_distance_meters": 0.25,
+    "accuracy": 4.131999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5569,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:37.114851",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681024,
+      "lng": 17.9848826
+    },
+    "corrected_position": {
+      "lat": 59.368104371223204,
+      "lng": 17.984871268272403
+    },
+    "correction_distance_meters": 0.68,
+    "accuracy": 4.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5570,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:37.177283",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368101,
+      "lng": 17.9848808
+    },
+    "corrected_position": {
+      "lat": 59.368102321262434,
+      "lng": 17.98486858606339
+    },
+    "correction_distance_meters": 0.71,
+    "accuracy": 3.9539999961853027,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5571,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:37.642330",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680958,
+      "lng": 17.9848748
+    },
+    "corrected_position": {
+      "lat": 59.36809924632102,
+      "lng": 17.984863892197613
+    },
+    "correction_distance_meters": 0.73,
+    "accuracy": 3.992000102996826,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5572,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:38.102517",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680904,
+      "lng": 17.9848671
+    },
+    "corrected_position": {
+      "lat": 59.368094121418096,
+      "lng": 17.984857186675075
+    },
+    "correction_distance_meters": 0.7,
+    "accuracy": 3.934999942779541,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5573,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:38.209293",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680889,
+      "lng": 17.9848637
+    },
+    "corrected_position": {
+      "lat": 59.368091046475975,
+      "lng": 17.984852828085426
+    },
+    "correction_distance_meters": 0.66,
+    "accuracy": 4,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5574,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:38.645833",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368084,
+      "lng": 17.9848559
+    },
+    "corrected_position": {
+      "lat": 59.368086092401946,
+      "lng": 17.984847463667396
+    },
+    "correction_distance_meters": 0.53,
+    "accuracy": 4.051000118255615,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5575,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:39.095868",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680793,
+      "lng": 17.9848486
+    },
+    "corrected_position": {
+      "lat": 59.368080284176315,
+      "lng": 17.98483975231648
+    },
+    "correction_distance_meters": 0.51,
+    "accuracy": 4.1529998779296875,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5576,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:39.164147",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680781,
+      "lng": 17.9848465
+    },
+    "corrected_position": {
+      "lat": 59.3680777217235,
+      "lng": 17.98483405262232
+    },
+    "correction_distance_meters": 0.71,
+    "accuracy": 4.196000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5577,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:39.597570",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680728,
+      "lng": 17.9848401
+    },
+    "corrected_position": {
+      "lat": 59.36807379262884,
+      "lng": 17.984825335443023
+    },
+    "correction_distance_meters": 0.84,
+    "accuracy": 4.294000148773193,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5578,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:40.100426",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680676,
+      "lng": 17.9848328
+    },
+    "corrected_position": {
+      "lat": 59.36806900938253,
+      "lng": 17.98481829464436
+    },
+    "correction_distance_meters": 0.84,
+    "accuracy": 4.418000221252441,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5579,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:40.611882",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680606,
+      "lng": 17.9848256
+    },
+    "corrected_position": {
+      "lat": 59.36806388447503,
+      "lng": 17.9848075658083
+    },
+    "correction_distance_meters": 1.09,
+    "accuracy": 4.539999961853027,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5580,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:41.134678",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680555,
+      "lng": 17.9848183
+    },
+    "corrected_position": {
+      "lat": 59.3680594428879,
+      "lng": 17.984796166419986
+    },
+    "correction_distance_meters": 1.33,
+    "accuracy": 4.609000205993652,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5581,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:41.149406",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680543,
+      "lng": 17.9848162
+    },
+    "corrected_position": {
+      "lat": 59.3680526096758,
+      "lng": 17.98478409647942
+    },
+    "correction_distance_meters": 1.83,
+    "accuracy": 4.675000190734863,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5582,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:41.657102",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680488,
+      "lng": 17.9848096
+    },
+    "corrected_position": {
+      "lat": 59.3680457764623,
+      "lng": 17.98477537930012
+    },
+    "correction_distance_meters": 1.97,
+    "accuracy": 4.790999889373779,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5583,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:42.103448",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680438,
+      "lng": 17.984803
+    },
+    "corrected_position": {
+      "lat": 59.36804030989056,
+      "lng": 17.984768673777584
+    },
+    "correction_distance_meters": 1.98,
+    "accuracy": 4.843999862670898,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5584,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:42.146472",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680428,
+      "lng": 17.9848009
+    },
+    "corrected_position": {
+      "lat": 59.36803552663952,
+      "lng": 17.984763309359554
+    },
+    "correction_distance_meters": 2.28,
+    "accuracy": 4.855999946594238,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5585,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:42.574013",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368038,
+      "lng": 17.9847955
+    },
+    "corrected_position": {
+      "lat": 59.36803006006609,
+      "lng": 17.984758615493778
+    },
+    "correction_distance_meters": 2.27,
+    "accuracy": 4.913000106811523,
+    "annotation_notes": ""
+  },
+  {
+    "id": 5586,
+    "track_id": 32,
+    "track_name": "War Machine",
+    "track_type": "human",
+    "timestamp": "2025-11-15T20:06:43.131826",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368032,
+      "lng": 17.9847889
+    },
+    "corrected_position": {
+      "lat": 59.36802561847453,
+      "lng": 17.98475526273251
+    },
+    "correction_distance_meters": 2.03,
+    "accuracy": 5.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6149,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:38.615103",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680894,
+      "lng": 17.9841492
+    },
+    "corrected_position": {
+      "lat": 59.36803552663952,
+      "lng": 17.984763309359554
+    },
+    "correction_distance_meters": 35.31,
+    "accuracy": 37.652000427246094,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6150,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:38.639745",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368111,
+      "lng": 17.9848111
+    },
+    "corrected_position": {
+      "lat": 59.3680457764623,
+      "lng": 17.98477537930012
+    },
+    "correction_distance_meters": 7.53,
+    "accuracy": 22.68000030517578,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6151,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:40.370442",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681168,
+      "lng": 17.9848619
+    },
+    "corrected_position": {
+      "lat": 59.3680526096758,
+      "lng": 17.98478409647942
+    },
+    "correction_distance_meters": 8.39,
+    "accuracy": 14.736000061035156,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6152,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:40.370733",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368101,
+      "lng": 17.984828
+    },
+    "corrected_position": {
+      "lat": 59.3680594428879,
+      "lng": 17.984796166419986
+    },
+    "correction_distance_meters": 4.96,
+    "accuracy": 17.533000946044922,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6153,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:40.651894",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681187,
+      "lng": 17.9848577
+    },
+    "corrected_position": {
+      "lat": 59.36806388447503,
+      "lng": 17.9848075658083
+    },
+    "correction_distance_meters": 6.72,
+    "accuracy": 13.965999603271484,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6154,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:42.829078",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681242,
+      "lng": 17.9848598
+    },
+    "corrected_position": {
+      "lat": 59.36806900938253,
+      "lng": 17.98481829464436
+    },
+    "correction_distance_meters": 6.57,
+    "accuracy": 13.12399959564209,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6155,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:43.144762",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681303,
+      "lng": 17.9848732
+    },
+    "corrected_position": {
+      "lat": 59.36807379262884,
+      "lng": 17.984825335443023
+    },
+    "correction_distance_meters": 6.84,
+    "accuracy": 11.711000442504883,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6156,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:43.158296",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681367,
+      "lng": 17.9848925
+    },
+    "corrected_position": {
+      "lat": 59.3680777217235,
+      "lng": 17.98483405262232
+    },
+    "correction_distance_meters": 7.35,
+    "accuracy": 8.763999938964844,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6157,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:43.673715",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681404,
+      "lng": 17.9849098
+    },
+    "corrected_position": {
+      "lat": 59.368080284176315,
+      "lng": 17.98483975231648
+    },
+    "correction_distance_meters": 7.77,
+    "accuracy": 8.847000122070312,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6158,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:44.075190",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681428,
+      "lng": 17.9849179
+    },
+    "corrected_position": {
+      "lat": 59.368086092401946,
+      "lng": 17.984847463667396
+    },
+    "correction_distance_meters": 7.46,
+    "accuracy": 8.906999588012695,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6159,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:44.671648",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681488,
+      "lng": 17.984946
+    },
+    "corrected_position": {
+      "lat": 59.368091046475975,
+      "lng": 17.984852828085426
+    },
+    "correction_distance_meters": 8.31,
+    "accuracy": 8.788000106811523,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6160,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:45.104934",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681531,
+      "lng": 17.9849628
+    },
+    "corrected_position": {
+      "lat": 59.36809924632102,
+      "lng": 17.984863892197613
+    },
+    "correction_distance_meters": 8.2,
+    "accuracy": 8.79699993133545,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6161,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:45.175800",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368153,
+      "lng": 17.9849696
+    },
+    "corrected_position": {
+      "lat": 59.368104371223204,
+      "lng": 17.984871268272403
+    },
+    "correction_distance_meters": 7.76,
+    "accuracy": 8.619000434875488,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6162,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:45.703296",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368154,
+      "lng": 17.9849839
+    },
+    "corrected_position": {
+      "lat": 59.368104371223204,
+      "lng": 17.984871268272403
+    },
+    "correction_distance_meters": 8.44,
+    "accuracy": 8.324999809265137,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6163,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:46.114847",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681568,
+      "lng": 17.9849947
+    },
+    "corrected_position": {
+      "lat": 59.368114791855184,
+      "lng": 17.984890043735508
+    },
+    "correction_distance_meters": 7.55,
+    "accuracy": 8.126999855041504,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6164,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:46.205919",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681566,
+      "lng": 17.985
+    },
+    "corrected_position": {
+      "lat": 59.3681482,
+      "lng": 17.9849411
+    },
+    "correction_distance_meters": 3.47,
+    "accuracy": 7.989999771118164,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6165,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:46.746174",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681576,
+      "lng": 17.9850133
+    },
+    "corrected_position": {
+      "lat": 59.36816057426609,
+      "lng": 17.984969168901447
+    },
+    "correction_distance_meters": 2.52,
+    "accuracy": 7.784999847412109,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6166,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:47.069120",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681619,
+      "lng": 17.9850207
+    },
+    "corrected_position": {
+      "lat": 59.3681708240511,
+      "lng": 17.984985262155536
+    },
+    "correction_distance_meters": 2.24,
+    "accuracy": 7.520999908447266,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6167,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:47.262623",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681623,
+      "lng": 17.9850265
+    },
+    "corrected_position": {
+      "lat": 59.36817560728306,
+      "lng": 17.984990626573566
+    },
+    "correction_distance_meters": 2.51,
+    "accuracy": 7.3420000076293945,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6168,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:47.744232",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681639,
+      "lng": 17.9850376
+    },
+    "corrected_position": {
+      "lat": 59.36818039051433,
+      "lng": 17.98499867320061
+    },
+    "correction_distance_meters": 2.87,
+    "accuracy": 7.126999855041504,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6169,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:48.100909",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681693,
+      "lng": 17.9850442
+    },
+    "corrected_position": {
+      "lat": 59.36818517374495,
+      "lng": 17.985005378723148
+    },
+    "correction_distance_meters": 2.82,
+    "accuracy": 7.060999870300293,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6170,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:48.323897",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681722,
+      "lng": 17.9850503
+    },
+    "corrected_position": {
+      "lat": 59.368189273656334,
+      "lng": 17.985010743141178
+    },
+    "correction_distance_meters": 2.94,
+    "accuracy": 6.8460001945495605,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6171,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:48.840087",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368177,
+      "lng": 17.9850614
+    },
+    "corrected_position": {
+      "lat": 59.36819405688568,
+      "lng": 17.985018789768223
+    },
+    "correction_distance_meters": 3.07,
+    "accuracy": 6.659999847412109,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6172,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:49.105968",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681823,
+      "lng": 17.9850653
+    },
+    "corrected_position": {
+      "lat": 59.36819405688568,
+      "lng": 17.985018789768223
+    },
+    "correction_distance_meters": 2.94,
+    "accuracy": 6.367000102996826,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6173,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:49.299269",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681861,
+      "lng": 17.9850701
+    },
+    "corrected_position": {
+      "lat": 59.36820020675099,
+      "lng": 17.985024154186252
+    },
+    "correction_distance_meters": 3.04,
+    "accuracy": 6.3379998207092285,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6174,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:49.845119",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681922,
+      "lng": 17.9850806
+    },
+    "corrected_position": {
+      "lat": 59.36820635661519,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 3.1,
+    "accuracy": 6.244999885559082,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6175,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:50.105229",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682045,
+      "lng": 17.9850766
+    },
+    "corrected_position": {
+      "lat": 59.36821250647827,
+      "lng": 17.98504024744034
+    },
+    "correction_distance_meters": 2.24,
+    "accuracy": 6.111000061035156,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6176,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:50.849474",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682192,
+      "lng": 17.9850822
+    },
+    "corrected_position": {
+      "lat": 59.3682227562476,
+      "lng": 17.985060364007953
+    },
+    "correction_distance_meters": 1.3,
+    "accuracy": 5.943999767303467,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6177,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:51.105104",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682258,
+      "lng": 17.9850798
+    },
+    "corrected_position": {
+      "lat": 59.3682227562476,
+      "lng": 17.985060364007953
+    },
+    "correction_distance_meters": 1.15,
+    "accuracy": 5.802999973297119,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6178,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:51.483861",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682327,
+      "lng": 17.9850813
+    },
+    "corrected_position": {
+      "lat": 59.3682227562476,
+      "lng": 17.985060364007953
+    },
+    "correction_distance_meters": 1.62,
+    "accuracy": 5.630000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6179,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:51.871403",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682388,
+      "lng": 17.9850836
+    },
+    "corrected_position": {
+      "lat": 59.3682227562476,
+      "lng": 17.985060364007953
+    },
+    "correction_distance_meters": 2.22,
+    "accuracy": 5.460000038146973,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6180,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:52.131778",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682425,
+      "lng": 17.9850836
+    },
+    "corrected_position": {
+      "lat": 59.36824188914206,
+      "lng": 17.985075116157535
+    },
+    "correction_distance_meters": 0.49,
+    "accuracy": 5.267000198364258,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6181,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:52.504608",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368248,
+      "lng": 17.9850862
+    },
+    "corrected_position": {
+      "lat": 59.36825145558525,
+      "lng": 17.985081821680073
+    },
+    "correction_distance_meters": 0.46,
+    "accuracy": 5.081999778747559,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6182,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:52.986947",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682542,
+      "lng": 17.9850897
+    },
+    "corrected_position": {
+      "lat": 59.368256238805834,
+      "lng": 17.98508316278458
+    },
+    "correction_distance_meters": 0.43,
+    "accuracy": 4.88100004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6183,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:53.094015",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682562,
+      "lng": 17.9850903
+    },
+    "corrected_position": {
+      "lat": 59.368262388659886,
+      "lng": 17.98508316278458
+    },
+    "correction_distance_meters": 0.8,
+    "accuracy": 4.671000003814697,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6184,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:53.403012",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682601,
+      "lng": 17.985092
+    },
+    "corrected_position": {
+      "lat": 59.36826922182971,
+      "lng": 17.985084503889087
+    },
+    "correction_distance_meters": 1.1,
+    "accuracy": 4.4720001220703125,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6185,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:54.010271",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682686,
+      "lng": 17.9850957
+    },
+    "corrected_position": {
+      "lat": 59.3682760549982,
+      "lng": 17.985087186098102
+    },
+    "correction_distance_meters": 0.96,
+    "accuracy": 4.270999908447266,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6186,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:54.457077",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682748,
+      "lng": 17.9850995
+    },
+    "corrected_position": {
+      "lat": 59.36828083821533,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 0.92,
+    "accuracy": 3.869999885559082,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6187,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:54.931848",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368281,
+      "lng": 17.9851023
+    },
+    "corrected_position": {
+      "lat": 59.368285621431745,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 0.93,
+    "accuracy": 3.678999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6188,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:55.091572",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682831,
+      "lng": 17.9851038
+    },
+    "corrected_position": {
+      "lat": 59.368291771280475,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 1.3,
+    "accuracy": 3.634000062942505,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6189,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:55.588841",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682895,
+      "lng": 17.9851074
+    },
+    "corrected_position": {
+      "lat": 59.36829655449536,
+      "lng": 17.98508852720261
+    },
+    "correction_distance_meters": 1.33,
+    "accuracy": 3.5409998893737793,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6190,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:55.919628",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682944,
+      "lng": 17.9851101
+    },
+    "corrected_position": {
+      "lat": 59.368300654393316,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.34,
+    "accuracy": 3.440000057220459,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6191,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:56.095343",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682965,
+      "lng": 17.9851113
+    },
+    "corrected_position": {
+      "lat": 59.368305437606956,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.57,
+    "accuracy": 3.4119999408721924,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6192,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:56.570945",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683031,
+      "lng": 17.9851135
+    },
+    "corrected_position": {
+      "lat": 59.368310220819936,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.56,
+    "accuracy": 3.318000078201294,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6193,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:56.964922",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683082,
+      "lng": 17.9851143
+    },
+    "corrected_position": {
+      "lat": 59.368310220819936,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.4,
+    "accuracy": 3.243000030517578,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6194,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:57.092381",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683103,
+      "lng": 17.9851149
+    },
+    "corrected_position": {
+      "lat": 59.36831500403223,
+      "lng": 17.985091209411625
+    },
+    "correction_distance_meters": 1.44,
+    "accuracy": 3.2109999656677246,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6195,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:57.625746",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683177,
+      "lng": 17.9851156
+    },
+    "corrected_position": {
+      "lat": 59.36832115387561,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.51,
+    "accuracy": 3.1730000972747803,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6196,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:58.119042",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683239,
+      "lng": 17.9851154
+    },
+    "corrected_position": {
+      "lat": 59.36832593708638,
+      "lng": 17.985092550516132
+    },
+    "correction_distance_meters": 1.31,
+    "accuracy": 3.121000051498413,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6197,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:58.654744",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683317,
+      "lng": 17.9851155
+    },
+    "corrected_position": {
+      "lat": 59.36832935366507,
+      "lng": 17.985095232725147
+    },
+    "correction_distance_meters": 1.18,
+    "accuracy": 3.0969998836517334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6198,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:59.101104",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683379,
+      "lng": 17.9851172
+    },
+    "corrected_position": {
+      "lat": 59.36833345355905,
+      "lng": 17.98509389162064
+    },
+    "correction_distance_meters": 1.41,
+    "accuracy": 3.058000087738037,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6199,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:17:59.610840",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683449,
+      "lng": 17.9851183
+    },
+    "corrected_position": {
+      "lat": 59.368338920083595,
+      "lng": 17.985096573829654
+    },
+    "correction_distance_meters": 1.4,
+    "accuracy": 3.0439999103546143,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6200,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:00.066735",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683505,
+      "lng": 17.9851199
+    },
+    "corrected_position": {
+      "lat": 59.36834233666098,
+      "lng": 17.985096573829654
+    },
+    "correction_distance_meters": 1.6,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6201,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:00.704681",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683592,
+      "lng": 17.9851251
+    },
+    "corrected_position": {
+      "lat": 59.3683572,
+      "lng": 17.9851039
+    },
+    "correction_distance_meters": 1.22,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6202,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:01.096636",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683644,
+      "lng": 17.9851291
+    },
+    "corrected_position": {
+      "lat": 59.3683646,
+      "lng": 17.9851141
+    },
+    "correction_distance_meters": 0.85,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6203,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:01.712682",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683725,
+      "lng": 17.9851342
+    },
+    "corrected_position": {
+      "lat": 59.3683695,
+      "lng": 17.9851124
+    },
+    "correction_distance_meters": 1.28,
+    "accuracy": 3.000999927520752,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6204,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:02.088631",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683778,
+      "lng": 17.9851377
+    },
+    "corrected_position": {
+      "lat": 59.3683754,
+      "lng": 17.9851132
+    },
+    "correction_distance_meters": 1.41,
+    "accuracy": 3.000999927520752,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6205,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:02.727375",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683866,
+      "lng": 17.9851429
+    },
+    "corrected_position": {
+      "lat": 59.36838811876482,
+      "lng": 17.98512071371079
+    },
+    "correction_distance_meters": 1.27,
+    "accuracy": 3.009000062942505,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6206,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:03.106347",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683917,
+      "lng": 17.9851459
+    },
+    "corrected_position": {
+      "lat": 59.368394268594976,
+      "lng": 17.98512607812882
+    },
+    "correction_distance_meters": 1.16,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6207,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:03.741394",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684002,
+      "lng": 17.9851517
+    },
+    "corrected_position": {
+      "lat": 59.368401785052505,
+      "lng": 17.985128760337833
+    },
+    "correction_distance_meters": 1.31,
+    "accuracy": 3.009000062942505,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6208,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:04.113857",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368405,
+      "lng": 17.9851542
+    },
+    "corrected_position": {
+      "lat": 59.36840930150838,
+      "lng": 17.985134124755863
+    },
+    "correction_distance_meters": 1.23,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6209,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:04.145562",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684064,
+      "lng": 17.9851546
+    },
+    "corrected_position": {
+      "lat": 59.36841613464862,
+      "lng": 17.985142171382908
+    },
+    "correction_distance_meters": 1.29,
+    "accuracy": 3.009000062942505,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6210,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:04.783258",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684145,
+      "lng": 17.98516
+    },
+    "corrected_position": {
+      "lat": 59.36842228447369,
+      "lng": 17.985148876905445
+    },
+    "correction_distance_meters": 1.07,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6211,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:05.077386",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684185,
+      "lng": 17.9851622
+    },
+    "corrected_position": {
+      "lat": 59.368428434297634,
+      "lng": 17.985154241323475
+    },
+    "correction_distance_meters": 1.19,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6212,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:05.135110",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684196,
+      "lng": 17.9851627
+    },
+    "corrected_position": {
+      "lat": 59.36843458412046,
+      "lng": 17.985160946846012
+    },
+    "correction_distance_meters": 1.67,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6213,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:05.814266",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684282,
+      "lng": 17.9851692
+    },
+    "corrected_position": {
+      "lat": 59.36844005062871,
+      "lng": 17.98516631126404
+    },
+    "correction_distance_meters": 1.33,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6214,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:06.085006",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684319,
+      "lng": 17.9851712
+    },
+    "corrected_position": {
+      "lat": 59.36844005062871,
+      "lng": 17.98516631126404
+    },
+    "correction_distance_meters": 0.95,
+    "accuracy": 3.009999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6215,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:06.206777",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684339,
+      "lng": 17.9851725
+    },
+    "corrected_position": {
+      "lat": 59.36844005062871,
+      "lng": 17.98516631126404
+    },
+    "correction_distance_meters": 0.77,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6216,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:06.801296",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684412,
+      "lng": 17.9851787
+    },
+    "corrected_position": {
+      "lat": 59.36844415050932,
+      "lng": 17.985174357891086
+    },
+    "correction_distance_meters": 0.41,
+    "accuracy": 3.009999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6217,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:07.110004",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684449,
+      "lng": 17.9851803
+    },
+    "corrected_position": {
+      "lat": 59.36845030032929,
+      "lng": 17.98518374562264
+    },
+    "correction_distance_meters": 0.63,
+    "accuracy": 3.009000062942505,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6218,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:07.204117",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684471,
+      "lng": 17.9851812
+    },
+    "corrected_position": {
+      "lat": 59.36845645014818,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 3.009999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6220,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:08.092358",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684588,
+      "lng": 17.9851863
+    },
+    "corrected_position": {
+      "lat": 59.36845645014818,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 0.26,
+    "accuracy": 3.003999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6221,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:08.208072",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684608,
+      "lng": 17.9851864
+    },
+    "corrected_position": {
+      "lat": 59.36845645014818,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 0.48,
+    "accuracy": 3.003999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6222,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:08.704379",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684679,
+      "lng": 17.9851889
+    },
+    "corrected_position": {
+      "lat": 59.36845645014818,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 1.28,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6223,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:09.103932",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684729,
+      "lng": 17.9851897
+    },
+    "corrected_position": {
+      "lat": 59.36845645014818,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 1.84,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6224,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:09.187649",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684747,
+      "lng": 17.9851899
+    },
+    "corrected_position": {
+      "lat": 59.36847353297251,
+      "lng": 17.985186427831653
+    },
+    "correction_distance_meters": 0.24,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6225,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:09.722428",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684817,
+      "lng": 17.9851933
+    },
+    "corrected_position": {
+      "lat": 59.368478999474455,
+      "lng": 17.985185086727146
+    },
+    "correction_distance_meters": 0.55,
+    "accuracy": 3.006999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6226,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:10.108629",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684865,
+      "lng": 17.9851944
+    },
+    "corrected_position": {
+      "lat": 59.36848446597557,
+      "lng": 17.985181063413624
+    },
+    "correction_distance_meters": 0.79,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6227,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:10.249031",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684889,
+      "lng": 17.9851952
+    },
+    "corrected_position": {
+      "lat": 59.368489249163304,
+      "lng": 17.98517838120461
+    },
+    "correction_distance_meters": 0.95,
+    "accuracy": 3.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6228,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:10.666195",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684946,
+      "lng": 17.9851972
+    },
+    "corrected_position": {
+      "lat": 59.368494715662735,
+      "lng": 17.98517301678658
+    },
+    "correction_distance_meters": 1.37,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6229,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:11.095569",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685006,
+      "lng": 17.9851954
+    },
+    "corrected_position": {
+      "lat": 59.3685015487858,
+      "lng": 17.985168993473057
+    },
+    "correction_distance_meters": 1.5,
+    "accuracy": 3.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6230,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:11.250753",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685031,
+      "lng": 17.9851944
+    },
+    "corrected_position": {
+      "lat": 59.36850701528325,
+      "lng": 17.985164970159534
+    },
+    "correction_distance_meters": 1.72,
+    "accuracy": 3.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6231,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:11.767723",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685103,
+      "lng": 17.9851926
+    },
+    "corrected_position": {
+      "lat": 59.36851111515576,
+      "lng": 17.985163629055027
+    },
+    "correction_distance_meters": 1.64,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6232,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:12.126670",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368515,
+      "lng": 17.9851881
+    },
+    "corrected_position": {
+      "lat": 59.368516581651676,
+      "lng": 17.985158264636997
+    },
+    "correction_distance_meters": 1.7,
+    "accuracy": 3.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6233,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:12.278573",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368518,
+      "lng": 17.9851856
+    },
+    "corrected_position": {
+      "lat": 59.3685233,
+      "lng": 17.9851497
+    },
+    "correction_distance_meters": 2.12,
+    "accuracy": 3.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6234,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:12.756923",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685247,
+      "lng": 17.9851813
+    },
+    "corrected_position": {
+      "lat": 59.3685334,
+      "lng": 17.9851483
+    },
+    "correction_distance_meters": 2.11,
+    "accuracy": 3.003999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6235,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:13.131540",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685294,
+      "lng": 17.9851763
+    },
+    "corrected_position": {
+      "lat": 59.3685403,
+      "lng": 17.9851471
+    },
+    "correction_distance_meters": 2.05,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6236,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:13.841834",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685399,
+      "lng": 17.9851694
+    },
+    "corrected_position": {
+      "lat": 59.3685403,
+      "lng": 17.9851471
+    },
+    "correction_distance_meters": 1.26,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6237,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:14.093089",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685441,
+      "lng": 17.9851666
+    },
+    "corrected_position": {
+      "lat": 59.36855074723118,
+      "lng": 17.985139489173893
+    },
+    "correction_distance_meters": 1.7,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6238,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:14.210437",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685466,
+      "lng": 17.9851653
+    },
+    "corrected_position": {
+      "lat": 59.368553480476066,
+      "lng": 17.985134124755863
+    },
+    "correction_distance_meters": 1.92,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6239,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:14.826306",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685549,
+      "lng": 17.9851614
+    },
+    "corrected_position": {
+      "lat": 59.368559630276216,
+      "lng": 17.985128760337833
+    },
+    "correction_distance_meters": 1.92,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6240,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:15.108537",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685589,
+      "lng": 17.9851589
+    },
+    "corrected_position": {
+      "lat": 59.36856509676433,
+      "lng": 17.98512473702431
+    },
+    "correction_distance_meters": 2.05,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6241,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:15.301836",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685622,
+      "lng": 17.9851568
+    },
+    "corrected_position": {
+      "lat": 59.368569196629814,
+      "lng": 17.985123395919803
+    },
+    "correction_distance_meters": 2.05,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6242,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:15.829743",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685695,
+      "lng": 17.9851522
+    },
+    "corrected_position": {
+      "lat": 59.36857466311637,
+      "lng": 17.98511937260628
+    },
+    "correction_distance_meters": 1.95,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6243,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:16.132732",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685735,
+      "lng": 17.9851497
+    },
+    "corrected_position": {
+      "lat": 59.36857466311637,
+      "lng": 17.98511937260628
+    },
+    "correction_distance_meters": 1.72,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6244,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:16.311780",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368577,
+      "lng": 17.9851478
+    },
+    "corrected_position": {
+      "lat": 59.36857739635932,
+      "lng": 17.985116690397266
+    },
+    "correction_distance_meters": 1.76,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6245,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:16.847384",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685844,
+      "lng": 17.9851436
+    },
+    "corrected_position": {
+      "lat": 59.36858252118927,
+      "lng": 17.985113337635998
+    },
+    "correction_distance_meters": 1.73,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6246,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:17.139260",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685884,
+      "lng": 17.9851413
+    },
+    "corrected_position": {
+      "lat": 59.36858252118927,
+      "lng": 17.985113337635998
+    },
+    "correction_distance_meters": 1.71,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6247,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:17.246305",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685913,
+      "lng": 17.9851399
+    },
+    "corrected_position": {
+      "lat": 59.36858559608684,
+      "lng": 17.985112667083744
+    },
+    "correction_distance_meters": 1.67,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6248,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:17.823561",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685992,
+      "lng": 17.9851356
+    },
+    "corrected_position": {
+      "lat": 59.36858901263939,
+      "lng": 17.98510864377022
+    },
+    "correction_distance_meters": 1.9,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6249,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:18.099933",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686034,
+      "lng": 17.9851332
+    },
+    "corrected_position": {
+      "lat": 59.36859174588119,
+      "lng": 17.985105961561207
+    },
+    "correction_distance_meters": 2.02,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6250,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:18.221580",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686062,
+      "lng": 17.9851315
+    },
+    "corrected_position": {
+      "lat": 59.36859447912276,
+      "lng": 17.9851046204567
+    },
+    "correction_distance_meters": 2,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6251,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:18.875976",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686154,
+      "lng": 17.9851253
+    },
+    "corrected_position": {
+      "lat": 59.36860746201723,
+      "lng": 17.985095232725147
+    },
+    "correction_distance_meters": 1.92,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6252,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:19.090369",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686189,
+      "lng": 17.9851231
+    },
+    "corrected_position": {
+      "lat": 59.368610878567566,
+      "lng": 17.98509389162064
+    },
+    "correction_distance_meters": 1.88,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6253,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:19.329471",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686228,
+      "lng": 17.9851202
+    },
+    "corrected_position": {
+      "lat": 59.36861566173747,
+      "lng": 17.985089868307117
+    },
+    "correction_distance_meters": 1.89,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6254,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:19.749714",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686287,
+      "lng": 17.9851153
+    },
+    "corrected_position": {
+      "lat": 59.368619078287,
+      "lng": 17.985087186098102
+    },
+    "correction_distance_meters": 1.92,
+    "accuracy": 3.002000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6255,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:20.106091",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686335,
+      "lng": 17.9851109
+    },
+    "corrected_position": {
+      "lat": 59.36862386145575,
+      "lng": 17.985085844993595
+    },
+    "correction_distance_meters": 1.78,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6256,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:20.248038",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686363,
+      "lng": 17.9851098
+    },
+    "corrected_position": {
+      "lat": 59.36862659469473,
+      "lng": 17.985084503889087
+    },
+    "correction_distance_meters": 1.79,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6257,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:20.790225",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368644,
+      "lng": 17.985105
+    },
+    "corrected_position": {
+      "lat": 59.36863684433897,
+      "lng": 17.98507779836655
+    },
+    "correction_distance_meters": 1.73,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6258,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:21.103064",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686489,
+      "lng": 17.9851038
+    },
+    "corrected_position": {
+      "lat": 59.36864162750521,
+      "lng": 17.985075116157535
+    },
+    "correction_distance_meters": 1.82,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6259,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:21.209411",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686512,
+      "lng": 17.9851033
+    },
+    "corrected_position": {
+      "lat": 59.36864641067079,
+      "lng": 17.985071092844013
+    },
+    "correction_distance_meters": 1.9,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6260,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:22.122179",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686641,
+      "lng": 17.985099
+    },
+    "corrected_position": {
+      "lat": 59.36865871023629,
+      "lng": 17.98506304621697
+    },
+    "correction_distance_meters": 2.12,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6261,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:22.243807",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686668,
+      "lng": 17.9850982
+    },
+    "corrected_position": {
+      "lat": 59.368662810090484,
+      "lng": 17.985059022903446
+    },
+    "correction_distance_meters": 2.26,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6262,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:22.821816",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686747,
+      "lng": 17.9850939
+    },
+    "corrected_position": {
+      "lat": 59.36866690994417,
+      "lng": 17.98505634069443
+    },
+    "correction_distance_meters": 2.3,
+    "accuracy": 3.010999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6263,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:23.112535",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686794,
+      "lng": 17.9850923
+    },
+    "corrected_position": {
+      "lat": 59.36867169310618,
+      "lng": 17.98505231738091
+    },
+    "correction_distance_meters": 2.42,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6264,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:23.258430",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686824,
+      "lng": 17.9850913
+    },
+    "corrected_position": {
+      "lat": 59.3686757929588,
+      "lng": 17.985048294067386
+    },
+    "correction_distance_meters": 2.54,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6265,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:23.740346",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686895,
+      "lng": 17.985088
+    },
+    "corrected_position": {
+      "lat": 59.36868330935396,
+      "lng": 17.98504695296288
+    },
+    "correction_distance_meters": 2.43,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6266,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:24.080736",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686947,
+      "lng": 17.9850855
+    },
+    "corrected_position": {
+      "lat": 59.3686894591306,
+      "lng": 17.985044270753864
+    },
+    "correction_distance_meters": 2.41,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6267,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:24.274800",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686976,
+      "lng": 17.9850837
+    },
+    "corrected_position": {
+      "lat": 59.368698342139304,
+      "lng": 17.985037565231327
+    },
+    "correction_distance_meters": 2.62,
+    "accuracy": 3.007999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6268,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:24.864701",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687047,
+      "lng": 17.9850793
+    },
+    "corrected_position": {
+      "lat": 59.36870449191323,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 2.59,
+    "accuracy": 3.0139999389648438,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6269,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:25.088151",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687085,
+      "lng": 17.9850775
+    },
+    "corrected_position": {
+      "lat": 59.36871610814978,
+      "lng": 17.985029518604282
+    },
+    "correction_distance_meters": 2.85,
+    "accuracy": 3.013000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6270,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:25.240732",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368711,
+      "lng": 17.9850764
+    },
+    "corrected_position": {
+      "lat": 59.36872430784376,
+      "lng": 17.985028177499775
+    },
+    "correction_distance_meters": 3.11,
+    "accuracy": 3.013000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6271,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:25.881710",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687193,
+      "lng": 17.9850723
+    },
+    "corrected_position": {
+      "lat": 59.36872430784376,
+      "lng": 17.985028177499775
+    },
+    "correction_distance_meters": 2.56,
+    "accuracy": 3.0239999294281006,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6272,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:26.074126",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687229,
+      "lng": 17.9850713
+    },
+    "corrected_position": {
+      "lat": 59.36872430784376,
+      "lng": 17.985028177499775
+    },
+    "correction_distance_meters": 2.45,
+    "accuracy": 3.0239999294281006,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6273,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:26.339246",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687261,
+      "lng": 17.9850697
+    },
+    "corrected_position": {
+      "lat": 59.368735240766036,
+      "lng": 17.98502549529076
+    },
+    "correction_distance_meters": 2.7,
+    "accuracy": 3.0250000953674316,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6274,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:26.859203",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687338,
+      "lng": 17.9850659
+    },
+    "corrected_position": {
+      "lat": 59.368735240766036,
+      "lng": 17.98502549529076
+    },
+    "correction_distance_meters": 2.29,
+    "accuracy": 3.0450000762939453,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6275,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:27.097522",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687375,
+      "lng": 17.9850649
+    },
+    "corrected_position": {
+      "lat": 59.368735240766036,
+      "lng": 17.98502549529076
+    },
+    "correction_distance_meters": 2.25,
+    "accuracy": 3.0420000553131104,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6276,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:27.320946",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687415,
+      "lng": 17.9850623
+    },
+    "corrected_position": {
+      "lat": 59.368749590221114,
+      "lng": 17.985018789768223
+    },
+    "correction_distance_meters": 2.62,
+    "accuracy": 3.0510001182556152,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6277,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:27.895821",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687495,
+      "lng": 17.9850581
+    },
+    "corrected_position": {
+      "lat": 59.368759839828186,
+      "lng": 17.985016107559208
+    },
+    "correction_distance_meters": 2.64,
+    "accuracy": 3.069999933242798,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6278,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:28.124752",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687533,
+      "lng": 17.9850578
+    },
+    "corrected_position": {
+      "lat": 59.368759839828186,
+      "lng": 17.985016107559208
+    },
+    "correction_distance_meters": 2.47,
+    "accuracy": 3.069999933242798,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6279,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:28.383777",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687576,
+      "lng": 17.9850557
+    },
+    "corrected_position": {
+      "lat": 59.36877213935259,
+      "lng": 17.985022813081745
+    },
+    "correction_distance_meters": 2.47,
+    "accuracy": 3.069999933242798,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6280,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:28.902372",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687654,
+      "lng": 17.9850514
+    },
+    "corrected_position": {
+      "lat": 59.36878102233967,
+      "lng": 17.98502549529076
+    },
+    "correction_distance_meters": 2.27,
+    "accuracy": 3.0859999656677246,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6281,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:29.103536",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687687,
+      "lng": 17.9850511
+    },
+    "corrected_position": {
+      "lat": 59.368791955243644,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 2.77,
+    "accuracy": 3.0859999656677246,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6282,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:29.409895",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687738,
+      "lng": 17.9850483
+    },
+    "corrected_position": {
+      "lat": 59.368791955243644,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 2.19,
+    "accuracy": 3.0859999656677246,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6283,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:29.873706",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687801,
+      "lng": 17.9850445
+    },
+    "corrected_position": {
+      "lat": 59.368791955243644,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 1.46,
+    "accuracy": 3.0950000286102295,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6284,
+    "track_id": 35,
+    "track_name": "War Machines hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-15T20:18:30.093117",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687835,
+      "lng": 17.9850449
+    },
+    "corrected_position": {
+      "lat": 59.368791955243644,
+      "lng": 17.985033541917804
+    },
+    "correction_distance_meters": 1.14,
+    "accuracy": 3.0950000286102295,
+    "annotation_notes": ""
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "best_model": "Extra Trees",
+  "test_mae": 0.23014674714817712,
+  "test_rmse": 0.3677720812229824,
+  "test_r2": 0.903913373180544,
+  "hyperparameters": {
+    "n_estimators": 100,
+    "min_samples_split": 2,
+    "max_depth": 15
+  },
+  "feature_names": [
+    "gps_accuracy",
+    "gps_accuracy_squared",
+    "latitude",
+    "longitude",
+    "lat_normalized",
+    "lng_normalized",
+    "track_type_human",
+    "hour_sin",
+    "hour_cos",
+    "weekday_sin",
+    "weekday_cos",
+    "speed_ms",
+    "acceleration_ms2",
+    "distance_prev_1",
+    "distance_prev_2",
+    "distance_prev_3",
+    "bearing_degrees",
+    "rolling_mean_correction",
+    "rolling_std_correction",
+    "accuracy_x_speed",
+    "accuracy_x_distance",
+    "speed_x_distance"
+  ]
+}

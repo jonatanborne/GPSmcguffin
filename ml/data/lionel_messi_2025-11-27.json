@@ -1,0 +1,6690 @@
+[
+  {
+    "id": 6320,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:10.253939",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688517,
+      "lng": 17.9856528
+    },
+    "corrected_position": {
+      "lat": 59.36883705343528,
+      "lng": 17.98547208309174
+    },
+    "correction_distance_meters": 10.37,
+    "accuracy": 17.702999114990234,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6321,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:10.566531",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687937,
+      "lng": 17.9856467
+    },
+    "corrected_position": {
+      "lat": 59.36881484599993,
+      "lng": 17.985488511621952
+    },
+    "correction_distance_meters": 9.27,
+    "accuracy": 21.750999450683594,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6322,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:11.134800",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687816,
+      "lng": 17.9855907
+    },
+    "corrected_position": {
+      "lat": 59.36881023368461,
+      "lng": 17.98549219965935
+    },
+    "correction_distance_meters": 6.42,
+    "accuracy": 19.291000366210938,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6323,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:11.654750",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687775,
+      "lng": 17.9855593
+    },
+    "corrected_position": {
+      "lat": 59.36879878830684,
+      "lng": 17.985501252114776
+    },
+    "correction_distance_meters": 4.05,
+    "accuracy": 16.56599998474121,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6324,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:11.793494",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688087,
+      "lng": 17.9856626
+    },
+    "corrected_position": {
+      "lat": 59.36879263855002,
+      "lng": 17.98550628125668
+    },
+    "correction_distance_meters": 9.03,
+    "accuracy": 20.70400047302246,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6325,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:12.222297",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687765,
+      "lng": 17.9855526
+    },
+    "corrected_position": {
+      "lat": 59.368788880364754,
+      "lng": 17.98550829291344
+    },
+    "correction_distance_meters": 2.86,
+    "accuracy": 15.758000373840332,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6326,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:12.265481",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.36878,
+      "lng": 17.9855364
+    },
+    "corrected_position": {
+      "lat": 59.368784438872524,
+      "lng": 17.985509634017948
+    },
+    "correction_distance_meters": 1.59,
+    "accuracy": 14.835000038146973,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6327,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:12.764563",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687839,
+      "lng": 17.9855263
+    },
+    "corrected_position": {
+      "lat": 59.368779655726414,
+      "lng": 17.98551365733147
+    },
+    "correction_distance_meters": 0.86,
+    "accuracy": 14.130000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6328,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:13.273171",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687934,
+      "lng": 17.9855124
+    },
+    "corrected_position": {
+      "lat": 59.368776239193075,
+      "lng": 17.985516339540485
+    },
+    "correction_distance_meters": 1.92,
+    "accuracy": 13.38700008392334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6329,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:13.422020",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687993,
+      "lng": 17.985503
+    },
+    "corrected_position": {
+      "lat": 59.368770089432175,
+      "lng": 17.985519692301754
+    },
+    "correction_distance_meters": 3.38,
+    "accuracy": 12.760000228881836,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6330,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:13.895722",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688035,
+      "lng": 17.9854963
+    },
+    "corrected_position": {
+      "lat": 59.368766331244416,
+      "lng": 17.985521703958515
+    },
+    "correction_distance_meters": 4.38,
+    "accuracy": 12.267000198364258,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6331,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:14.213247",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688057,
+      "lng": 17.985489
+    },
+    "corrected_position": {
+      "lat": 59.36876257305622,
+      "lng": 17.985525727272037
+    },
+    "correction_distance_meters": 5.23,
+    "accuracy": 11.753999710083008,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6332,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:14.583892",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688086,
+      "lng": 17.9854842
+    },
+    "corrected_position": {
+      "lat": 59.36875539833217,
+      "lng": 17.98553176224232
+    },
+    "correction_distance_meters": 6.5,
+    "accuracy": 11.324000358581543,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6333,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:15.179882",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688099,
+      "lng": 17.985482
+    },
+    "corrected_position": {
+      "lat": 59.36875813156056,
+      "lng": 17.985529080033306
+    },
+    "correction_distance_meters": 6.34,
+    "accuracy": 10.916000366210938,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6334,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:15.375028",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688097,
+      "lng": 17.9854995
+    },
+    "corrected_position": {
+      "lat": 59.36875129848917,
+      "lng": 17.985534444451336
+    },
+    "correction_distance_meters": 6.79,
+    "accuracy": 9.595000267028809,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6335,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:16.156052",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688112,
+      "lng": 17.9855109
+    },
+    "corrected_position": {
+      "lat": 59.36874685699204,
+      "lng": 17.985538467764858
+    },
+    "correction_distance_meters": 7.32,
+    "accuracy": 8.305999755859375,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6336,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:17.127869",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688086,
+      "lng": 17.985516
+    },
+    "corrected_position": {
+      "lat": 59.36874275714802,
+      "lng": 17.985539808869365
+    },
+    "correction_distance_meters": 7.44,
+    "accuracy": 7.044000148773193,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6337,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:17.210911",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688042,
+      "lng": 17.9855173
+    },
+    "corrected_position": {
+      "lat": 59.3687386573035,
+      "lng": 17.985543161630634
+    },
+    "correction_distance_meters": 7.43,
+    "accuracy": 6.895999908447266,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6338,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:17.523569",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368802,
+      "lng": 17.9855192
+    },
+    "corrected_position": {
+      "lat": 59.368736265727314,
+      "lng": 17.985545173287395
+    },
+    "correction_distance_meters": 7.46,
+    "accuracy": 6.201000213623047,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6339,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:17.970415",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688003,
+      "lng": 17.9855221
+    },
+    "corrected_position": {
+      "lat": 59.36873353249714,
+      "lng": 17.985547184944156
+    },
+    "correction_distance_meters": 7.56,
+    "accuracy": 5.915999889373779,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6340,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:18.179329",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687932,
+      "lng": 17.9855258
+    },
+    "corrected_position": {
+      "lat": 59.368729774305336,
+      "lng": 17.985549196600918
+    },
+    "correction_distance_meters": 7.18,
+    "accuracy": 5.829999923706055,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6341,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:18.456972",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687882,
+      "lng": 17.9855294
+    },
+    "corrected_position": {
+      "lat": 59.36872499115151,
+      "lng": 17.985552549362186
+    },
+    "correction_distance_meters": 7.15,
+    "accuracy": 5.53000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6342,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:18.990504",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687836,
+      "lng": 17.9855339
+    },
+    "corrected_position": {
+      "lat": 59.368722257920446,
+      "lng": 17.985555902123455
+    },
+    "correction_distance_meters": 6.93,
+    "accuracy": 5.389999866485596,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6343,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:19.226932",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368776,
+      "lng": 17.9855354
+    },
+    "corrected_position": {
+      "lat": 59.36871986634312,
+      "lng": 17.985557913780216
+    },
+    "correction_distance_meters": 6.37,
+    "accuracy": 5.335000038146973,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6344,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:19.896395",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687655,
+      "lng": 17.9855415
+    },
+    "corrected_position": {
+      "lat": 59.36871867055435,
+      "lng": 17.985559254884723
+    },
+    "correction_distance_meters": 5.3,
+    "accuracy": 5.209000110626221,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6345,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:20.183922",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687624,
+      "lng": 17.9855433
+    },
+    "corrected_position": {
+      "lat": 59.36871713311162,
+      "lng": 17.9855602607131
+    },
+    "correction_distance_meters": 5.12,
+    "accuracy": 5.232999801635742,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6346,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:20.387791",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687553,
+      "lng": 17.9855457
+    },
+    "corrected_position": {
+      "lat": 59.368714741533935,
+      "lng": 17.98556193709374
+    },
+    "correction_distance_meters": 4.6,
+    "accuracy": 5.1539998054504395,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6347,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:21.101583",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687456,
+      "lng": 17.9855523
+    },
+    "corrected_position": {
+      "lat": 59.36871252078302,
+      "lng": 17.985563613474373
+    },
+    "correction_distance_meters": 3.73,
+    "accuracy": 5.10699987411499,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6348,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:21.444647",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687423,
+      "lng": 17.9855537
+    },
+    "corrected_position": {
+      "lat": 59.36871030003201,
+      "lng": 17.985564619302753
+    },
+    "correction_distance_meters": 3.61,
+    "accuracy": 5.078000068664551,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6349,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:21.737800",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687325,
+      "lng": 17.9855642
+    },
+    "corrected_position": {
+      "lat": 59.368708420934865,
+      "lng": 17.985566630959514
+    },
+    "correction_distance_meters": 2.68,
+    "accuracy": 5.058000087738037,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6350,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:22.245796",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687307,
+      "lng": 17.9855675
+    },
+    "corrected_position": {
+      "lat": 59.36870671266464,
+      "lng": 17.985567301511768
+    },
+    "correction_distance_meters": 2.67,
+    "accuracy": 5.02400016784668,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6351,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:22.716457",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687244,
+      "lng": 17.9855757
+    },
+    "corrected_position": {
+      "lat": 59.36870500439432,
+      "lng": 17.98556830734015
+    },
+    "correction_distance_meters": 2.2,
+    "accuracy": 4.995999813079834,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6352,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:23.147439",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368721,
+      "lng": 17.9855824
+    },
+    "corrected_position": {
+      "lat": 59.36870295446983,
+      "lng": 17.98556931316853
+    },
+    "correction_distance_meters": 2.14,
+    "accuracy": 4.974999904632568,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6353,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:23.677009",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687145,
+      "lng": 17.9855875
+    },
+    "corrected_position": {
+      "lat": 59.368701417026415,
+      "lng": 17.985570654273037
+    },
+    "correction_distance_meters": 1.74,
+    "accuracy": 4.965000152587891,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6354,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:24.249285",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687098,
+      "lng": 17.9855923
+    },
+    "corrected_position": {
+      "lat": 59.36869902544758,
+      "lng": 17.98557333648205
+    },
+    "correction_distance_meters": 1.61,
+    "accuracy": 4.928999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6355,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:24.672328",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687041,
+      "lng": 17.985596
+    },
+    "corrected_position": {
+      "lat": 59.368695950560266,
+      "lng": 17.98557434231043
+    },
+    "correction_distance_meters": 1.53,
+    "accuracy": 4.956999778747559,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6356,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:25.237813",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687009,
+      "lng": 17.9856022
+    },
+    "corrected_position": {
+      "lat": 59.368693217326864,
+      "lng": 17.98557668924332
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 4.922999858856201,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6357,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:25.977509",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686947,
+      "lng": 17.9856105
+    },
+    "corrected_position": {
+      "lat": 59.36868894664925,
+      "lng": 17.98557970672846
+    },
+    "correction_distance_meters": 1.86,
+    "accuracy": 4.882999897003174,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6358,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:26.226110",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686905,
+      "lng": 17.9856095
+    },
+    "corrected_position": {
+      "lat": 59.368683651008254,
+      "lng": 17.985584400594238
+    },
+    "correction_distance_meters": 1.61,
+    "accuracy": 4.815999984741211,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6359,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:26.899287",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686822,
+      "lng": 17.985612
+    },
+    "corrected_position": {
+      "lat": 59.36867886784794,
+      "lng": 17.98558741807938
+    },
+    "correction_distance_meters": 1.44,
+    "accuracy": 4.789000034332275,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6360,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:27.247252",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686787,
+      "lng": 17.9856099
+    },
+    "corrected_position": {
+      "lat": 59.368674084686944,
+      "lng": 17.98559110611677
+    },
+    "correction_distance_meters": 1.18,
+    "accuracy": 4.796000003814697,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6361,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:27.347856",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686734,
+      "lng": 17.9856064
+    },
+    "corrected_position": {
+      "lat": 59.36866930152526,
+      "lng": 17.98559479415417
+    },
+    "correction_distance_meters": 0.8,
+    "accuracy": 4.7270002365112305,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6362,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:27.571870",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686717,
+      "lng": 17.9856055
+    },
+    "corrected_position": {
+      "lat": 59.368666055808035,
+      "lng": 17.985598817467693
+    },
+    "correction_distance_meters": 0.73,
+    "accuracy": 4.699999809265137,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6363,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:27.920186",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686608,
+      "lng": 17.9855968
+    },
+    "corrected_position": {
+      "lat": 59.36866110181797,
+      "lng": 17.985601499676708
+    },
+    "correction_distance_meters": 0.27,
+    "accuracy": 4.681000232696533,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6364,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:28.252754",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686598,
+      "lng": 17.985598
+    },
+    "corrected_position": {
+      "lat": 59.36865836858177,
+      "lng": 17.985604852437977
+    },
+    "correction_distance_meters": 0.42,
+    "accuracy": 4.669000148773193,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6365,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:28.421507",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686562,
+      "lng": 17.9856012
+    },
+    "corrected_position": {
+      "lat": 59.368655635345334,
+      "lng": 17.98560854047537
+    },
+    "correction_distance_meters": 0.42,
+    "accuracy": 4.568999767303467,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6366,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:29.514741",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368647,
+      "lng": 17.98561
+    },
+    "corrected_position": {
+      "lat": 59.3686515354903,
+      "lng": 17.985613234341145
+    },
+    "correction_distance_meters": 0.54,
+    "accuracy": 4.482999801635742,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6367,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:29.551105",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686449,
+      "lng": 17.9856126
+    },
+    "corrected_position": {
+      "lat": 59.36864709398009,
+      "lng": 17.985617928206924
+    },
+    "correction_distance_meters": 0.39,
+    "accuracy": 4.38100004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6368,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:30.324801",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686406,
+      "lng": 17.9856187
+    },
+    "corrected_position": {
+      "lat": 59.36864265246931,
+      "lng": 17.985624298453335
+    },
+    "correction_distance_meters": 0.39,
+    "accuracy": 4.334000110626221,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6369,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:30.338989",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368637,
+      "lng": 17.985626
+    },
+    "corrected_position": {
+      "lat": 59.36863769847584,
+      "lng": 17.985628657042984
+    },
+    "correction_distance_meters": 0.17,
+    "accuracy": 4.294000148773193,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6370,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:31.478454",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686258,
+      "lng": 17.9856402
+    },
+    "corrected_position": {
+      "lat": 59.3686339402734,
+      "lng": 17.985632680356506
+    },
+    "correction_distance_meters": 1,
+    "accuracy": 4.130000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6372,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:31.489523",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686304,
+      "lng": 17.9856351
+    },
+    "corrected_position": {
+      "lat": 59.36863103620762,
+      "lng": 17.985636033117775
+    },
+    "correction_distance_meters": 0.09,
+    "accuracy": 4.177000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6371,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:31.489685",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686341,
+      "lng": 17.9856308
+    },
+    "corrected_position": {
+      "lat": 59.368627619659286,
+      "lng": 17.985640726983547
+    },
+    "correction_distance_meters": 0.91,
+    "accuracy": 4.216000080108643,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6373,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:32.044626",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686184,
+      "lng": 17.9856504
+    },
+    "corrected_position": {
+      "lat": 59.368627619659286,
+      "lng": 17.985640726983547
+    },
+    "correction_distance_meters": 1.16,
+    "accuracy": 4.093999862670898,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6374,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:32.188486",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686128,
+      "lng": 17.9856583
+    },
+    "corrected_position": {
+      "lat": 59.368627619659286,
+      "lng": 17.985640726983547
+    },
+    "correction_distance_meters": 1.93,
+    "accuracy": 3.996000051498413,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6375,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:32.598324",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686091,
+      "lng": 17.9856646
+    },
+    "corrected_position": {
+      "lat": 59.368608145327315,
+      "lng": 17.985661514103413
+    },
+    "correction_distance_meters": 0.2,
+    "accuracy": 3.884999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6376,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:32.939920",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686052,
+      "lng": 17.9856725
+    },
+    "corrected_position": {
+      "lat": 59.36860353298389,
+      "lng": 17.98566671088338
+    },
+    "correction_distance_meters": 0.38,
+    "accuracy": 3.8550000190734863,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6377,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:33.705328",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686019,
+      "lng": 17.9856779
+    },
+    "corrected_position": {
+      "lat": 59.36860011643281,
+      "lng": 17.985671572387222
+    },
+    "correction_distance_meters": 0.41,
+    "accuracy": 3.8299999237060547,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6378,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:33.708933",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685986,
+      "lng": 17.985683
+    },
+    "corrected_position": {
+      "lat": 59.36859601657104,
+      "lng": 17.985675428062677
+    },
+    "correction_distance_meters": 0.52,
+    "accuracy": 3.7750000953674316,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6379,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:33.781111",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685947,
+      "lng": 17.9856904
+    },
+    "corrected_position": {
+      "lat": 59.368592172950194,
+      "lng": 17.98567928373814
+    },
+    "correction_distance_meters": 0.69,
+    "accuracy": 3.7780001163482666,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6380,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:34.173272",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685927,
+      "lng": 17.9856943
+    },
+    "corrected_position": {
+      "lat": 59.36858909805321,
+      "lng": 17.985681630671028
+    },
+    "correction_distance_meters": 0.82,
+    "accuracy": 3.805000066757202,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6381,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:34.300775",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685893,
+      "lng": 17.9856965
+    },
+    "corrected_position": {
+      "lat": 59.368585510673014,
+      "lng": 17.9856863245368
+    },
+    "correction_distance_meters": 0.71,
+    "accuracy": 3.806999921798706,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6382,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:34.816796",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685846,
+      "lng": 17.9857027
+    },
+    "corrected_position": {
+      "lat": 59.36858217953395,
+      "lng": 17.985690850764513
+    },
+    "correction_distance_meters": 0.72,
+    "accuracy": 3.822000026702881,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6383,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:35.174063",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685803,
+      "lng": 17.9857102
+    },
+    "corrected_position": {
+      "lat": 59.368577481773166,
+      "lng": 17.985695879906416
+    },
+    "correction_distance_meters": 0.87,
+    "accuracy": 3.8389999866485596,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6384,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:35.667849",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685758,
+      "lng": 17.9857166
+    },
+    "corrected_position": {
+      "lat": 59.36857338190867,
+      "lng": 17.985699065029625
+    },
+    "correction_distance_meters": 1.03,
+    "accuracy": 3.8589999675750732,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6385,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:36.226699",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685731,
+      "lng": 17.9857243
+    },
+    "corrected_position": {
+      "lat": 59.368569709112975,
+      "lng": 17.985702417790893
+    },
+    "correction_distance_meters": 1.3,
+    "accuracy": 3.875999927520752,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6386,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:36.322198",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685712,
+      "lng": 17.9857254
+    },
+    "corrected_position": {
+      "lat": 59.36856671962782,
+      "lng": 17.985704597085718
+    },
+    "correction_distance_meters": 1.28,
+    "accuracy": 3.8959999084472656,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6387,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:36.880866",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685677,
+      "lng": 17.9857323
+    },
+    "corrected_position": {
+      "lat": 59.368564584281096,
+      "lng": 17.985706776380542
+    },
+    "correction_distance_meters": 1.49,
+    "accuracy": 3.9110000133514404,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6388,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:37.234550",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685659,
+      "lng": 17.9857356
+    },
+    "corrected_position": {
+      "lat": 59.368561338553846,
+      "lng": 17.985709290951494
+    },
+    "correction_distance_meters": 1.57,
+    "accuracy": 3.928999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6389,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:37.353133",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685628,
+      "lng": 17.985738
+    },
+    "corrected_position": {
+      "lat": 59.36855894696514,
+      "lng": 17.98571197316051
+    },
+    "correction_distance_meters": 1.54,
+    "accuracy": 3.9739999771118164,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6390,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:37.896057",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685596,
+      "lng": 17.9857455
+    },
+    "corrected_position": {
+      "lat": 59.3685551033401,
+      "lng": 17.98571599647403
+    },
+    "correction_distance_meters": 1.74,
+    "accuracy": 4.01200008392334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6391,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:38.213775",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685586,
+      "lng": 17.9857499
+    },
+    "corrected_position": {
+      "lat": 59.36855262633706,
+      "lng": 17.985718511044983
+    },
+    "correction_distance_meters": 1.9,
+    "accuracy": 4.034999847412109,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6392,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:38.427869",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685551,
+      "lng": 17.9857519
+    },
+    "corrected_position": {
+      "lat": 59.36854878271131,
+      "lng": 17.985722366720438
+    },
+    "correction_distance_meters": 1.81,
+    "accuracy": 4.10699987411499,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6393,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:39.137817",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685511,
+      "lng": 17.9857619
+    },
+    "corrected_position": {
+      "lat": 59.36854417035981,
+      "lng": 17.98572840169072
+    },
+    "correction_distance_meters": 2.05,
+    "accuracy": 4.151000022888184,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6394,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:39.679065",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685401,
+      "lng": 17.9857639
+    },
+    "corrected_position": {
+      "lat": 59.368534945654936,
+      "lng": 17.985737621784214
+    },
+    "correction_distance_meters": 1.6,
+    "accuracy": 4.199999809265137,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6395,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:40.135445",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685372,
+      "lng": 17.9857759
+    },
+    "corrected_position": {
+      "lat": 59.368530674957405,
+      "lng": 17.985742483288053
+    },
+    "correction_distance_meters": 2.03,
+    "accuracy": 4.295000076293945,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6396,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:40.216295",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685376,
+      "lng": 17.985775
+    },
+    "corrected_position": {
+      "lat": 59.36852939374802,
+      "lng": 17.985743153840303
+    },
+    "correction_distance_meters": 2.02,
+    "accuracy": 4.326000213623047,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6397,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:40.545295",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685345,
+      "lng": 17.9857751
+    },
+    "corrected_position": {
+      "lat": 59.36852725839897,
+      "lng": 17.985745500773195
+    },
+    "correction_distance_meters": 1.86,
+    "accuracy": 4.328999996185303,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6398,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:41.056646",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685311,
+      "lng": 17.98578
+    },
+    "corrected_position": {
+      "lat": 59.36852520846375,
+      "lng": 17.985747009515766
+    },
+    "correction_distance_meters": 1.98,
+    "accuracy": 4.355000019073486,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6399,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:41.217914",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685304,
+      "lng": 17.9857807
+    },
+    "corrected_position": {
+      "lat": 59.3685232439424,
+      "lng": 17.985748685896397
+    },
+    "correction_distance_meters": 1.98,
+    "accuracy": 4.374000072479248,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6400,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:41.681767",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685235,
+      "lng": 17.9857858
+    },
+    "corrected_position": {
+      "lat": 59.36851846075944,
+      "lng": 17.985754888504747
+    },
+    "correction_distance_meters": 1.84,
+    "accuracy": 4.400000095367432,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6401,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:42.135146",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685182,
+      "lng": 17.9857906
+    },
+    "corrected_position": {
+      "lat": 59.36851248177983,
+      "lng": 17.985760923475027
+    },
+    "correction_distance_meters": 1.8,
+    "accuracy": 4.438000202178955,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6402,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:43.233692",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685016,
+      "lng": 17.9857984
+    },
+    "corrected_position": {
+      "lat": 59.36850086547355,
+      "lng": 17.98577165231109
+    },
+    "correction_distance_meters": 1.52,
+    "accuracy": 4.447000026702881,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6403,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:43.346039",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684975,
+      "lng": 17.9858005
+    },
+    "corrected_position": {
+      "lat": 59.36849164075689,
+      "lng": 17.98577852547169
+    },
+    "correction_distance_meters": 1.41,
+    "accuracy": 4.423999786376953,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6404,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:44.003363",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684896,
+      "lng": 17.9858089
+    },
+    "corrected_position": {
+      "lat": 59.36848412431927,
+      "lng": 17.985782548785213
+    },
+    "correction_distance_meters": 1.61,
+    "accuracy": 4.439000129699707,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6405,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:44.235281",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368485,
+      "lng": 17.98581
+    },
+    "corrected_position": {
+      "lat": 59.36847660787998,
+      "lng": 17.985784560441974
+    },
+    "correction_distance_meters": 1.72,
+    "accuracy": 4.4070000648498535,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6406,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:44.482739",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684791,
+      "lng": 17.9858142
+    },
+    "corrected_position": {
+      "lat": 59.36847148303405,
+      "lng": 17.985788583755497
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 4.35699987411499,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6407,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:45.025083",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684721,
+      "lng": 17.9858206
+    },
+    "corrected_position": {
+      "lat": 59.36846533321789,
+      "lng": 17.98579126596451
+    },
+    "correction_distance_meters": 1.82,
+    "accuracy": 4.35699987411499,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6408,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:45.239994",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684688,
+      "lng": 17.9858199
+    },
+    "corrected_position": {
+      "lat": 59.36845850008755,
+      "lng": 17.985791936516765
+    },
+    "correction_distance_meters": 1.95,
+    "accuracy": 4.341000080108643,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6409,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:45.642678",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684626,
+      "lng": 17.9858231
+    },
+    "corrected_position": {
+      "lat": 59.36845337523888,
+      "lng": 17.985797300934795
+    },
+    "correction_distance_meters": 1.79,
+    "accuracy": 4.3460001945495605,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6410,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:46.063277",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684521,
+      "lng": 17.9858156
+    },
+    "corrected_position": {
+      "lat": 59.36844756707612,
+      "lng": 17.985798642039303
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 4.46999979019165,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6411,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:46.244741",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684494,
+      "lng": 17.9858122
+    },
+    "corrected_position": {
+      "lat": 59.3684427838825,
+      "lng": 17.985800653696064
+    },
+    "correction_distance_meters": 0.98,
+    "accuracy": 4.5289998054504395,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6412,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:46.636363",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684431,
+      "lng": 17.9858132
+    },
+    "corrected_position": {
+      "lat": 59.3684373173747,
+      "lng": 17.98580333590508
+    },
+    "correction_distance_meters": 0.85,
+    "accuracy": 4.5980000495910645,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6413,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:47.007976",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684386,
+      "lng": 17.9858144
+    },
+    "corrected_position": {
+      "lat": 59.36843287583645,
+      "lng": 17.985806018114094
+    },
+    "correction_distance_meters": 0.79,
+    "accuracy": 4.699999809265137,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6414,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:47.258832",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684372,
+      "lng": 17.9858146
+    },
+    "corrected_position": {
+      "lat": 59.368429117611356,
+      "lng": 17.985809370875362
+    },
+    "correction_distance_meters": 0.95,
+    "accuracy": 4.770999908447266,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6415,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:47.564622",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684298,
+      "lng": 17.9858142
+    },
+    "corrected_position": {
+      "lat": 59.368424334415124,
+      "lng": 17.985809370875362
+    },
+    "correction_distance_meters": 0.67,
+    "accuracy": 4.863999843597412,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6416,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:47.997699",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684233,
+      "lng": 17.9858151
+    },
+    "corrected_position": {
+      "lat": 59.36842057618907,
+      "lng": 17.98581071197987
+    },
+    "correction_distance_meters": 0.39,
+    "accuracy": 4.915999889373779,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6417,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:48.261350",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684209,
+      "lng": 17.9858154
+    },
+    "corrected_position": {
+      "lat": 59.36841647630561,
+      "lng": 17.985814064741138
+    },
+    "correction_distance_meters": 0.5,
+    "accuracy": 4.965000152587891,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6418,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:48.580923",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684113,
+      "lng": 17.9858097
+    },
+    "corrected_position": {
+      "lat": 59.36841100979359,
+      "lng": 17.985815405845646
+    },
+    "correction_distance_meters": 0.32,
+    "accuracy": 5.114999771118164,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6419,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:48.937382",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684054,
+      "lng": 17.9858083
+    },
+    "corrected_position": {
+      "lat": 59.368405543280645,
+      "lng": 17.985820770263675
+    },
+    "correction_distance_meters": 0.71,
+    "accuracy": 5.133999824523926,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6420,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:49.253300",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368402,
+      "lng": 17.9858078
+    },
+    "corrected_position": {
+      "lat": 59.3683997351097,
+      "lng": 17.985822781920437
+    },
+    "correction_distance_meters": 0.89,
+    "accuracy": 5.199999809265137,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6421,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:49.503851",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683951,
+      "lng": 17.9858033
+    },
+    "corrected_position": {
+      "lat": 59.368393585280565,
+      "lng": 17.985824793577198
+    },
+    "correction_distance_meters": 1.23,
+    "accuracy": 5.340000152587891,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6422,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:49.938246",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683891,
+      "lng": 17.9858009
+    },
+    "corrected_position": {
+      "lat": 59.36838743545031,
+      "lng": 17.98582680523396
+    },
+    "correction_distance_meters": 1.48,
+    "accuracy": 5.326000213623047,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6423,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:50.257553",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683861,
+      "lng": 17.9858
+    },
+    "corrected_position": {
+      "lat": 59.368382310590896,
+      "lng": 17.98583082854748
+    },
+    "correction_distance_meters": 1.8,
+    "accuracy": 5.380000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6424,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:50.405620",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683806,
+      "lng": 17.9857963
+    },
+    "corrected_position": {
+      "lat": 59.36837786904544,
+      "lng": 17.985831499099735
+    },
+    "correction_distance_meters": 2.02,
+    "accuracy": 5.39300012588501,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6425,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:51.234825",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683704,
+      "lng": 17.9857939
+    },
+    "corrected_position": {
+      "lat": 59.368372744184605,
+      "lng": 17.985833510756496
+    },
+    "correction_distance_meters": 2.26,
+    "accuracy": 5.390999794006348,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6426,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:51.385736",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683652,
+      "lng": 17.9857931
+    },
+    "corrected_position": {
+      "lat": 59.36836796098045,
+      "lng": 17.985835522413257
+    },
+    "correction_distance_meters": 2.42,
+    "accuracy": 5.309999942779541,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6427,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:51.942594",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683574,
+      "lng": 17.9857922
+    },
+    "corrected_position": {
+      "lat": 59.368361469488015,
+      "lng": 17.985838204622272
+    },
+    "correction_distance_meters": 2.65,
+    "accuracy": 5.223999977111816,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6428,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:52.225297",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683496,
+      "lng": 17.9857909
+    },
+    "corrected_position": {
+      "lat": 59.368353269706326,
+      "lng": 17.985844239592556
+    },
+    "correction_distance_meters": 3.05,
+    "accuracy": 5.0879998207092285,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6429,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:52.354364",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683486,
+      "lng": 17.9857914
+    },
+    "corrected_position": {
+      "lat": 59.36834609489571,
+      "lng": 17.985850945115093
+    },
+    "correction_distance_meters": 3.39,
+    "accuracy": 4.9730000495910645,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6430,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:52.838428",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683435,
+      "lng": 17.9857905
+    },
+    "corrected_position": {
+      "lat": 59.36834131168779,
+      "lng": 17.985848933458332
+    },
+    "correction_distance_meters": 3.32,
+    "accuracy": 4.889999866485596,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6431,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:53.196410",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683394,
+      "lng": 17.9857924
+    },
+    "corrected_position": {
+      "lat": 59.36833618682144,
+      "lng": 17.985850945115093
+    },
+    "correction_distance_meters": 3.34,
+    "accuracy": 4.761000156402588,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6432,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:53.305979",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683367,
+      "lng": 17.9857933
+    },
+    "corrected_position": {
+      "lat": 59.368331403612125,
+      "lng": 17.98585563898087
+    },
+    "correction_distance_meters": 3.58,
+    "accuracy": 4.63100004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6433,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:53.905508",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683293,
+      "lng": 17.985793
+    },
+    "corrected_position": {
+      "lat": 59.36832525377059,
+      "lng": 17.985856309533123
+    },
+    "correction_distance_meters": 3.61,
+    "accuracy": 4.552000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6434,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:54.257717",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683254,
+      "lng": 17.9857927
+    },
+    "corrected_position": {
+      "lat": 59.36832115387561,
+      "lng": 17.985858321189884
+    },
+    "correction_distance_meters": 3.75,
+    "accuracy": 4.4670000076293945,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6435,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:54.381223",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683222,
+      "lng": 17.9857948
+    },
+    "corrected_position": {
+      "lat": 59.368317737296096,
+      "lng": 17.9858610033989
+    },
+    "correction_distance_meters": 3.78,
+    "accuracy": 4.357999801635742,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6436,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:54.914143",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683163,
+      "lng": 17.9857959
+    },
+    "corrected_position": {
+      "lat": 59.36831329574219,
+      "lng": 17.9858610033989
+    },
+    "correction_distance_meters": 3.7,
+    "accuracy": 4.2820000648498535,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6437,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:55.243206",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683126,
+      "lng": 17.9857967
+    },
+    "corrected_position": {
+      "lat": 59.36830919584579,
+      "lng": 17.985864356160167
+    },
+    "correction_distance_meters": 3.85,
+    "accuracy": 4.214000225067139,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6438,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:55.320861",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683106,
+      "lng": 17.9858
+    },
+    "corrected_position": {
+      "lat": 59.36830475429076,
+      "lng": 17.985865697264675
+    },
+    "correction_distance_meters": 3.78,
+    "accuracy": 4.118000030517578,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6439,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:56.177046",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368301,
+      "lng": 17.9858198
+    },
+    "corrected_position": {
+      "lat": 59.368300996051474,
+      "lng": 17.985867708921436
+    },
+    "correction_distance_meters": 2.71,
+    "accuracy": 4.004000186920166,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6440,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:56.219594",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682995,
+      "lng": 17.9858254
+    },
+    "corrected_position": {
+      "lat": 59.368297579469896,
+      "lng": 17.98586938530207
+    },
+    "correction_distance_meters": 2.5,
+    "accuracy": 3.865000009536743,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6441,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:56.815908",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682933,
+      "lng": 17.9858306
+    },
+    "corrected_position": {
+      "lat": 59.36829467537531,
+      "lng": 17.98587039113045
+    },
+    "correction_distance_meters": 2.26,
+    "accuracy": 3.7839999198913574,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6442,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:57.242618",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368289,
+      "lng": 17.9858374
+    },
+    "corrected_position": {
+      "lat": 59.36829160045135,
+      "lng": 17.98587273806334
+    },
+    "correction_distance_meters": 2.02,
+    "accuracy": 3.691999912261963,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6443,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:57.317867",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682867,
+      "lng": 17.9858403
+    },
+    "corrected_position": {
+      "lat": 59.36828784221059,
+      "lng": 17.98587575554848
+    },
+    "correction_distance_meters": 2.01,
+    "accuracy": 3.5950000286102295,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6444,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:57.861145",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368281,
+      "lng": 17.9858435
+    },
+    "corrected_position": {
+      "lat": 59.368284425627714,
+      "lng": 17.98587810248137
+    },
+    "correction_distance_meters": 2,
+    "accuracy": 3.4830000400543213,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6445,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:58.226946",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682779,
+      "lng": 17.9858492
+    },
+    "corrected_position": {
+      "lat": 59.368279813240285,
+      "lng": 17.985880784690384
+    },
+    "correction_distance_meters": 1.8,
+    "accuracy": 3.4509999752044678,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6446,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:58.228016",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682767,
+      "lng": 17.9858516
+    },
+    "corrected_position": {
+      "lat": 59.36827759246093,
+      "lng": 17.985881455242634
+    },
+    "correction_distance_meters": 1.69,
+    "accuracy": 3.4079999923706055,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6447,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:59.013610",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682668,
+      "lng": 17.9858581
+    },
+    "corrected_position": {
+      "lat": 59.36827024680509,
+      "lng": 17.9858834668994
+    },
+    "correction_distance_meters": 1.49,
+    "accuracy": 3.3239998817443848,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6448,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:59.207793",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682645,
+      "lng": 17.9858607
+    },
+    "corrected_position": {
+      "lat": 59.36826529275724,
+      "lng": 17.985885478556156
+    },
+    "correction_distance_meters": 1.41,
+    "accuracy": 3.302000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6449,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:32:59.704422",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682575,
+      "lng": 17.9858652
+    },
+    "corrected_position": {
+      "lat": 59.36825880124516,
+      "lng": 17.985887154936794
+    },
+    "correction_distance_meters": 1.25,
+    "accuracy": 3.196000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6450,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:00.243114",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368252,
+      "lng": 17.9858689
+    },
+    "corrected_position": {
+      "lat": 59.368252651390456,
+      "lng": 17.985891178250316
+    },
+    "correction_distance_meters": 1.26,
+    "accuracy": 3.1419999599456787,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6451,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:00.724309",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682443,
+      "lng": 17.9858762
+    },
+    "corrected_position": {
+      "lat": 59.36824462241183,
+      "lng": 17.985895872116092
+    },
+    "correction_distance_meters": 1.12,
+    "accuracy": 3.0250000953674316,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6452,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:01.235561",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682395,
+      "lng": 17.9858818
+    },
+    "corrected_position": {
+      "lat": 59.36823983918961,
+      "lng": 17.985898554325107
+    },
+    "correction_distance_meters": 0.95,
+    "accuracy": 3.052000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6453,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:01.344942",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682359,
+      "lng": 17.9858868
+    },
+    "corrected_position": {
+      "lat": 59.36823471430791,
+      "lng": 17.98590056598187
+    },
+    "correction_distance_meters": 0.79,
+    "accuracy": 3.0739998817443848,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6454,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:01.711792",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368231,
+      "lng": 17.9858928
+    },
+    "corrected_position": {
+      "lat": 59.36823010191372,
+      "lng": 17.98590257763863
+    },
+    "correction_distance_meters": 0.56,
+    "accuracy": 3.0989999771118164,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6455,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:02.168789",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682261,
+      "lng": 17.9858985
+    },
+    "corrected_position": {
+      "lat": 59.36822548951892,
+      "lng": 17.985904254019264
+    },
+    "correction_distance_meters": 0.33,
+    "accuracy": 3.138000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6458,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:03.663010",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368205,
+      "lng": 17.985914
+    },
+    "corrected_position": {
+      "lat": 59.36820328168322,
+      "lng": 17.985908947885036
+    },
+    "correction_distance_meters": 0.34,
+    "accuracy": 3.2890000343322754,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6459,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:04.111213",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681997,
+      "lng": 17.9859169
+    },
+    "corrected_position": {
+      "lat": 59.368198156796026,
+      "lng": 17.985910624265674
+    },
+    "correction_distance_meters": 0.39,
+    "accuracy": 3.3580000400543213,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6460,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:04.345462",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681972,
+      "lng": 17.9859176
+    },
+    "corrected_position": {
+      "lat": 59.368193886056076,
+      "lng": 17.98591163009405
+    },
+    "correction_distance_meters": 0.5,
+    "accuracy": 3.3940000534057617,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6461,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:04.579489",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681862,
+      "lng": 17.9859223
+    },
+    "corrected_position": {
+      "lat": 59.36818466125596,
+      "lng": 17.98591297119856
+    },
+    "correction_distance_meters": 0.56,
+    "accuracy": 3.4509999752044678,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6462,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:05.105565",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681827,
+      "lng": 17.9859224
+    },
+    "corrected_position": {
+      "lat": 59.368179536365936,
+      "lng": 17.985913641750816
+    },
+    "correction_distance_meters": 0.61,
+    "accuracy": 3.5209999084472656,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6463,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:05.689355",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368176,
+      "lng": 17.9859197
+    },
+    "corrected_position": {
+      "lat": 59.36817406981572,
+      "lng": 17.985914312303066
+    },
+    "correction_distance_meters": 0.37,
+    "accuracy": 3.572000026702881,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6465,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:06.622835",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368164,
+      "lng": 17.9859128
+    },
+    "corrected_position": {
+      "lat": 59.36816279505311,
+      "lng": 17.985915653407577
+    },
+    "correction_distance_meters": 0.21,
+    "accuracy": 3.6679999828338623,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6466,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:07.173356",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681552,
+      "lng": 17.9859084
+    },
+    "corrected_position": {
+      "lat": 59.36815374107435,
+      "lng": 17.985919006168842
+    },
+    "correction_distance_meters": 0.62,
+    "accuracy": 3.6600000858306885,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6467,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:07.537360",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681494,
+      "lng": 17.9859057
+    },
+    "corrected_position": {
+      "lat": 59.36814827451996,
+      "lng": 17.98592034727335
+    },
+    "correction_distance_meters": 0.84,
+    "accuracy": 3.690999984741211,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6468,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:08.155176",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681359,
+      "lng": 17.9859065
+    },
+    "corrected_position": {
+      "lat": 59.36813512061989,
+      "lng": 17.985922023653988
+    },
+    "correction_distance_meters": 0.88,
+    "accuracy": 3.6549999713897705,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6469,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:08.244570",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681323,
+      "lng": 17.9859072
+    },
+    "corrected_position": {
+      "lat": 59.36812811659308,
+      "lng": 17.985924370586872
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 3.621999979019165,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6470,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:09.092950",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681196,
+      "lng": 17.9859038
+    },
+    "corrected_position": {
+      "lat": 59.368119916755006,
+      "lng": 17.98592571169138
+    },
+    "correction_distance_meters": 1.24,
+    "accuracy": 3.569999933242798,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6471,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:09.798549",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681181,
+      "lng": 17.9859034
+    },
+    "corrected_position": {
+      "lat": 59.36811598766523,
+      "lng": 17.985926382243637
+    },
+    "correction_distance_meters": 1.32,
+    "accuracy": 3.500999927520752,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6472,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:09.844339",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681108,
+      "lng": 17.985906
+    },
+    "corrected_position": {
+      "lat": 59.36811035027472,
+      "lng": 17.985928729176525
+    },
+    "correction_distance_meters": 1.29,
+    "accuracy": 3.4539999961853027,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6473,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:10.026905",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681032,
+      "lng": 17.9859066
+    },
+    "corrected_position": {
+      "lat": 59.3681030045827,
+      "lng": 17.985930740833286
+    },
+    "correction_distance_meters": 1.37,
+    "accuracy": 3.3889999389648438,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6474,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:10.217790",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681004,
+      "lng": 17.9859105
+    },
+    "corrected_position": {
+      "lat": 59.36809890466085,
+      "lng": 17.985930740833286
+    },
+    "correction_distance_meters": 1.16,
+    "accuracy": 3.309000015258789,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6475,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:10.528110",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680941,
+      "lng": 17.9859129
+    },
+    "corrected_position": {
+      "lat": 59.368094633908434,
+      "lng": 17.98593040555716
+    },
+    "correction_distance_meters": 0.99,
+    "accuracy": 3.260999917984009,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6476,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:10.886744",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680889,
+      "lng": 17.9859139
+    },
+    "corrected_position": {
+      "lat": 59.368090021495185,
+      "lng": 17.985932752490047
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 3.194999933242798,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6477,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:11.253368",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680855,
+      "lng": 17.9859163
+    },
+    "corrected_position": {
+      "lat": 59.36808557991149,
+      "lng": 17.985934093594555
+    },
+    "correction_distance_meters": 1.01,
+    "accuracy": 3.180999994277954,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6478,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:11.307866",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680835,
+      "lng": 17.9859176
+    },
+    "corrected_position": {
+      "lat": 59.368083529949566,
+      "lng": 17.985934093594555
+    },
+    "correction_distance_meters": 0.93,
+    "accuracy": 3.1080000400543213,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6479,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:11.599372",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680826,
+      "lng": 17.985918
+    },
+    "corrected_position": {
+      "lat": 59.3680804550065,
+      "lng": 17.98593509942293
+    },
+    "correction_distance_meters": 1,
+    "accuracy": 3.1010000705718994,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6480,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:11.850900",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680733,
+      "lng": 17.9859179
+    },
+    "corrected_position": {
+      "lat": 59.36807242598709,
+      "lng": 17.98593644052744
+    },
+    "correction_distance_meters": 1.05,
+    "accuracy": 3.055999994277954,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6481,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:12.248577",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368071,
+      "lng": 17.985918
+    },
+    "corrected_position": {
+      "lat": 59.36807003436393,
+      "lng": 17.985937111079696
+    },
+    "correction_distance_meters": 1.09,
+    "accuracy": 3.052000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6482,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:12.305599",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680692,
+      "lng": 17.9859178
+    },
+    "corrected_position": {
+      "lat": 59.368067301080096,
+      "lng": 17.98593778163195
+    },
+    "correction_distance_meters": 1.15,
+    "accuracy": 3.0329999923706055,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6483,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:12.724663",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680633,
+      "lng": 17.9859173
+    },
+    "corrected_position": {
+      "lat": 59.368063371984235,
+      "lng": 17.98593878746033
+    },
+    "correction_distance_meters": 1.22,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6484,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:13.290465",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680579,
+      "lng": 17.9859201
+    },
+    "corrected_position": {
+      "lat": 59.36805910122732,
+      "lng": 17.985939122736458
+    },
+    "correction_distance_meters": 1.09,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6485,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:13.332523",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680555,
+      "lng": 17.9859214
+    },
+    "corrected_position": {
+      "lat": 59.36805602628201,
+      "lng": 17.985940799117092
+    },
+    "correction_distance_meters": 1.1,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6486,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:13.571516",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680514,
+      "lng": 17.9859223
+    },
+    "corrected_position": {
+      "lat": 59.36805192635452,
+      "lng": 17.985941134393215
+    },
+    "correction_distance_meters": 1.07,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6487,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:14.238755",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680429,
+      "lng": 17.9859239
+    },
+    "corrected_position": {
+      "lat": 59.36804628895337,
+      "lng": 17.98594415187836
+    },
+    "correction_distance_meters": 1.21,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6488,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:14.659762",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680377,
+      "lng": 17.9859278
+    },
+    "corrected_position": {
+      "lat": 59.36803945573863,
+      "lng": 17.985945492982868
+    },
+    "correction_distance_meters": 1.02,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6489,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:15.223188",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680313,
+      "lng": 17.9859303
+    },
+    "corrected_position": {
+      "lat": 59.36803159753997,
+      "lng": 17.985946498811245
+    },
+    "correction_distance_meters": 0.92,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6490,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:15.675264",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680254,
+      "lng": 17.9859356
+    },
+    "corrected_position": {
+      "lat": 59.36802391016994,
+      "lng": 17.985946834087375
+    },
+    "correction_distance_meters": 0.66,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6491,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:16.238464",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680193,
+      "lng": 17.9859386
+    },
+    "corrected_position": {
+      "lat": 59.3680191269166,
+      "lng": 17.98594918102026
+    },
+    "correction_distance_meters": 0.6,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6492,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:16.288420",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680161,
+      "lng": 17.9859423
+    },
+    "corrected_position": {
+      "lat": 59.36801571030667,
+      "lng": 17.985952533781532
+    },
+    "correction_distance_meters": 0.58,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6493,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:17.250515",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679996,
+      "lng": 17.985958
+    },
+    "corrected_position": {
+      "lat": 59.368009218746835,
+      "lng": 17.98596024513245
+    },
+    "correction_distance_meters": 1.08,
+    "accuracy": 2.9230000972747803,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6494,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:18.257867",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679901,
+      "lng": 17.9859661
+    },
+    "corrected_position": {
+      "lat": 59.36799435648675,
+      "lng": 17.98598371446133
+    },
+    "correction_distance_meters": 1.1,
+    "accuracy": 2.818000078201294,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6495,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:19.244676",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679769,
+      "lng": 17.9859737
+    },
+    "corrected_position": {
+      "lat": 59.36798342332576,
+      "lng": 17.986000478267673
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 2.7219998836517334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6496,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:20.424546",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679639,
+      "lng": 17.9859908
+    },
+    "corrected_position": {
+      "lat": 59.36797573594481,
+      "lng": 17.98601355403662
+    },
+    "correction_distance_meters": 1.84,
+    "accuracy": 2.625,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6497,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:21.279930",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679533,
+      "lng": 17.9860083
+    },
+    "corrected_position": {
+      "lat": 59.36796189865476,
+      "lng": 17.98603232949972
+    },
+    "correction_distance_meters": 1.66,
+    "accuracy": 2.5,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6498,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:22.700741",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679427,
+      "lng": 17.9860265
+    },
+    "corrected_position": {
+      "lat": 59.36795045299079,
+      "lng": 17.98604674637318
+    },
+    "correction_distance_meters": 1.43,
+    "accuracy": 2.3329999446868896,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6499,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:23.216312",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679347,
+      "lng": 17.9860463
+    },
+    "corrected_position": {
+      "lat": 59.3679388364921,
+      "lng": 17.986059486866
+    },
+    "correction_distance_meters": 0.88,
+    "accuracy": 2.4159998893737793,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6500,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:24.305186",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679267,
+      "lng": 17.9860662
+    },
+    "corrected_position": {
+      "lat": 59.367927732482244,
+      "lng": 17.986072897911075
+    },
+    "correction_distance_meters": 0.4,
+    "accuracy": 2.5,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6501,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:25.248934",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679182,
+      "lng": 17.9860828
+    },
+    "corrected_position": {
+      "lat": 59.36791833677879,
+      "lng": 17.98608597368002
+    },
+    "correction_distance_meters": 0.18,
+    "accuracy": 2.5,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6502,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:26.217208",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.367907,
+      "lng": 17.9860985
+    },
+    "corrected_position": {
+      "lat": 59.36791833677879,
+      "lng": 17.98608597368002
+    },
+    "correction_distance_meters": 1.45,
+    "accuracy": 2.5,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6503,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:27.264027",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3678966,
+      "lng": 17.9861121
+    },
+    "corrected_position": {
+      "lat": 59.36791833677879,
+      "lng": 17.98608597368002
+    },
+    "correction_distance_meters": 2.83,
+    "accuracy": 2.5,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6504,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:28.274482",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3678844,
+      "lng": 17.9861235
+    },
+    "corrected_position": {
+      "lat": 59.36791833677879,
+      "lng": 17.98608597368002
+    },
+    "correction_distance_meters": 4.33,
+    "accuracy": 2.5,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6505,
+    "track_id": 37,
+    "track_name": "Lionel Messi",
+    "track_type": "human",
+    "timestamp": "2025-11-17T10:33:29.385952",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3678752,
+      "lng": 17.9861378
+    },
+    "corrected_position": {
+      "lat": 59.36791833677879,
+      "lng": 17.98608597368002
+    },
+    "correction_distance_meters": 5.62,
+    "accuracy": 2.4159998893737793,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6506,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:40.555714",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687539,
+      "lng": 17.9857751
+    },
+    "corrected_position": {
+      "lat": 59.36870175868051,
+      "lng": 17.98557132482529
+    },
+    "correction_distance_meters": 12.92,
+    "accuracy": 21.45599937438965,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6507,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:44.188475",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368722,
+      "lng": 17.9857058
+    },
+    "corrected_position": {
+      "lat": 59.368694242289415,
+      "lng": 17.98557467758656
+    },
+    "correction_distance_meters": 8.04,
+    "accuracy": 29.440000534057617,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6508,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:44.535321",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368717,
+      "lng": 17.9856946
+    },
+    "corrected_position": {
+      "lat": 59.36868980078482,
+      "lng": 17.985579371452335
+    },
+    "correction_distance_meters": 7.19,
+    "accuracy": 29.468000411987305,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6509,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:45.137307",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687168,
+      "lng": 17.9857227
+    },
+    "corrected_position": {
+      "lat": 59.36868296769966,
+      "lng": 17.98558406531811
+    },
+    "correction_distance_meters": 8.71,
+    "accuracy": 29.506000518798828,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6510,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:45.683445",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686879,
+      "lng": 17.9856356
+    },
+    "corrected_position": {
+      "lat": 59.368678184539256,
+      "lng": 17.985588088631633
+    },
+    "correction_distance_meters": 2.9,
+    "accuracy": 24.74799919128418,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6511,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:46.173882",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686788,
+      "lng": 17.9856245
+    },
+    "corrected_position": {
+      "lat": 59.36867169310618,
+      "lng": 17.985593453049663
+    },
+    "correction_distance_meters": 1.93,
+    "accuracy": 21.610000610351562,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6512,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:46.633460",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686747,
+      "lng": 17.9856156
+    },
+    "corrected_position": {
+      "lat": 59.36866827656195,
+      "lng": 17.985596805810932
+    },
+    "correction_distance_meters": 1.28,
+    "accuracy": 18.072999954223633,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6513,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:46.748839",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686832,
+      "lng": 17.9856526
+    },
+    "corrected_position": {
+      "lat": 59.368663835053944,
+      "lng": 17.985599488019947
+    },
+    "correction_distance_meters": 3.7,
+    "accuracy": 16.983999252319336,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6514,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:47.171806",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686777,
+      "lng": 17.9856496
+    },
+    "corrected_position": {
+      "lat": 59.368659735199905,
+      "lng": 17.985604181885723
+    },
+    "correction_distance_meters": 3.26,
+    "accuracy": 15.977999687194824,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6515,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:47.295470",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686761,
+      "lng": 17.9856473
+    },
+    "corrected_position": {
+      "lat": 59.368655635345334,
+      "lng": 17.98560753464699
+    },
+    "correction_distance_meters": 3.2,
+    "accuracy": 15.187000274658203,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6516,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:47.786264",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686751,
+      "lng": 17.985651
+    },
+    "corrected_position": {
+      "lat": 59.368652218799504,
+      "lng": 17.985611557960514
+    },
+    "correction_distance_meters": 3.39,
+    "accuracy": 14.607000350952148,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6517,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:48.197621",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686679,
+      "lng": 17.9856523
+    },
+    "corrected_position": {
+      "lat": 59.368648460598685,
+      "lng": 17.985613569617275
+    },
+    "correction_distance_meters": 3.08,
+    "accuracy": 14.031000137329102,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6518,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:48.305226",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686657,
+      "lng": 17.9856486
+    },
+    "corrected_position": {
+      "lat": 59.36864436074276,
+      "lng": 17.98561826348305
+    },
+    "correction_distance_meters": 2.93,
+    "accuracy": 13.57699966430664,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6519,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:48.795975",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686627,
+      "lng": 17.9856497
+    },
+    "corrected_position": {
+      "lat": 59.368641285850515,
+      "lng": 17.98562362790108
+    },
+    "correction_distance_meters": 2.8,
+    "accuracy": 13.248000144958496,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6520,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:49.200037",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686547,
+      "lng": 17.9856503
+    },
+    "corrected_position": {
+      "lat": 59.368641285850515,
+      "lng": 17.98562362790108
+    },
+    "correction_distance_meters": 2.12,
+    "accuracy": 12.873000144958496,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6521,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:49.338453",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686518,
+      "lng": 17.9856468
+    },
+    "corrected_position": {
+      "lat": 59.36863923592216,
+      "lng": 17.98562698066235
+    },
+    "correction_distance_meters": 1.79,
+    "accuracy": 11.456999778747559,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6522,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:49.798779",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686473,
+      "lng": 17.9856465
+    },
+    "corrected_position": {
+      "lat": 59.36863684433897,
+      "lng": 17.985629662871364
+    },
+    "correction_distance_meters": 1.5,
+    "accuracy": 10.138999938964844,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6523,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:50.175266",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686431,
+      "lng": 17.9856452
+    },
+    "corrected_position": {
+      "lat": 59.36863479441036,
+      "lng": 17.985631674528126
+    },
+    "correction_distance_meters": 1.2,
+    "accuracy": 10.081999778747559,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6524,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:50.311924",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686369,
+      "lng": 17.9856432
+    },
+    "corrected_position": {
+      "lat": 59.368632402826826,
+      "lng": 17.98563435673714
+    },
+    "correction_distance_meters": 0.71,
+    "accuracy": 8.621999740600586,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6525,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:50.709391",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686302,
+      "lng": 17.9856441
+    },
+    "corrected_position": {
+      "lat": 59.36862727800443,
+      "lng": 17.985637038946155
+    },
+    "correction_distance_meters": 0.52,
+    "accuracy": 8.472000122070312,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6526,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:51.158411",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686191,
+      "lng": 17.9856476
+    },
+    "corrected_position": {
+      "lat": 59.36862727800443,
+      "lng": 17.985637038946155
+    },
+    "correction_distance_meters": 1.09,
+    "accuracy": 8.279000282287598,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6527,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:51.320803",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686149,
+      "lng": 17.9856482
+    },
+    "corrected_position": {
+      "lat": 59.36861497842754,
+      "lng": 17.98565346747637
+    },
+    "correction_distance_meters": 0.3,
+    "accuracy": 8.097999572753906,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6528,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:51.826175",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686079,
+      "lng": 17.9856513
+    },
+    "corrected_position": {
+      "lat": 59.36860857239612,
+      "lng": 17.985660508275036
+    },
+    "correction_distance_meters": 0.53,
+    "accuracy": 7.936999797821045,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6529,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:52.201728",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686028,
+      "lng": 17.9856514
+    },
+    "corrected_position": {
+      "lat": 59.36860387463897,
+      "lng": 17.985666040331125
+    },
+    "correction_distance_meters": 0.84,
+    "accuracy": 7.879000186920166,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6530,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:52.715352",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685932,
+      "lng": 17.9856542
+    },
+    "corrected_position": {
+      "lat": 59.36860020184658,
+      "lng": 17.985671404749155
+    },
+    "correction_distance_meters": 1.25,
+    "accuracy": 7.73799991607666,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6531,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:53.193957",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685865,
+      "lng": 17.9856584
+    },
+    "corrected_position": {
+      "lat": 59.368596272812425,
+      "lng": 17.985675763338808
+    },
+    "correction_distance_meters": 1.47,
+    "accuracy": 7.4670000076293945,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6532,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:53.628837",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.36858,
+      "lng": 17.9856579
+    },
+    "corrected_position": {
+      "lat": 59.3685863648112,
+      "lng": 17.98568481579423
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 7.113999843597412,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6533,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:54.096486",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685739,
+      "lng": 17.985656
+    },
+    "corrected_position": {
+      "lat": 59.36858038584355,
+      "lng": 17.985692359507087
+    },
+    "correction_distance_meters": 2.18,
+    "accuracy": 6.888999938964844,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6534,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:54.560319",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368568,
+      "lng": 17.9856583
+    },
+    "corrected_position": {
+      "lat": 59.368574833944066,
+      "lng": 17.98569738864899
+    },
+    "correction_distance_meters": 2.34,
+    "accuracy": 6.511000156402588,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6535,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:54.970549",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685621,
+      "lng": 17.9856578
+    },
+    "corrected_position": {
+      "lat": 59.368570307009975,
+      "lng": 17.985701411962513
+    },
+    "correction_distance_meters": 2.63,
+    "accuracy": 6.2870001792907715,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6536,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:55.205447",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685597,
+      "lng": 17.9856615
+    },
+    "corrected_position": {
+      "lat": 59.36856731752488,
+      "lng": 17.9857037588954
+    },
+    "correction_distance_meters": 2.54,
+    "accuracy": 6.00600004196167,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6537,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:55.438050",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368556,
+      "lng": 17.9856623
+    },
+    "corrected_position": {
+      "lat": 59.368564498867244,
+      "lng": 17.98570627346635
+    },
+    "correction_distance_meters": 2.66,
+    "accuracy": 5.85099983215332,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6538,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:56.174130",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685462,
+      "lng": 17.9856694
+    },
+    "corrected_position": {
+      "lat": 59.368554163787245,
+      "lng": 17.985716499388218
+    },
+    "correction_distance_meters": 2.81,
+    "accuracy": 5.625,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6539,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:56.415474",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685424,
+      "lng": 17.9856703
+    },
+    "corrected_position": {
+      "lat": 59.36855125971462,
+      "lng": 17.985719684511423
+    },
+    "correction_distance_meters": 2.97,
+    "accuracy": 5.571000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6540,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:56.948365",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685357,
+      "lng": 17.98567
+    },
+    "corrected_position": {
+      "lat": 59.36854314539271,
+      "lng": 17.98572957515717
+    },
+    "correction_distance_meters": 3.48,
+    "accuracy": 5.513000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6541,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:57.179695",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685381,
+      "lng": 17.9856937
+    },
+    "corrected_position": {
+      "lat": 59.36854203501168,
+      "lng": 17.985730245709423
+    },
+    "correction_distance_meters": 2.12,
+    "accuracy": 5.269000053405762,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6542,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:57.377662",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685373,
+      "lng": 17.9857044
+    },
+    "corrected_position": {
+      "lat": 59.36854032673309,
+      "lng": 17.985731251537803
+    },
+    "correction_distance_meters": 1.56,
+    "accuracy": 5.164999961853027,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6543,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:57.592919",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685369,
+      "lng": 17.9857152
+    },
+    "corrected_position": {
+      "lat": 59.36853887469622,
+      "lng": 17.985732760280374
+    },
+    "correction_distance_meters": 1.02,
+    "accuracy": 5.085000038146973,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6544,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:57.739231",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685304,
+      "lng": 17.9857094
+    },
+    "corrected_position": {
+      "lat": 59.3685354581386,
+      "lng": 17.985736615955833
+    },
+    "correction_distance_meters": 1.64,
+    "accuracy": 4.961999893188477,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6545,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:58.207409",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685303,
+      "lng": 17.985709
+    },
+    "corrected_position": {
+      "lat": 59.36853417692942,
+      "lng": 17.98573745414615
+    },
+    "correction_distance_meters": 1.67,
+    "accuracy": 4.895999908447266,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6546,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:58.301291",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685303,
+      "lng": 17.985709
+    },
+    "corrected_position": {
+      "lat": 59.36853178533881,
+      "lng": 17.98574080690742
+    },
+    "correction_distance_meters": 1.81,
+    "accuracy": 4.829999923706055,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6547,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:58.769432",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685263,
+      "lng": 17.9857106
+    },
+    "corrected_position": {
+      "lat": 59.36852982081781,
+      "lng": 17.98574231564999
+    },
+    "correction_distance_meters": 1.84,
+    "accuracy": 4.756999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6548,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:59.239607",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685231,
+      "lng": 17.985715
+    },
+    "corrected_position": {
+      "lat": 59.368527856296716,
+      "lng": 17.98574432730675
+    },
+    "correction_distance_meters": 1.74,
+    "accuracy": 4.633999824523926,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6549,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:59.243725",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685222,
+      "lng": 17.9857165
+    },
+    "corrected_position": {
+      "lat": 59.3685269167431,
+      "lng": 17.98574533313513
+    },
+    "correction_distance_meters": 1.72,
+    "accuracy": 4.599999904632568,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6550,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:47:59.722865",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368517,
+      "lng": 17.9857196
+    },
+    "corrected_position": {
+      "lat": 59.36852409808211,
+      "lng": 17.985747847706083
+    },
+    "correction_distance_meters": 1.78,
+    "accuracy": 4.539000034332275,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6551,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:00.055656",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685119,
+      "lng": 17.9857219
+    },
+    "corrected_position": {
+      "lat": 59.368518717001415,
+      "lng": 17.985753379762176
+    },
+    "correction_distance_meters": 1.94,
+    "accuracy": 4.473999977111816,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6552,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:00.162826",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368511,
+      "lng": 17.9857239
+    },
+    "corrected_position": {
+      "lat": 59.36851760661957,
+      "lng": 17.98575505614281
+    },
+    "correction_distance_meters": 1.91,
+    "accuracy": 4.416999816894531,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6553,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:00.601775",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685053,
+      "lng": 17.9857279
+    },
+    "corrected_position": {
+      "lat": 59.36851273802183,
+      "lng": 17.985760252922777
+    },
+    "correction_distance_meters": 2.01,
+    "accuracy": 4.388999938964844,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6554,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:01.011924",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684995,
+      "lng": 17.9857312
+    },
+    "corrected_position": {
+      "lat": 59.36850658821317,
+      "lng": 17.985766120254997
+    },
+    "correction_distance_meters": 2.13,
+    "accuracy": 4.4039998054504395,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6555,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:01.176799",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684989,
+      "lng": 17.9857331
+    },
+    "corrected_position": {
+      "lat": 59.36850547783093,
+      "lng": 17.98576729372144
+    },
+    "correction_distance_meters": 2.07,
+    "accuracy": 4.333000183105469,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6556,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:01.500060",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368495,
+      "lng": 17.9857359
+    },
+    "corrected_position": {
+      "lat": 59.36850163419983,
+      "lng": 17.985770646482706
+    },
+    "correction_distance_meters": 2.1,
+    "accuracy": 4.26200008392334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6557,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:02.038433",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684884,
+      "lng": 17.9857395
+    },
+    "corrected_position": {
+      "lat": 59.3684984738806,
+      "lng": 17.98577316105366
+    },
+    "correction_distance_meters": 2.21,
+    "accuracy": 4.171999931335449,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6558,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:02.204114",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684873,
+      "lng": 17.9857421
+    },
+    "corrected_position": {
+      "lat": 59.36849642394362,
+      "lng": 17.985774837434292
+    },
+    "correction_distance_meters": 2.11,
+    "accuracy": 4.21999979019165,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6559,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:02.473522",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368483,
+      "lng": 17.9857454
+    },
+    "corrected_position": {
+      "lat": 59.36849206782718,
+      "lng": 17.985778022557497
+    },
+    "correction_distance_meters": 2.11,
+    "accuracy": 4.271999835968018,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6560,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:02.941488",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684769,
+      "lng": 17.9857485
+    },
+    "corrected_position": {
+      "lat": 59.36848233062367,
+      "lng": 17.985782884061337
+    },
+    "correction_distance_meters": 2.04,
+    "accuracy": 4.320000171661377,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6561,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:03.192677",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684752,
+      "lng": 17.9857524
+    },
+    "corrected_position": {
+      "lat": 59.36847959737307,
+      "lng": 17.985783554613594
+    },
+    "correction_distance_meters": 1.83,
+    "accuracy": 4.357999801635742,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6562,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:03.333813",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684746,
+      "lng": 17.9857553
+    },
+    "corrected_position": {
+      "lat": 59.36847831616178,
+      "lng": 17.985784057527784
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 4.370999813079834,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6563,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:03.527404",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684674,
+      "lng": 17.9857594
+    },
+    "corrected_position": {
+      "lat": 59.36847020182243,
+      "lng": 17.98578891903162
+    },
+    "correction_distance_meters": 1.7,
+    "accuracy": 4.414000034332275,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6564,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:03.935766",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684641,
+      "lng": 17.9857608
+    },
+    "corrected_position": {
+      "lat": 59.368467041500274,
+      "lng": 17.985790260136127
+    },
+    "correction_distance_meters": 1.7,
+    "accuracy": 4.453999996185303,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6565,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:04.225700",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684619,
+      "lng": 17.9857619
+    },
+    "corrected_position": {
+      "lat": 59.36846353952131,
+      "lng": 17.98579143360257
+    },
+    "correction_distance_meters": 1.68,
+    "accuracy": 4.511000156402588,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6566,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:04.970751",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684526,
+      "lng": 17.98577
+    },
+    "corrected_position": {
+      "lat": 59.36845610849159,
+      "lng": 17.9857936128974
+    },
+    "correction_distance_meters": 1.39,
+    "accuracy": 4.578000068664551,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6567,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:05.147695",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684503,
+      "lng": 17.9857719
+    },
+    "corrected_position": {
+      "lat": 59.36845277733981,
+      "lng": 17.985797468572855
+    },
+    "correction_distance_meters": 1.47,
+    "accuracy": 4.636000156402588,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6568,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:05.335626",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684486,
+      "lng": 17.9857756
+    },
+    "corrected_position": {
+      "lat": 59.36845098364256,
+      "lng": 17.98579797148705
+    },
+    "correction_distance_meters": 1.29,
+    "accuracy": 4.63700008392334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6569,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:05.916703",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684427,
+      "lng": 17.9857795
+    },
+    "corrected_position": {
+      "lat": 59.36844500465104,
+      "lng": 17.985799144953493
+    },
+    "correction_distance_meters": 1.14,
+    "accuracy": 4.677000045776367,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6570,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:06.197392",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684401,
+      "lng": 17.985781
+    },
+    "corrected_position": {
+      "lat": 59.36844286929668,
+      "lng": 17.985800318419937
+    },
+    "correction_distance_meters": 1.14,
+    "accuracy": 4.734000205993652,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6571,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:06.558254",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684362,
+      "lng": 17.9857843
+    },
+    "corrected_position": {
+      "lat": 59.36843902565848,
+      "lng": 17.985802162438635
+    },
+    "correction_distance_meters": 1.06,
+    "accuracy": 4.755000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6572,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:07.249218",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684286,
+      "lng": 17.985788
+    },
+    "corrected_position": {
+      "lat": 59.3684316800376,
+      "lng": 17.98580652102828
+    },
+    "correction_distance_meters": 1.1,
+    "accuracy": 4.801000118255615,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6573,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:07.442318",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368425,
+      "lng": 17.9857913
+    },
+    "corrected_position": {
+      "lat": 59.3684275801555,
+      "lng": 17.985808867961172
+    },
+    "correction_distance_meters": 1.04,
+    "accuracy": 4.793000221252441,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6574,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:07.901965",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684193,
+      "lng": 17.9857941
+    },
+    "corrected_position": {
+      "lat": 59.36842006370367,
+      "lng": 17.98581087961793
+    },
+    "correction_distance_meters": 0.95,
+    "accuracy": 4.813000202178955,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6575,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:08.212791",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684154,
+      "lng": 17.985796
+    },
+    "corrected_position": {
+      "lat": 59.36841767210502,
+      "lng": 17.985813058912758
+    },
+    "correction_distance_meters": 1,
+    "accuracy": 4.855999946594238,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6576,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:08.419871",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684129,
+      "lng": 17.9857996
+    },
+    "corrected_position": {
+      "lat": 59.36841408470671,
+      "lng": 17.98581456765533
+    },
+    "correction_distance_meters": 0.86,
+    "accuracy": 4.723999977111816,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6577,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:08.897715",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684073,
+      "lng": 17.9858024
+    },
+    "corrected_position": {
+      "lat": 59.36840844736574,
+      "lng": 17.985817417502407
+    },
+    "correction_distance_meters": 0.86,
+    "accuracy": 4.604000091552734,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6578,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:09.204346",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684041,
+      "lng": 17.9858032
+    },
+    "corrected_position": {
+      "lat": 59.36840451830937,
+      "lng": 17.985821273177866
+    },
+    "correction_distance_meters": 1.03,
+    "accuracy": 4.447000026702881,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6579,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:09.328734",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3684032,
+      "lng": 17.9858035
+    },
+    "corrected_position": {
+      "lat": 59.3684026391953,
+      "lng": 17.98582160845399
+    },
+    "correction_distance_meters": 1.03,
+    "accuracy": 4.3429999351501465,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6580,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:09.391931",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683945,
+      "lng": 17.9858044
+    },
+    "corrected_position": {
+      "lat": 59.36839443942356,
+      "lng": 17.985824458301067
+    },
+    "correction_distance_meters": 1.14,
+    "accuracy": 4.254000186920166,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6581,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:09.858950",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368392,
+      "lng": 17.9858046
+    },
+    "corrected_position": {
+      "lat": 59.36839213323741,
+      "lng": 17.98582546412945
+    },
+    "correction_distance_meters": 1.18,
+    "accuracy": 4.175000190734863,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6582,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:10.216551",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683889,
+      "lng": 17.9858049
+    },
+    "corrected_position": {
+      "lat": 59.36838931456521,
+      "lng": 17.985825799405575
+    },
+    "correction_distance_meters": 1.18,
+    "accuracy": 3.996000051498413,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6583,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:10.336889",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683862,
+      "lng": 17.9858055
+    },
+    "corrected_position": {
+      "lat": 59.36838589799254,
+      "lng": 17.985827475786213
+    },
+    "correction_distance_meters": 1.25,
+    "accuracy": 3.934000015258789,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6584,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:10.848515",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683802,
+      "lng": 17.9858059
+    },
+    "corrected_position": {
+      "lat": 59.36837966274658,
+      "lng": 17.985830660909418
+    },
+    "correction_distance_meters": 1.4,
+    "accuracy": 3.8310000896453857,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6585,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:11.200151",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683756,
+      "lng": 17.9858069
+    },
+    "corrected_position": {
+      "lat": 59.368376331587264,
+      "lng": 17.98583216965199
+    },
+    "correction_distance_meters": 1.43,
+    "accuracy": 3.624000072479248,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6586,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:11.326815",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683724,
+      "lng": 17.9858075
+    },
+    "corrected_position": {
+      "lat": 59.36837368374249,
+      "lng": 17.985833175480366
+    },
+    "correction_distance_meters": 1.46,
+    "accuracy": 3.5850000381469727,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6587,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:11.832444",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683654,
+      "lng": 17.9858088
+    },
+    "corrected_position": {
+      "lat": 59.368366252693086,
+      "lng": 17.985836025327448
+    },
+    "correction_distance_meters": 1.55,
+    "accuracy": 3.4730000495910645,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6588,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:12.216053",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683604,
+      "lng": 17.9858121
+    },
+    "corrected_position": {
+      "lat": 59.36836257987497,
+      "lng": 17.985837869346145
+    },
+    "correction_distance_meters": 1.48,
+    "accuracy": 3.3499999046325684,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6589,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:12.758795",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368352,
+      "lng": 17.9858156
+    },
+    "corrected_position": {
+      "lat": 59.36835540506632,
+      "lng": 17.98584206029773
+    },
+    "correction_distance_meters": 1.55,
+    "accuracy": 3.259999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6590,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:13.213482",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683468,
+      "lng": 17.9858179
+    },
+    "corrected_position": {
+      "lat": 59.36834908440033,
+      "lng": 17.98584658652544
+    },
+    "correction_distance_meters": 1.64,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6591,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:13.255322",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368345,
+      "lng": 17.9858186
+    },
+    "corrected_position": {
+      "lat": 59.36834592406687,
+      "lng": 17.98584809526801
+    },
+    "correction_distance_meters": 1.67,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6592,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:13.699568",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683403,
+      "lng": 17.9858195
+    },
+    "corrected_position": {
+      "lat": 59.36834097003007,
+      "lng": 17.985850609838966
+    },
+    "correction_distance_meters": 1.76,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6593,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:14.117045",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683348,
+      "lng": 17.9858199
+    },
+    "corrected_position": {
+      "lat": 59.36833541809142,
+      "lng": 17.985852956771854
+    },
+    "correction_distance_meters": 1.87,
+    "accuracy": 3.005000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6594,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:14.664675",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683249,
+      "lng": 17.9858242
+    },
+    "corrected_position": {
+      "lat": 59.368324314211385,
+      "lng": 17.985856812447313
+    },
+    "correction_distance_meters": 1.85,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6595,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:15.237975",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683153,
+      "lng": 17.9858295
+    },
+    "corrected_position": {
+      "lat": 59.36831688315116,
+      "lng": 17.985860500484705
+    },
+    "correction_distance_meters": 1.77,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6596,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:15.238912",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683174,
+      "lng": 17.9858282
+    },
+    "corrected_position": {
+      "lat": 59.36831380822922,
+      "lng": 17.985861673951153
+    },
+    "correction_distance_meters": 1.94,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6597,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:15.663719",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3683137,
+      "lng": 17.9858301
+    },
+    "corrected_position": {
+      "lat": 59.36831261242617,
+      "lng": 17.985861841589212
+    },
+    "correction_distance_meters": 1.8,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6598,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:16.140969",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682979,
+      "lng": 17.9858333
+    },
+    "corrected_position": {
+      "lat": 59.36829868985896,
+      "lng": 17.98586837947369
+    },
+    "correction_distance_meters": 1.99,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6599,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:16.990848",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682888,
+      "lng": 17.9858343
+    },
+    "corrected_position": {
+      "lat": 59.36829142962223,
+      "lng": 17.985872402787212
+    },
+    "correction_distance_meters": 2.18,
+    "accuracy": 3.003999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6600,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:17.210037",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682866,
+      "lng": 17.9858354
+    },
+    "corrected_position": {
+      "lat": 59.36828596309006,
+      "lng": 17.985876929014925
+    },
+    "correction_distance_meters": 2.35,
+    "accuracy": 3.003999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6601,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:17.431588",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682823,
+      "lng": 17.9858364
+    },
+    "corrected_position": {
+      "lat": 59.36828280275073,
+      "lng": 17.98587910830975
+    },
+    "correction_distance_meters": 2.42,
+    "accuracy": 3.013000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6602,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:17.973547",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682748,
+      "lng": 17.9858367
+    },
+    "corrected_position": {
+      "lat": 59.36827596958359,
+      "lng": 17.985880784690384
+    },
+    "correction_distance_meters": 2.5,
+    "accuracy": 3.046999931335449,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6603,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:18.206948",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368273,
+      "lng": 17.9858377
+    },
+    "corrected_position": {
+      "lat": 59.368273663389395,
+      "lng": 17.985882628709078
+    },
+    "correction_distance_meters": 2.55,
+    "accuracy": 3.053999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6604,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:18.391691",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.36827,
+      "lng": 17.9858386
+    },
+    "corrected_position": {
+      "lat": 59.368271528024245,
+      "lng": 17.98588313162327
+    },
+    "correction_distance_meters": 2.53,
+    "accuracy": 3.063999891281128,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6605,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:18.951334",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682631,
+      "lng": 17.9858402
+    },
+    "corrected_position": {
+      "lat": 59.36826503651336,
+      "lng": 17.985885143280033
+    },
+    "correction_distance_meters": 2.56,
+    "accuracy": 3.0910000801086426,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6606,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:19.222828",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682603,
+      "lng": 17.9858408
+    },
+    "corrected_position": {
+      "lat": 59.36826033870865,
+      "lng": 17.985887993127108
+    },
+    "correction_distance_meters": 2.67,
+    "accuracy": 3.134999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6607,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:19.376083",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682574,
+      "lng": 17.9858426
+    },
+    "corrected_position": {
+      "lat": 59.36825376178097,
+      "lng": 17.985891178250316
+    },
+    "correction_distance_meters": 2.78,
+    "accuracy": 3.1419999599456787,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6608,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:19.972541",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682509,
+      "lng": 17.9858442
+    },
+    "corrected_position": {
+      "lat": 59.36825145558525,
+      "lng": 17.985892184078693
+    },
+    "correction_distance_meters": 2.72,
+    "accuracy": 3.178999900817871,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6609,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:20.225805",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682479,
+      "lng": 17.9858452
+    },
+    "corrected_position": {
+      "lat": 59.368248636901384,
+      "lng": 17.985893692821264
+    },
+    "correction_distance_meters": 2.75,
+    "accuracy": 3.2200000286102295,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6610,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:20.338581",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682446,
+      "lng": 17.9858481
+    },
+    "corrected_position": {
+      "lat": 59.3682457328026,
+      "lng": 17.985894531011585
+    },
+    "correction_distance_meters": 2.63,
+    "accuracy": 3.256999969482422,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6611,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:20.934876",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682365,
+      "lng": 17.9858524
+    },
+    "corrected_position": {
+      "lat": 59.36823889962801,
+      "lng": 17.985899057239298
+    },
+    "correction_distance_meters": 2.66,
+    "accuracy": 3.2899999618530273,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6612,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:21.208473",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682331,
+      "lng": 17.9858541
+    },
+    "corrected_position": {
+      "lat": 59.3682362517725,
+      "lng": 17.985900398343805
+    },
+    "correction_distance_meters": 2.65,
+    "accuracy": 3.322999954223633,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6613,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:21.804322",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682245,
+      "lng": 17.9858623
+    },
+    "corrected_position": {
+      "lat": 59.368228479034144,
+      "lng": 17.985903583467007
+    },
+    "correction_distance_meters": 2.38,
+    "accuracy": 3.371999979019165,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6614,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:22.155487",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682156,
+      "lng": 17.9858667
+    },
+    "corrected_position": {
+      "lat": 59.368219510487656,
+      "lng": 17.985904924571514
+    },
+    "correction_distance_meters": 2.21,
+    "accuracy": 3.4639999866485596,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6615,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:22.221686",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682168,
+      "lng": 17.9858658
+    },
+    "corrected_position": {
+      "lat": 59.3682178021928,
+      "lng": 17.98590559512377
+    },
+    "correction_distance_meters": 2.26,
+    "accuracy": 3.4790000915527344,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6616,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:22.794748",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682123,
+      "lng": 17.9858682
+    },
+    "corrected_position": {
+      "lat": 59.36821481267664,
+      "lng": 17.985905762761835
+    },
+    "correction_distance_meters": 2.15,
+    "accuracy": 3.5280001163482666,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6617,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:23.194933",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682076,
+      "lng": 17.9858718
+    },
+    "corrected_position": {
+      "lat": 59.36821062735356,
+      "lng": 17.98590626567602
+    },
+    "correction_distance_meters": 1.98,
+    "accuracy": 3.5929999351501465,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6618,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:23.688440",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3682041,
+      "lng": 17.9858762
+    },
+    "corrected_position": {
+      "lat": 59.368206954518605,
+      "lng": 17.9859059303999
+    },
+    "correction_distance_meters": 1.71,
+    "accuracy": 3.6670000553131104,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6619,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:24.212473",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681989,
+      "lng": 17.9858789
+    },
+    "corrected_position": {
+      "lat": 59.368199694262266,
+      "lng": 17.98590794205666
+    },
+    "correction_distance_meters": 1.65,
+    "accuracy": 3.74399995803833,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6620,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:25.337878",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681939,
+      "lng": 17.9858863
+    },
+    "corrected_position": {
+      "lat": 59.36819474020408,
+      "lng": 17.985909618437294
+    },
+    "correction_distance_meters": 1.32,
+    "accuracy": 3.7899999618530273,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6621,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:25.351390",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681892,
+      "lng": 17.9858928
+    },
+    "corrected_position": {
+      "lat": 59.36819004238966,
+      "lng": 17.985910791903734
+    },
+    "correction_distance_meters": 1.02,
+    "accuracy": 3.806999921798706,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6622,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:25.660998",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681832,
+      "lng": 17.9858962
+    },
+    "corrected_position": {
+      "lat": 59.36818508833011,
+      "lng": 17.98591196537018
+    },
+    "correction_distance_meters": 0.92,
+    "accuracy": 3.821000099182129,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6623,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:26.224959",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681769,
+      "lng": 17.9858981
+    },
+    "corrected_position": {
+      "lat": 59.368178511387846,
+      "lng": 17.985913138836622
+    },
+    "correction_distance_meters": 0.87,
+    "accuracy": 3.8380000591278076,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6624,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:27.103647",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681664,
+      "lng": 17.9859021
+    },
+    "corrected_position": {
+      "lat": 59.36816604081847,
+      "lng": 17.985916491597894
+    },
+    "correction_distance_meters": 0.82,
+    "accuracy": 3.864000082015991,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6625,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:27.673404",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681618,
+      "lng": 17.9859078
+    },
+    "corrected_position": {
+      "lat": 59.368161428414965,
+      "lng": 17.985915988683704
+    },
+    "correction_distance_meters": 0.47,
+    "accuracy": 3.8320000171661377,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6626,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:28.087129",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681604,
+      "lng": 17.9859087
+    },
+    "corrected_position": {
+      "lat": 59.368158609723594,
+      "lng": 17.985915988683704
+    },
+    "correction_distance_meters": 0.46,
+    "accuracy": 3.819999933242798,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6627,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:28.100086",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681531,
+      "lng": 17.9859127
+    },
+    "corrected_position": {
+      "lat": 59.36815391190416,
+      "lng": 17.98591766506434
+    },
+    "correction_distance_meters": 0.3,
+    "accuracy": 3.812000036239624,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6628,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:29.033791",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681435,
+      "lng": 17.9859185
+    },
+    "corrected_position": {
+      "lat": 59.36814289337965,
+      "lng": 17.98592118546367
+    },
+    "correction_distance_meters": 0.17,
+    "accuracy": 3.7230000495910645,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6629,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:29.563092",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681356,
+      "lng": 17.9859223
+    },
+    "corrected_position": {
+      "lat": 59.36814109966601,
+      "lng": 17.985921353101734
+    },
+    "correction_distance_meters": 0.61,
+    "accuracy": 3.6429998874664307,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6630,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:29.566333",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681414,
+      "lng": 17.9859194
+    },
+    "corrected_position": {
+      "lat": 59.368138793462634,
+      "lng": 17.985921353101734
+    },
+    "correction_distance_meters": 0.31,
+    "accuracy": 3.6559998989105225,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6631,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:30.129942",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368129,
+      "lng": 17.9859255
+    },
+    "corrected_position": {
+      "lat": 59.368138793462634,
+      "lng": 17.985921353101734
+    },
+    "correction_distance_meters": 1.11,
+    "accuracy": 3.628999948501587,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6632,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:30.144864",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681268,
+      "lng": 17.9859261
+    },
+    "corrected_position": {
+      "lat": 59.36812581038883,
+      "lng": 17.985924705863003
+    },
+    "correction_distance_meters": 0.14,
+    "accuracy": 3.638000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6633,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:30.772556",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681208,
+      "lng": 17.9859289
+    },
+    "corrected_position": {
+      "lat": 59.36812008758499,
+      "lng": 17.985926382243637
+    },
+    "correction_distance_meters": 0.16,
+    "accuracy": 3.6480000019073486,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6634,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:30.921427",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681154,
+      "lng": 17.9859309
+    },
+    "corrected_position": {
+      "lat": 59.36811427936516,
+      "lng": 17.985927052795887
+    },
+    "correction_distance_meters": 0.25,
+    "accuracy": 3.6730000972747803,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6635,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:31.165647",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681124,
+      "lng": 17.9859314
+    },
+    "corrected_position": {
+      "lat": 59.36811120442487,
+      "lng": 17.98592822626233
+    },
+    "correction_distance_meters": 0.22,
+    "accuracy": 3.681999921798706,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6636,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:31.429648",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681079,
+      "lng": 17.9859324
+    },
+    "corrected_position": {
+      "lat": 59.36810693367398,
+      "lng": 17.985929232090715
+    },
+    "correction_distance_meters": 0.21,
+    "accuracy": 3.690999984741211,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6637,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:31.909780",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3681017,
+      "lng": 17.9859348
+    },
+    "corrected_position": {
+      "lat": 59.36810104003687,
+      "lng": 17.985930740833286
+    },
+    "correction_distance_meters": 0.24,
+    "accuracy": 3.7300000190734863,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6638,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:32.456311",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680932,
+      "lng": 17.9859357
+    },
+    "corrected_position": {
+      "lat": 59.36809736719005,
+      "lng": 17.985930908471346
+    },
+    "correction_distance_meters": 0.54,
+    "accuracy": 3.634999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6639,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:32.458792",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680976,
+      "lng": 17.9859348
+    },
+    "corrected_position": {
+      "lat": 59.36809565888905,
+      "lng": 17.985930573195223
+    },
+    "correction_distance_meters": 0.32,
+    "accuracy": 3.680000066757202,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6640,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:32.987147",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680869,
+      "lng": 17.9859378
+    },
+    "corrected_position": {
+      "lat": 59.36809301102237,
+      "lng": 17.985930573195223
+    },
+    "correction_distance_meters": 0.79,
+    "accuracy": 3.5959999561309814,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6641,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:33.152111",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680828,
+      "lng": 17.9859389
+    },
+    "corrected_position": {
+      "lat": 59.36808967983494,
+      "lng": 17.985932249575853
+    },
+    "correction_distance_meters": 0.85,
+    "accuracy": 3.5769999027252197,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6642,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:33.360585",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680781,
+      "lng": 17.9859376
+    },
+    "corrected_position": {
+      "lat": 59.368086092401946,
+      "lng": 17.9859334230423
+    },
+    "correction_distance_meters": 0.92,
+    "accuracy": 3.5380001068115234,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6643,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:33.710432",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680724,
+      "lng": 17.9859378
+    },
+    "corrected_position": {
+      "lat": 59.36807302389285,
+      "lng": 17.985936608165503
+    },
+    "correction_distance_meters": 0.1,
+    "accuracy": 3.505000114440918,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6648,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:35.211869",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680491,
+      "lng": 17.9859436
+    },
+    "corrected_position": {
+      "lat": 59.36804218902468,
+      "lng": 17.98594381660223
+    },
+    "correction_distance_meters": 0.77,
+    "accuracy": 3.325000047683716,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6649,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:35.581864",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368043,
+      "lng": 17.9859477
+    },
+    "corrected_position": {
+      "lat": 59.368040736966485,
+      "lng": 17.98594415187836
+    },
+    "correction_distance_meters": 0.32,
+    "accuracy": 3.259999990463257,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6650,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:36.217340",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680351,
+      "lng": 17.985953
+    },
+    "corrected_position": {
+      "lat": 59.3680337329202,
+      "lng": 17.985945492982868
+    },
+    "correction_distance_meters": 0.45,
+    "accuracy": 3.1619999408721924,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6651,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:36.554464",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680299,
+      "lng": 17.9859576
+    },
+    "corrected_position": {
+      "lat": 59.368026472626816,
+      "lng": 17.985946666449312
+    },
+    "correction_distance_meters": 0.73,
+    "accuracy": 3.0969998836517334,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6652,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:37.048755",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680234,
+      "lng": 17.9859631
+    },
+    "corrected_position": {
+      "lat": 59.36801955399283,
+      "lng": 17.98594767227769
+    },
+    "correction_distance_meters": 0.97,
+    "accuracy": 3.0179998874664307,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6653,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:37.244639",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680217,
+      "lng": 17.9859646
+    },
+    "corrected_position": {
+      "lat": 59.36801519781514,
+      "lng": 17.985952366143465
+    },
+    "correction_distance_meters": 1,
+    "accuracy": 3.0179998874664307,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6654,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:37.484885",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680173,
+      "lng": 17.9859685
+    },
+    "corrected_position": {
+      "lat": 59.36801229369639,
+      "lng": 17.98595488071442
+    },
+    "correction_distance_meters": 0.95,
+    "accuracy": 3.0190000534057617,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6655,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:38.109131",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680098,
+      "lng": 17.9859762
+    },
+    "corrected_position": {
+      "lat": 59.36800665628866,
+      "lng": 17.985962089151148
+    },
+    "correction_distance_meters": 0.87,
+    "accuracy": 3.0160000324249268,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6656,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:38.396622",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3680062,
+      "lng": 17.9859835
+    },
+    "corrected_position": {
+      "lat": 59.36800178761761,
+      "lng": 17.985969800502062
+    },
+    "correction_distance_meters": 0.92,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6657,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:38.946496",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679998,
+      "lng": 17.985992
+    },
+    "corrected_position": {
+      "lat": 59.36799632103874,
+      "lng": 17.985980194061998
+    },
+    "correction_distance_meters": 0.77,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6658,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:39.213058",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679976,
+      "lng": 17.9859975
+    },
+    "corrected_position": {
+      "lat": 59.36799298984182,
+      "lng": 17.98598622903228
+    },
+    "correction_distance_meters": 0.82,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6659,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:39.365427",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679945,
+      "lng": 17.9860023
+    },
+    "corrected_position": {
+      "lat": 59.367990427382445,
+      "lng": 17.985990252345804
+    },
+    "correction_distance_meters": 0.82,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6660,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:39.963911",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679874,
+      "lng": 17.9860109
+    },
+    "corrected_position": {
+      "lat": 59.36798649827765,
+      "lng": 17.98599829897285
+    },
+    "correction_distance_meters": 0.72,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6661,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:40.198906",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679849,
+      "lng": 17.986015
+    },
+    "corrected_position": {
+      "lat": 59.367982227511064,
+      "lng": 17.986004501581196
+    },
+    "correction_distance_meters": 0.66,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6662,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:40.293776",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679829,
+      "lng": 17.9860179
+    },
+    "corrected_position": {
+      "lat": 59.36797889631274,
+      "lng": 17.986009865999225
+    },
+    "correction_distance_meters": 0.64,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6663,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:41.201826",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679732,
+      "lng": 17.9860318
+    },
+    "corrected_position": {
+      "lat": 59.36797044019252,
+      "lng": 17.986024450510744
+    },
+    "correction_distance_meters": 0.52,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6664,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:41.267918",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679715,
+      "lng": 17.9860346
+    },
+    "corrected_position": {
+      "lat": 59.36796753606992,
+      "lng": 17.986027300357822
+    },
+    "correction_distance_meters": 0.6,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6665,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:41.585836",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679705,
+      "lng": 17.9860361
+    },
+    "corrected_position": {
+      "lat": 59.367964973608586,
+      "lng": 17.986030317842964
+    },
+    "correction_distance_meters": 0.7,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6666,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:41.771249",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679607,
+      "lng": 17.9860477
+    },
+    "corrected_position": {
+      "lat": 59.36795702997727,
+      "lng": 17.98603937029839
+    },
+    "correction_distance_meters": 0.62,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6667,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:42.226455",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679586,
+      "lng": 17.98605
+    },
+    "corrected_position": {
+      "lat": 59.367955321669214,
+      "lng": 17.986041046679023
+    },
+    "correction_distance_meters": 0.62,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6668,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:42.229084",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679591,
+      "lng": 17.9860496
+    },
+    "corrected_position": {
+      "lat": 59.36795327169946,
+      "lng": 17.98604238778353
+    },
+    "correction_distance_meters": 0.77,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6669,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:42.787485",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679537,
+      "lng": 17.9860558
+    },
+    "corrected_position": {
+      "lat": 59.367950623821635,
+      "lng": 17.986045572906736
+    },
+    "correction_distance_meters": 0.67,
+    "accuracy": 3,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6670,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:43.170575",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679495,
+      "lng": 17.9860604
+    },
+    "corrected_position": {
+      "lat": 59.36794643846597,
+      "lng": 17.98604993149638
+    },
+    "correction_distance_meters": 0.68,
+    "accuracy": 3.003000020980835,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6671,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:43.735955",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679429,
+      "lng": 17.986069
+    },
+    "corrected_position": {
+      "lat": 59.3679402031392,
+      "lng": 17.986058145761493
+    },
+    "correction_distance_meters": 0.68,
+    "accuracy": 3.015000104904175,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6672,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:44.122099",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679379,
+      "lng": 17.986074
+    },
+    "corrected_position": {
+      "lat": 59.36793533445861,
+      "lng": 17.986064180731777
+    },
+    "correction_distance_meters": 0.63,
+    "accuracy": 3.0429999828338623,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6673,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:44.661627",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.36793,
+      "lng": 17.9860812
+    },
+    "corrected_position": {
+      "lat": 59.3679288428834,
+      "lng": 17.98607222735882
+    },
+    "correction_distance_meters": 0.52,
+    "accuracy": 3.1029999256134033,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6674,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:45.096647",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679242,
+      "lng": 17.9860858
+    },
+    "corrected_position": {
+      "lat": 59.36792235130697,
+      "lng": 17.98608144745231
+    },
+    "correction_distance_meters": 0.32,
+    "accuracy": 3.1440000534057617,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6675,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:45.635860",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679172,
+      "lng": 17.9860932
+    },
+    "corrected_position": {
+      "lat": 59.36791679929978,
+      "lng": 17.98608832061291
+    },
+    "correction_distance_meters": 0.28,
+    "accuracy": 3.2200000286102295,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6676,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:46.225676",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679098,
+      "lng": 17.9861002
+    },
+    "corrected_position": {
+      "lat": 59.3679097098124,
+      "lng": 17.9860975407064
+    },
+    "correction_distance_meters": 0.15,
+    "accuracy": 3.2639999389648438,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6677,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:46.509191",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3679053,
+      "lng": 17.9861059
+    },
+    "corrected_position": {
+      "lat": 59.367904841127434,
+      "lng": 17.986103743314747
+    },
+    "correction_distance_meters": 0.13,
+    "accuracy": 3.315999984741211,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6678,
+    "track_id": 38,
+    "track_name": "Lionel Messis hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-17T13:48:46.977883",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3678997,
+      "lng": 17.9861111
+    },
+    "corrected_position": {
+      "lat": 59.36789843496192,
+      "lng": 17.98611028119922
+    },
+    "correction_distance_meters": 0.15,
+    "accuracy": 3.384999990463257,
+    "annotation_notes": ""
+  }
+]
