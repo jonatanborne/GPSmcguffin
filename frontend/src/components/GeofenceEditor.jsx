@@ -411,12 +411,24 @@ const GeofenceEditor = () => {
 
                 // Använd lokalt ID för att hämta positioner (fungerar även om track.id är null)
                 const positions = JSON.parse(localStorage.getItem(`track_${localTrackId}_positions`) || '[]')
+                
+                // Hämta server-spår om det finns
+                const serverTrack = trackId ? serverTrackMap.get(trackId) : null
+                const existingPositionCount = serverTrack?.positions?.length || 0
+                const localPositionCount = positions.length
+                
+                // Hoppa över spår som redan är helt synkade (finns på server och har samma eller färre positioner lokalt)
+                if (isServerTrack && localPositionCount <= existingPositionCount) {
+                    console.log(`Hoppar över spår ${track.name || trackId} - redan synkat (${localPositionCount} <= ${existingPositionCount})`)
+                    continue
+                }
+                
                 localEntries.push({
                     key,
                     track,
                     positions,
                     isServerTrack,
-                    serverTrack: trackId ? serverTrackMap.get(trackId) : null,
+                    serverTrack,
                     localTrackId, // Spara lokalt ID för senare användning
                 })
             }
@@ -435,10 +447,11 @@ const GeofenceEditor = () => {
 
             const skippedTracks = []
             let processedCount = 0
+            const totalToSync = localEntries.length
 
             for (const entry of localEntries) {
                 processedCount++
-                setForceSyncMessage(`Synkar spår ${processedCount}/${localEntries.length}: ${entry.track.name || entry.track.id}…`)
+                setForceSyncMessage(`Synkar spår ${processedCount}/${totalToSync}: ${entry.track.name || entry.track.id}…`)
                 const originalIdStr = entry.track.id != null ? entry.track.id.toString() : null
                 let humanTrackId = entry.track.human_track_id
 
@@ -547,7 +560,7 @@ const GeofenceEditor = () => {
                                 // Uppdatera progress var 10:e position för att inte spamma UI
                                 if ((i + 1) % 10 === 0 || i === totalPositions - 1) {
                                     setForceSyncMessage(
-                                        `Synkar spår ${processedCount}/${localEntries.length}: ${entry.track.name || entry.track.id}… (${i + 1}/${totalPositions} positioner, ${successfullyUploaded} uppladdade)`
+                                        `Synkar spår ${processedCount}/${totalToSync}: ${entry.track.name || entry.track.id}… (${i + 1}/${totalPositions} positioner, ${successfullyUploaded} uppladdade)`
                                     )
                                 }
                             } catch (positionError) {
