@@ -68,13 +68,18 @@ const GeofenceEditor = () => {
         let apiTracks = []
 
         // Försök ladda från API om vi är online
-        try {
-            const response = await axios.get(`${API_BASE}/tracks`, { timeout: 5000 })
-            // Backend returnerar redan fullständiga tracks med positioner
-            apiTracks = Array.isArray(response.data) ? response.data : []
-        } catch (error) {
-            console.error('Fel vid laddning av tracks från API:', error)
-            // Fortsätt med localStorage-tracks
+        if (isOnline || navigator.onLine) {
+            try {
+                const response = await axios.get(`${API_BASE}/tracks`, { timeout: 10000 })
+                // Backend returnerar redan fullständiga tracks med positioner
+                apiTracks = Array.isArray(response.data) ? response.data : []
+            } catch (error) {
+                // Bara logga om det inte är timeout (för att undvika spam)
+                if (error.code !== 'ECONNABORTED') {
+                    console.error('Fel vid laddning av tracks från API:', error)
+                }
+                // Fortsätt med localStorage-tracks
+            }
         }
 
         // Skapa en Set med server-track IDs för snabb lookup
@@ -1105,11 +1110,19 @@ const GeofenceEditor = () => {
 
     // Ladda om och rita tracks
     const refreshTrackLayers = async () => {
-        const tracksData = await loadTracks()
-        drawTracks(tracksData)
-        // Ladda om hiding spots om vi har ett valt spår
-        if (selectedTrackForHidingSpots) {
-            loadHidingSpots(selectedTrackForHidingSpots.id)
+        try {
+            const tracksData = await loadTracks()
+            // Bara uppdatera om vi fick data (skyddar mot att spåren försvinner)
+            if (tracksData && tracksData.length >= 0) {
+                drawTracks(tracksData)
+            }
+            // Ladda om hiding spots om vi har ett valt spår
+            if (selectedTrackForHidingSpots) {
+                loadHidingSpots(selectedTrackForHidingSpots.id)
+            }
+        } catch (error) {
+            console.error('Fel vid refreshTrackLayers:', error)
+            // Fortsätt med befintliga tracks - försök inte uppdatera om det misslyckas
         }
     }
 
@@ -1292,15 +1305,20 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Automatisk uppdatering av tracks var 3:e sekund (för att se tracks från andra enheter)
+    // Automatisk uppdatering av tracks var 10:e sekund (för att se tracks från andra enheter)
+    // Bara om vi är online för att undvika onödiga timeout-fel
     useEffect(() => {
+        if (!isOnline) return // Hoppa över om offline
+
         const interval = setInterval(() => {
-            // Uppdatera tracks (men rita inte om vårt egna aktiva spår)
-            refreshTrackLayers()
-        }, 3000) // Uppdatera var 3:e sekund
+            // Bara uppdatera om vi är online (för att undvika timeout-fel)
+            if (isOnline || navigator.onLine) {
+                refreshTrackLayers()
+            }
+        }, 10000) // Uppdatera var 10:e sekund (minskad frekvens)
 
         return () => clearInterval(interval)
-    }, [])
+    }, [isOnline])
 
     // Skapa ny cirkel-geofence
     const createCircleGeofence = async (center, radius) => {
