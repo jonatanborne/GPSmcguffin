@@ -145,20 +145,34 @@ const GeofenceEditor = () => {
                 const serverTrack = response.data
                 // Spara både lokalt och på server (använd serverns ID framåt)
                 localStorage.setItem(`track_${serverTrack.id}`, JSON.stringify(serverTrack))
-                localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify([]))
-                // Ta bort lokal kopia om vi fick ett server-ID
+
+                // Ta bort lokal kopia om vi fick ett server-ID (bara för nya tracks)
                 if (serverTrack.id !== localId) {
                     // Flytta positioner från gammalt ID till nytt ID om de finns
                     const oldPositions = JSON.parse(localStorage.getItem(`track_${localId}_positions`) || '[]')
-                    if (oldPositions.length > 0) {
+                    const existingPositions = JSON.parse(localStorage.getItem(`track_${serverTrack.id}_positions`) || '[]')
+
+                    // Bara sätt positioner om det inte redan finns några (skyddar befintliga spår)
+                    if (oldPositions.length > 0 && existingPositions.length === 0) {
                         localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify(oldPositions))
+                    } else if (existingPositions.length === 0) {
+                        // Om inga positioner finns alls, sätt tom array (bara för nya tracks)
+                        localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify([]))
                     }
+                    // Om existingPositions.length > 0, behåll dem (befintligt spår)
+
                     localStorage.removeItem(`track_${localId}`)
                     localStorage.removeItem(`track_${localId}_positions`)
                     // Uppdatera offline queue med rätt ID
                     offlineQueueRef.current = offlineQueueRef.current.map(item =>
                         item.trackId === localId ? { ...item, trackId: serverTrack.id } : item
                     )
+                } else {
+                    // Samma ID - bara säkerställ att positions-arrayen finns om den inte gör det
+                    const existingPositions = JSON.parse(localStorage.getItem(`track_${serverTrack.id}_positions`) || '[]')
+                    if (existingPositions.length === 0 && !localStorage.getItem(`track_${serverTrack.id}_positions`)) {
+                        localStorage.setItem(`track_${serverTrack.id}_positions`, JSON.stringify([]))
+                    }
                 }
                 updateOfflineQueueState()
                 return serverTrack
