@@ -2595,6 +2595,7 @@ def convert_tiles(payload: TileConvertRequest):
 
 
 @app.get("/ml/model-info")
+@app.get("/api/ml/model-info")  # Stöd för frontend som använder /api prefix
 def get_model_info():
     """Hämta information om tränad ML-modell"""
     try:
@@ -2610,6 +2611,7 @@ def get_model_info():
         # Lägg till feature importance om det finns
         try:
             import pickle
+
             try:
                 import numpy as np
             except ImportError:
@@ -2631,7 +2633,9 @@ def get_model_info():
                             {"name": name, "importance": float(imp)}
                             for name, imp in zip(feature_names, importances)
                         ]
-                        feature_importance.sort(key=lambda x: x["importance"], reverse=True)
+                        feature_importance.sort(
+                            key=lambda x: x["importance"], reverse=True
+                        )
                         model_info["feature_importance"] = feature_importance
         except Exception as e:
             print(f"Kunde inte ladda feature importance: {e}")
@@ -2646,6 +2650,7 @@ def get_model_info():
 
 
 @app.post("/ml/analyze")
+@app.post("/api/ml/analyze")  # Stöd för frontend som använder /api prefix
 def run_ml_analysis():
     """Kör fullständig ML-analys (tränar modell och genererar visualiseringar)"""
     try:
@@ -2724,6 +2729,7 @@ def run_ml_analysis():
 
 
 @app.post("/ml/apply-correction/{track_id}")
+@app.post("/api/ml/apply-correction/{track_id}")  # Stöd för frontend som använder /api prefix
 def apply_ml_correction(track_id: int):
     """Använd ML-modellen för att automatiskt korrigera GPS-positioner i ett spår"""
     try:
