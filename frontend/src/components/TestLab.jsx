@@ -1443,9 +1443,9 @@ const TestLab = () => {
                                                     const trackIds = []
                                                     if (humanTrack) trackIds.push(humanTrack.id)
                                                     if (dogTrack) trackIds.push(dogTrack.id)
-                                                    
+
                                                     const response = await axios.post(`${API_BASE}/export/annotations-to-ml`, null, {
-                                                        params: { 
+                                                        params: {
                                                             filename,
                                                             track_ids: trackIds.join(',') // Skicka som komma-separerad sträng
                                                         }
