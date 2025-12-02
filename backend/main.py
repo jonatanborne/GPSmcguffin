@@ -1919,14 +1919,19 @@ def export_annotations_to_ml(
         if not filename.endswith(".json"):
             filename = f"{filename}.json"
 
-        # Hämta alla annoterade positioner (endast correct eller incorrect, inte pending)
+        # Hämta alla annoterade positioner för ML-träning
+        # Inkludera:
+        # - Alla 'correct' positioner (även om de inte har corrected_lat/lng - de var korrekta från början)
+        # - Alla 'incorrect' positioner som har corrected_lat/lng (färdigjusterade)
+        # Detta ger modellen både korrekta och felaktiga positioner att lära sig av
         conn = get_db()
         cursor = get_cursor(conn)
 
         # Bygg WHERE-klausul
+        # 'correct' positioner: inkludera alla (oavsett om de har corrected_lat/lng)
+        # 'incorrect' positioner: inkludera bara de som har corrected_lat/lng (färdigjusterade)
         where_conditions = [
-            "(tp.verified_status = 'correct' OR tp.verified_status = 'incorrect')",
-            "(tp.corrected_lat IS NOT NULL AND tp.corrected_lng IS NOT NULL)",
+            "(tp.verified_status = 'correct' OR (tp.verified_status = 'incorrect' AND tp.corrected_lat IS NOT NULL AND tp.corrected_lng IS NOT NULL))",
         ]
 
         # Filtrera på track_ids om de är angivna
@@ -1976,13 +1981,20 @@ def export_annotations_to_ml(
         # Konvertera till JSON-format
         annotations = []
         for row in rows:
-            # Beräkna korrigeringsavstånd
+            # Hämta original position
             orig_lat = get_row_value(row, "position_lat")
             orig_lng = get_row_value(row, "position_lng")
+            verified_status = get_row_value(row, "verified_status")
             corr_lat = get_row_value(row, "corrected_lat")
             corr_lng = get_row_value(row, "corrected_lng")
 
-            # Haversine distance
+            # För 'correct' positioner utan corrected_lat/lng: använd original som corrected
+            # (de var korrekta från början, correction_distance = 0)
+            if verified_status == "correct" and (corr_lat is None or corr_lng is None):
+                corr_lat = orig_lat
+                corr_lng = orig_lng
+
+            # Beräkna korrigeringsavstånd (Haversine distance)
             R = 6371000  # Earth radius in meters
             phi1 = math.radians(orig_lat)
             phi2 = math.radians(corr_lat)
@@ -2002,7 +2014,7 @@ def export_annotations_to_ml(
                 "track_name": get_row_value(row, "track_name"),
                 "track_type": get_row_value(row, "track_type"),
                 "timestamp": str(get_row_value(row, "timestamp")),
-                "verified_status": get_row_value(row, "verified_status"),
+                "verified_status": verified_status,
                 "original_position": {"lat": orig_lat, "lng": orig_lng},
                 "corrected_position": {"lat": corr_lat, "lng": corr_lng},
                 "correction_distance_meters": round(correction_distance, 2),
@@ -2729,7 +2741,9 @@ def run_ml_analysis():
 
 
 @app.post("/ml/apply-correction/{track_id}")
-@app.post("/api/ml/apply-correction/{track_id}")  # Stöd för frontend som använder /api prefix
+@app.post(
+    "/api/ml/apply-correction/{track_id}"
+)  # Stöd för frontend som använder /api prefix
 def apply_ml_correction(track_id: int):
     """Använd ML-modellen för att automatiskt korrigera GPS-positioner i ett spår"""
     try:
