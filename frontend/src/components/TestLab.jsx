@@ -59,6 +59,7 @@ const TestLab = () => {
     const [selectedPositionTrackType, setSelectedPositionTrackType] = useState(null) // 'human' eller 'dog'
     const [isAdjusting, setIsAdjusting] = useState(false)
     const [notes, setNotes] = useState('')
+    const [environment, setEnvironment] = useState('')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState(null)
     const [error, setError] = useState(null)
@@ -80,6 +81,15 @@ const TestLab = () => {
         },
         [selectedPositionId, selectedPositionTrackType, humanPositions, dogPositions],
     )
+
+    // Uppdatera environment när selectedPosition ändras
+    useEffect(() => {
+        if (selectedPosition) {
+            setEnvironment(selectedPosition.environment || '')
+        } else {
+            setEnvironment('')
+        }
+    }, [selectedPosition])
 
     // Beräkna avstånd mellan två positioner (Haversine-formel)
     const haversineDistance = (pos1, pos2) => {
@@ -981,6 +991,7 @@ const TestLab = () => {
             verified_status: status,
             corrected_position: { lat, lng },
             annotation_notes: notes,
+            environment: environment || null,
         }, message)
 
         // Rensa ref efter drag-operationen
@@ -1022,6 +1033,7 @@ const TestLab = () => {
         const payload = {
             verified_status: 'correct',
             annotation_notes: notes,
+            environment: environment || null,
         }
 
         // Om draggable marker finns och har flyttats från original positionen,
@@ -1100,6 +1112,7 @@ const TestLab = () => {
         saveAnnotation(selectedPositionId, {
             verified_status: 'incorrect',
             annotation_notes: notes,
+            environment: environment || null,
         }, 'Markerad som fel.')
     }
 
@@ -1109,6 +1122,7 @@ const TestLab = () => {
             verified_status: 'pending',
             clear_correction: true,
             annotation_notes: notes,
+            environment: environment || null,
         }, 'Korrigering återställd.')
     }
 
@@ -1116,6 +1130,7 @@ const TestLab = () => {
         if (!selectedPositionId) return
         saveAnnotation(selectedPositionId, {
             annotation_notes: notes,
+            environment: environment || null,
         }, 'Anteckningar sparade.')
     }
 
@@ -1152,6 +1167,7 @@ const TestLab = () => {
                         verified_status: 'correct',
                         corrected_position: pos.corrected_position,
                         annotation_notes: pos.annotation_notes || notes,
+                        environment: pos.environment || environment || null,
                     })
                     successCount++
                 } catch (err) {
@@ -2189,6 +2205,24 @@ const TestLab = () => {
                                     </button>
                                 </div>
 
+                                <div>
+                                    <label className="block text-[11px] text-slate-600 mb-1">Miljö (valfritt)</label>
+                                    <select
+                                        value={environment}
+                                        onChange={(e) => setEnvironment(e.target.value)}
+                                        className="w-full border border-slate-300 rounded px-2 py-1 text-xs mb-2"
+                                    >
+                                        <option value="">Ingen miljö</option>
+                                        <option value="urban">Stad/Bebyggelse</option>
+                                        <option value="suburban">Förort</option>
+                                        <option value="forest">Skog</option>
+                                        <option value="open">Öppet landskap</option>
+                                        <option value="park">Park</option>
+                                        <option value="water">Vatten/Nära vatten</option>
+                                        <option value="mountain">Berg/Terräng</option>
+                                        <option value="mixed">Blandad miljö</option>
+                                    </select>
+                                </div>
                                 <div>
                                     <label className="block text-[11px] text-slate-600 mb-1">Anteckningar</label>
                                     <textarea

@@ -718,6 +718,19 @@ def prepare_features_advanced(
                     ["accuracy_x_speed", "accuracy_x_distance", "speed_x_distance"]
                 )
 
+            # Environment features (one-hot encoding om environment finns)
+            # Miljö-kategorier: urban, suburban, forest, open, park, water, mountain, mixed
+            environment = d.get("environment")
+            environment_categories = ["urban", "suburban", "forest", "open", "park", "water", "mountain", "mixed"]
+            
+            # One-hot encoding för environment (alla 0 om environment är None eller okänd)
+            for env_cat in environment_categories:
+                env_value = 1.0 if environment == env_cat else 0.0
+                feature_row.append(env_value)
+            
+            if len(feature_names) == 22:
+                feature_names.extend([f"env_{cat}" for cat in environment_categories])
+
             features.append(feature_row)
             targets.append(d["correction_distance_meters"])
 

@@ -420,8 +420,21 @@ def init_db():
                 corrected_lng DOUBLE PRECISION,
                 corrected_at TEXT,
                 annotation_notes TEXT,
+                environment TEXT,
                 FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
             )
+        """)
+        # Lägg till environment kolumn om den inte finns (för migrations)
+        cursor.execute("""
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name='track_positions' AND column_name='environment'
+                ) THEN
+                    ALTER TABLE track_positions ADD COLUMN environment TEXT;
+                END IF;
+            END $$;
         """)
     else:
         cursor.execute("""
@@ -437,9 +450,15 @@ def init_db():
                 corrected_lng REAL,
                 corrected_at TEXT,
                 annotation_notes TEXT,
+                environment TEXT,
                 FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
             )
         """)
+        # Lägg till environment kolumn om den inte finns (för migrations)
+        try:
+            cursor.execute("ALTER TABLE track_positions ADD COLUMN environment TEXT")
+        except Exception:
+            pass  # Kolumnen finns redan
 
     # Hiding spots tabell
     if is_postgres:
@@ -593,6 +612,7 @@ class TrackPosition(BaseModel):
     corrected_position: Optional[LatLng] = None
     corrected_at: Optional[str] = None
     annotation_notes: Optional[str] = None
+    environment: Optional[str] = None  # Miljö-kategorisering: "urban", "forest", "open", "mixed", etc.
 
 
 class TrackCreate(BaseModel):
@@ -617,6 +637,7 @@ class TrackPositionUpdate(BaseModel):
     corrected_position: Optional[LatLng] = None
     clear_correction: bool = False
     annotation_notes: Optional[str] = None
+    environment: Optional[str] = None  # Miljö-kategorisering
 
 
 class HidingSpotCreate(BaseModel):
@@ -770,6 +791,7 @@ def row_to_track_position(row):
         corrected_position=corrected_position,
         corrected_at=row["corrected_at"],
         annotation_notes=row["annotation_notes"],
+        environment=row.get("environment") if "environment" in row.keys() else None,
     )
 
 
@@ -1762,6 +1784,13 @@ def update_track_position(position_id: int, payload: TrackPositionUpdate):
             update_fields.append(f"annotation_notes = {placeholder}")
             params.append(payload.annotation_notes)
 
+    if payload.environment is not None:
+        if payload.environment == "":
+            update_fields.append("environment = NULL")
+        else:
+            update_fields.append(f"environment = {placeholder}")
+            params.append(payload.environment)
+
     if not update_fields:
         conn.close()
         return row_to_track_position(row)
@@ -1805,7 +1834,8 @@ def fetch_track_positions(
             corrected_lat,
             corrected_lng,
             corrected_at,
-            annotation_notes
+            annotation_notes,
+            environment
         FROM track_positions
     """
     conditions = []
@@ -1962,7 +1992,8 @@ def export_annotations_to_ml(
                 tp.verified_status,
                 tp.corrected_lat,
                 tp.corrected_lng,
-                tp.annotation_notes
+                tp.annotation_notes,
+                tp.environment
             FROM track_positions tp
             JOIN tracks t ON tp.track_id = t.id
             WHERE {where_clause}
@@ -2020,6 +2051,7 @@ def export_annotations_to_ml(
                 "correction_distance_meters": round(correction_distance, 2),
                 "accuracy": get_row_value(row, "accuracy"),
                 "annotation_notes": get_row_value(row, "annotation_notes") or "",
+                "environment": get_row_value(row, "environment"),  # Kan vara None
             }
             annotations.append(annotation)
 
