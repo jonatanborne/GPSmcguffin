@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body, Query
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +15,18 @@ from io import StringIO
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+# Ladda .env-fil om den finns (för lokal utveckling)
+try:
+    from dotenv import load_dotenv
+
+    # Ladda .env från backend-mappen
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    # python-dotenv är inte installerat, fortsätt utan
+    pass
+
 
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
 
@@ -24,6 +36,12 @@ app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.up\.railway\.app)(:\d+)?",
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",  # Vite default port
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -612,7 +630,9 @@ class TrackPosition(BaseModel):
     corrected_position: Optional[LatLng] = None
     corrected_at: Optional[str] = None
     annotation_notes: Optional[str] = None
-    environment: Optional[str] = None  # Miljö-kategorisering: "urban", "forest", "open", "mixed", etc.
+    environment: Optional[str] = (
+        None  # Miljö-kategorisering: "urban", "forest", "open", "mixed", etc.
+    )
 
 
 class TrackCreate(BaseModel):
@@ -660,6 +680,7 @@ class HidingSpot(HidingSpotCreate):
 
 
 @app.get("/ping")
+@app.get("/api/ping")  # Stöd för frontend som använder /api prefix
 def ping():
     # Se till att databasen är initierad
     try:
@@ -970,6 +991,9 @@ def create_track(payload: TrackCreate):
 
 
 @app.get("/tracks", response_model=List[Track])
+@app.get(
+    "/api/tracks", response_model=List[Track]
+)  # Stöd för frontend som använder /api prefix
 def list_tracks():
     conn = get_db()
     cursor = get_cursor(conn)
@@ -1985,6 +2009,7 @@ def export_annotations_to_ml(
                 tp.track_id,
                 t.name as track_name,
                 t.track_type,
+                t.human_track_id,
                 tp.position_lat,
                 tp.position_lng,
                 tp.timestamp,
@@ -2018,6 +2043,8 @@ def export_annotations_to_ml(
             verified_status = get_row_value(row, "verified_status")
             corr_lat = get_row_value(row, "corrected_lat")
             corr_lng = get_row_value(row, "corrected_lng")
+            track_id = get_row_value(row, "track_id")
+            track_type = get_row_value(row, "track_type")
 
             # För 'correct' positioner utan corrected_lat/lng: använd original som corrected
             # (de var korrekta från början, correction_distance = 0)
@@ -2041,9 +2068,9 @@ def export_annotations_to_ml(
 
             annotation = {
                 "id": get_row_value(row, "id"),
-                "track_id": get_row_value(row, "track_id"),
+                "track_id": track_id,
                 "track_name": get_row_value(row, "track_name"),
-                "track_type": get_row_value(row, "track_type"),
+                "track_type": track_type,
                 "timestamp": str(get_row_value(row, "timestamp")),
                 "verified_status": verified_status,
                 "original_position": {"lat": orig_lat, "lng": orig_lng},
@@ -2053,6 +2080,13 @@ def export_annotations_to_ml(
                 "annotation_notes": get_row_value(row, "annotation_notes") or "",
                 "environment": get_row_value(row, "environment"),  # Kan vara None
             }
+
+            # Lägg till human_track_id för hundspår (för matchning features)
+            # Hämta från tracks-tabellen (redan i query)
+            human_track_id = get_row_value(row, "human_track_id")
+            if track_type == "dog" and human_track_id:
+                annotation["human_track_id"] = human_track_id
+
             annotations.append(annotation)
 
         # Returnera JSON-data direkt (frontend sparar lokalt)
@@ -2695,8 +2729,13 @@ def get_model_info():
 
 @app.post("/ml/analyze")
 @app.post("/api/ml/analyze")  # Stöd för frontend som använder /api prefix
-def run_ml_analysis():
-    """Kör fullständig ML-analys (tränar modell och genererar visualiseringar)"""
+def run_ml_analysis(track_ids: Optional[str] = None):
+    """
+    Kör fullständig ML-analys (tränar modell och genererar visualiseringar)
+
+    Args:
+        track_ids: Komma-separerad lista av track_ids att använda (om None, använd alla)
+    """
     try:
         import subprocess
         import sys
@@ -2709,6 +2748,24 @@ def run_ml_analysis():
                 status_code=404, detail=f"Analysscript hittades inte: {analysis_script}"
             )
 
+        # Om specifika spår är valda, exportera bara dessa först
+        if track_ids:
+            # Exportera valda spår till ML-data
+            track_id_list = [
+                int(tid.strip()) for tid in track_ids.split(",") if tid.strip()
+            ]
+            track_ids_str = ",".join(map(str, track_id_list))
+
+            # Anropa export-endpoint för att skapa JSON-fil med valda spår
+            from fastapi import Request
+
+            # Vi behöver exportera datan först
+            # För nu, skicka track_ids som environment variable till scriptet
+            env = os.environ.copy()
+            env["ML_TRACK_IDS"] = track_ids_str
+        else:
+            env = os.environ.copy()
+
         # Kör analysen
         result = subprocess.run(
             [sys.executable, str(analysis_script)],
@@ -2716,6 +2773,7 @@ def run_ml_analysis():
             capture_output=True,
             text=True,
             timeout=600,  # 10 minuter timeout
+            env=env,
         )
 
         if result.returncode != 0:
@@ -3021,4 +3079,1836 @@ def apply_ml_correction(track_id: int):
         raise HTTPException(
             status_code=500,
             detail=f"Fel vid ML-korrigering: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.post("/ml/predict/{track_id}")
+@app.post("/api/ml/predict/{track_id}")  # Stöd för frontend som använder /api prefix
+def predict_ml_corrections(track_id: int):
+    """
+    Förutsäg ML-korrigeringar för ett spår UTAN att ändra databasen.
+    Sparar resultaten i ml/predictions/ som JSON-filer.
+    Fungerar på både redan korrigerade spår (jämför förutsägelse vs faktisk) och nya spår.
+    """
+    try:
+        import pickle
+        import numpy as np
+        from datetime import datetime
+        import math
+
+        # Ladda modell och scaler
+        ml_dir = Path(__file__).parent.parent / "ml" / "output"
+        model_path = ml_dir / "gps_correction_model_best.pkl"
+        scaler_path = ml_dir / "gps_correction_scaler.pkl"
+        feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
+
+        if not model_path.exists():
+            raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
+
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
+        with open(scaler_path, "rb") as f:
+            scaler = pickle.load(f)
+        with open(feature_names_path, "rb") as f:
+            feature_names = pickle.load(f)
+
+        # Hämta spåret och positioner
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Hämta spår
+        execute_query(cursor, "SELECT * FROM tracks WHERE id = %s", (track_id,))
+        track_row = cursor.fetchone()
+        if not track_row:
+            conn.close()
+            raise HTTPException(
+                status_code=404, detail=f"Spår {track_id} hittades inte"
+            )
+
+        track_name = get_row_value(track_row, "name") or f"Track_{track_id}"
+        track_type = get_row_value(track_row, "track_type")
+
+        # Hämta positioner med både original och korrigerade positioner (om de finns)
+        execute_query(
+            cursor,
+            """
+            SELECT id, position_lat, position_lng, timestamp, accuracy,
+                   corrected_lat, corrected_lng, verified_status, environment
+            FROM track_positions
+            WHERE track_id = %s
+            ORDER BY timestamp ASC
+            """,
+            (track_id,),
+        )
+        positions = cursor.fetchall()
+        conn.close()
+
+        if not positions:
+            raise HTTPException(
+                status_code=404, detail="Inga positioner hittades för spåret"
+            )
+
+        # Beräkna medelvärde för normalisering
+        mean_lat = np.mean([get_row_value(p, "position_lat") for p in positions])
+        mean_lng = np.mean([get_row_value(p, "position_lng") for p in positions])
+
+        # Förutsägelser för varje position
+        predictions = []
+        predicted_corrections_history = []  # För att beräkna rolling statistics
+        total_positions = len(positions)
+        positions_with_actual_corrections = 0
+
+        for i, pos in enumerate(positions):
+            pos_id = get_row_value(pos, "id")
+            orig_lat = get_row_value(pos, "position_lat")
+            orig_lng = get_row_value(pos, "position_lng")
+            accuracy = get_row_value(pos, "accuracy") or 0.0
+            timestamp_str = get_row_value(pos, "timestamp")
+            actual_corr_lat = get_row_value(pos, "corrected_lat")
+            actual_corr_lng = get_row_value(pos, "corrected_lng")
+            verified_status = get_row_value(pos, "verified_status") or "pending"
+
+            # Beräkna features (samma som i apply_ml_correction)
+            features = []
+
+            # GPS accuracy
+            features.append(accuracy)
+            features.append(accuracy**2)
+
+            # Position
+            features.extend([orig_lat, orig_lng])
+
+            # Normaliserad position
+            if len(positions) > 1:
+                features.extend([orig_lat - mean_lat, orig_lng - mean_lng])
+            else:
+                features.extend([0.0, 0.0])
+
+            # Track type
+            features.append(1 if track_type == "human" else 0)
+
+            # Timestamp features
+            try:
+                if timestamp_str:
+                    dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                    hour = dt.hour
+                    weekday = dt.weekday()
+                    features.append(math.sin(2 * math.pi * hour / 24))
+                    features.append(math.cos(2 * math.pi * hour / 24))
+                    features.append(math.sin(2 * math.pi * weekday / 7))
+                    features.append(math.cos(2 * math.pi * weekday / 7))
+                else:
+                    features.extend([0.0, 1.0, 0.0, 1.0])
+            except Exception:
+                features.extend([0.0, 1.0, 0.0, 1.0])
+
+            # Hastighet, acceleration, etc.
+            speed = 0.0
+            acceleration = 0.0
+            distance_prev_1 = 0.0
+            distance_prev_2 = 0.0
+            distance_prev_3 = 0.0
+            bearing = 0.0
+
+            if i > 0:
+                prev_pos = positions[i - 1]
+                prev_lat = get_row_value(prev_pos, "position_lat")
+                prev_lng = get_row_value(prev_pos, "position_lng")
+
+                # Haversine distance
+                R = 6371000
+                phi1 = math.radians(prev_lat)
+                phi2 = math.radians(orig_lat)
+                delta_phi = math.radians(orig_lat - prev_lat)
+                delta_lambda = math.radians(orig_lng - prev_lng)
+                a = (
+                    math.sin(delta_phi / 2) ** 2
+                    + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+                )
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                distance_prev_1 = R * c
+
+                # Hastighet
+                try:
+                    curr_time = datetime.fromisoformat(
+                        timestamp_str.replace("Z", "+00:00")
+                    )
+                    prev_timestamp = get_row_value(prev_pos, "timestamp")
+                    prev_time = datetime.fromisoformat(
+                        prev_timestamp.replace("Z", "+00:00")
+                    )
+                    time_diff = (curr_time - prev_time).total_seconds()
+                    if time_diff > 0:
+                        speed = distance_prev_1 / time_diff
+                except Exception:
+                    pass
+
+                # Bearing
+                try:
+                    lat1_rad = math.radians(prev_lat)
+                    lat2_rad = math.radians(orig_lat)
+                    delta_lng = math.radians(orig_lng - prev_lng)
+                    y = math.sin(delta_lng) * math.cos(lat2_rad)
+                    x = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(
+                        lat1_rad
+                    ) * math.cos(lat2_rad) * math.cos(delta_lng)
+                    bearing = math.degrees(math.atan2(y, x))
+                    if bearing < 0:
+                        bearing += 360
+                except Exception:
+                    pass
+
+                # Acceleration och distance_prev_2/3
+                if i > 1:
+                    prev2_pos = positions[i - 2]
+                    prev2_lat = get_row_value(prev2_pos, "position_lat")
+                    prev2_lng = get_row_value(prev2_pos, "position_lng")
+
+                    # Distance prev 2
+                    phi1_prev = math.radians(prev2_lat)
+                    phi2_prev = math.radians(prev_lat)
+                    delta_phi_prev = math.radians(prev_lat - prev2_lat)
+                    delta_lambda_prev = math.radians(prev_lng - prev2_lng)
+                    a_prev = (
+                        math.sin(delta_phi_prev / 2) ** 2
+                        + math.cos(phi1_prev)
+                        * math.cos(phi2_prev)
+                        * math.sin(delta_lambda_prev / 2) ** 2
+                    )
+                    c_prev = 2 * math.atan2(math.sqrt(a_prev), math.sqrt(1 - a_prev))
+                    distance_prev_2 = R * c_prev
+
+                    # Acceleration
+                    try:
+                        prev2_timestamp = get_row_value(prev2_pos, "timestamp")
+                        prev2_time = datetime.fromisoformat(
+                            prev2_timestamp.replace("Z", "+00:00")
+                        )
+                        time_diff_prev = (prev_time - prev2_time).total_seconds()
+                        if time_diff_prev > 0:
+                            prev_speed = distance_prev_2 / time_diff_prev
+                            if time_diff > 0:
+                                acceleration = (speed - prev_speed) / time_diff
+                    except Exception:
+                        pass
+
+                    # Distance prev 3
+                    if i > 2:
+                        prev3_pos = positions[i - 3]
+                        prev3_lat = get_row_value(prev3_pos, "position_lat")
+                        prev3_lng = get_row_value(prev3_pos, "position_lng")
+
+                        phi1_prev3 = math.radians(prev3_lat)
+                        phi2_prev3 = math.radians(prev2_lat)
+                        delta_phi_prev3 = math.radians(prev2_lat - prev3_lat)
+                        delta_lambda_prev3 = math.radians(prev2_lng - prev3_lng)
+                        a_prev3 = (
+                            math.sin(delta_phi_prev3 / 2) ** 2
+                            + math.cos(phi1_prev3)
+                            * math.cos(phi2_prev3)
+                            * math.sin(delta_lambda_prev3 / 2) ** 2
+                        )
+                        c_prev3 = 2 * math.atan2(
+                            math.sqrt(a_prev3), math.sqrt(1 - a_prev3)
+                        )
+                        distance_prev_3 = R * c_prev3
+
+            features.extend(
+                [
+                    speed,
+                    acceleration,
+                    distance_prev_1,
+                    distance_prev_2,
+                    distance_prev_3,
+                    bearing,
+                ]
+            )
+
+            # Rolling statistics - beräkna från tidigare förutsägelser
+            # Använd historiken från tidigare positioner i samma spår
+            if i >= 2 and len(predicted_corrections_history) >= 2:
+                # Använd de senaste 2 förutsägelserna (för att matcha träningen som använder max(0, i-2) till i)
+                recent_corrections = predicted_corrections_history[-2:]
+                recent_mean = float(np.mean(recent_corrections))
+                recent_std = (
+                    float(np.std(recent_corrections))
+                    if len(recent_corrections) > 1
+                    else 0.0
+                )
+            else:
+                recent_mean = 0.0
+                recent_std = 0.0
+            features.extend([recent_mean, recent_std])
+
+            # Interaktioner
+            features.extend(
+                [accuracy * speed, accuracy * distance_prev_1, speed * distance_prev_1]
+            )
+
+            # Environment features (one-hot encoding) - 8 kategorier
+            environment = get_row_value(pos, "environment")
+            environment_categories = [
+                "urban",
+                "suburban",
+                "forest",
+                "open",
+                "park",
+                "water",
+                "mountain",
+                "mixed",
+            ]
+            for env_cat in environment_categories:
+                env_value = 1.0 if environment == env_cat else 0.0
+                features.append(env_value)
+
+            # Smoothing features (spår-jämnhet)
+            # Kurvatur
+            curvature = 0.0
+            if i > 0 and i < len(positions) - 1:
+                try:
+                    prev_pos = positions[i - 1]
+                    next_pos = positions[i + 1]
+                    prev_lat = get_row_value(prev_pos, "position_lat")
+                    prev_lng = get_row_value(prev_pos, "position_lng")
+                    next_lat = get_row_value(next_pos, "position_lat")
+                    next_lng = get_row_value(next_pos, "position_lng")
+
+                    # Beräkna riktning för segment 1 (prev -> curr)
+                    lat1_rad = math.radians(prev_lat)
+                    lat2_rad = math.radians(orig_lat)
+                    delta_lng1 = math.radians(orig_lng - prev_lng)
+                    y1 = math.sin(delta_lng1) * math.cos(lat2_rad)
+                    x1 = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(
+                        lat1_rad
+                    ) * math.cos(lat2_rad) * math.cos(delta_lng1)
+                    bearing1 = math.atan2(y1, x1)
+
+                    # Beräkna riktning för segment 2 (curr -> next)
+                    lat3_rad = math.radians(next_lat)
+                    delta_lng2 = math.radians(next_lng - orig_lng)
+                    y2 = math.sin(delta_lng2) * math.cos(lat3_rad)
+                    x2 = math.cos(lat2_rad) * math.sin(lat3_rad) - math.sin(
+                        lat2_rad
+                    ) * math.cos(lat3_rad) * math.cos(delta_lng2)
+                    bearing2 = math.atan2(y2, x2)
+
+                    # Kurvatur = skillnaden i riktning
+                    curvature = abs(bearing1 - bearing2)
+                    if curvature > math.pi:
+                        curvature = 2 * math.pi - curvature
+                except Exception:
+                    pass
+
+            # Hastighetsvariation (speed consistency)
+            speed_consistency = 0.0
+            if len(positions) >= 2:
+                try:
+                    speeds = []
+                    window = 5
+                    start_idx = max(0, i - window)
+                    end_idx = min(len(positions), i + window + 1)
+
+                    for j in range(start_idx, end_idx - 1):
+                        if j >= len(positions) - 1:
+                            break
+                        p1 = positions[j]
+                        p2 = positions[j + 1]
+                        lat1 = get_row_value(p1, "position_lat")
+                        lng1 = get_row_value(p1, "position_lng")
+                        lat2 = get_row_value(p2, "position_lat")
+                        lng2 = get_row_value(p2, "position_lng")
+
+                        R = 6371000
+                        phi1 = math.radians(lat1)
+                        phi2 = math.radians(lat2)
+                        delta_phi = math.radians(lat2 - lat1)
+                        delta_lambda = math.radians(lng2 - lng1)
+                        a = (
+                            math.sin(delta_phi / 2) ** 2
+                            + math.cos(phi1)
+                            * math.cos(phi2)
+                            * math.sin(delta_lambda / 2) ** 2
+                        )
+                        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                        dist = R * c
+
+                        try:
+                            time1 = datetime.fromisoformat(
+                                get_row_value(p1, "timestamp").replace("Z", "+00:00")
+                            )
+                            time2 = datetime.fromisoformat(
+                                get_row_value(p2, "timestamp").replace("Z", "+00:00")
+                            )
+                            time_diff = (time2 - time1).total_seconds()
+                            if time_diff > 0:
+                                speeds.append(dist / time_diff)
+                        except Exception:
+                            pass
+
+                    if len(speeds) >= 2:
+                        speed_consistency = float(np.std(speeds))
+                except Exception:
+                    pass
+
+            # Position-jump
+            position_jump = 0.0
+            if i > 0 and speed > 0:
+                try:
+                    prev_pos = positions[i - 1]
+                    prev_lat = get_row_value(prev_pos, "position_lat")
+                    prev_lng = get_row_value(prev_pos, "position_lng")
+                    prev_time_str = get_row_value(prev_pos, "timestamp")
+
+                    curr_time = datetime.fromisoformat(
+                        timestamp_str.replace("Z", "+00:00")
+                    )
+                    prev_time = datetime.fromisoformat(
+                        prev_time_str.replace("Z", "+00:00")
+                    )
+                    time_diff = (curr_time - prev_time).total_seconds()
+
+                    if time_diff > 0:
+                        # Förväntad avstånd
+                        expected_distance = speed * time_diff
+
+                        # Faktiskt avstånd
+                        R = 6371000
+                        phi1 = math.radians(prev_lat)
+                        phi2 = math.radians(orig_lat)
+                        delta_phi = math.radians(orig_lat - prev_lat)
+                        delta_lambda = math.radians(orig_lng - prev_lng)
+                        a = (
+                            math.sin(delta_phi / 2) ** 2
+                            + math.cos(phi1)
+                            * math.cos(phi2)
+                            * math.sin(delta_lambda / 2) ** 2
+                        )
+                        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                        actual_distance = R * c
+
+                        position_jump = abs(actual_distance - expected_distance)
+                except Exception:
+                    pass
+
+            features.extend([curvature, speed_consistency, position_jump])
+
+            # Matchning features (närhetsmatchning med människaspår för hundspår)
+            distance_to_human = 999.0
+            direction_to_human = 0.0
+            human_track_speed = 0.0
+            human_track_exists = 0.0
+
+            if track_type == "dog":
+                # Hämta human_track_id från track_row
+                human_track_id = get_row_value(track_row, "human_track_id")
+                if human_track_id:
+                    # Hämta människaspår-positioner
+                    conn_temp = get_db()
+                    cursor_temp = get_cursor(conn_temp)
+                    execute_query(
+                        cursor_temp,
+                        """
+                        SELECT position_lat, position_lng, timestamp
+                        FROM track_positions
+                        WHERE track_id = %s
+                        ORDER BY timestamp ASC
+                        """,
+                        (human_track_id,),
+                    )
+                    human_positions = cursor_temp.fetchall()
+                    conn_temp.close()
+
+                    if human_positions:
+                        human_track_exists = 1.0
+
+                        # Hitta närmaste människaspår-position
+                        try:
+                            dog_time = datetime.fromisoformat(
+                                timestamp_str.replace("Z", "+00:00")
+                            )
+                            nearest_human_pos = None
+                            nearest_distance = 999.0
+
+                            for human_pos in human_positions:
+                                human_lat = get_row_value(human_pos, "position_lat")
+                                human_lng = get_row_value(human_pos, "position_lng")
+                                human_time_str = get_row_value(human_pos, "timestamp")
+
+                                if not all([human_lat, human_lng, human_time_str]):
+                                    continue
+
+                                # Beräkna avstånd
+                                R = 6371000
+                                phi1 = math.radians(orig_lat)
+                                phi2 = math.radians(human_lat)
+                                delta_phi = math.radians(human_lat - orig_lat)
+                                delta_lambda = math.radians(human_lng - orig_lng)
+                                a = (
+                                    math.sin(delta_phi / 2) ** 2
+                                    + math.cos(phi1)
+                                    * math.cos(phi2)
+                                    * math.sin(delta_lambda / 2) ** 2
+                                )
+                                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                                distance = R * c
+
+                                # Prioritera positioner nära i tid
+                                try:
+                                    human_time = datetime.fromisoformat(
+                                        human_time_str.replace("Z", "+00:00")
+                                    )
+                                    time_diff = abs(
+                                        (dog_time - human_time).total_seconds()
+                                    )
+                                    combined_score = distance + (time_diff * 0.1)
+
+                                    if combined_score < nearest_distance:
+                                        nearest_distance = distance
+                                        nearest_human_pos = {
+                                            "lat": human_lat,
+                                            "lng": human_lng,
+                                            "timestamp": human_time_str,
+                                        }
+
+                                        # Beräkna hastighet på människaspår
+                                        human_idx = human_positions.index(human_pos)
+                                        if human_idx > 0:
+                                            prev_human = human_positions[human_idx - 1]
+                                            prev_human_lat = get_row_value(
+                                                prev_human, "position_lat"
+                                            )
+                                            prev_human_lng = get_row_value(
+                                                prev_human, "position_lng"
+                                            )
+                                            prev_human_time_str = get_row_value(
+                                                prev_human, "timestamp"
+                                            )
+                                            if (
+                                                prev_human_lat
+                                                and prev_human_lng
+                                                and prev_human_time_str
+                                            ):
+                                                prev_human_time = (
+                                                    datetime.fromisoformat(
+                                                        prev_human_time_str.replace(
+                                                            "Z", "+00:00"
+                                                        )
+                                                    )
+                                                )
+                                                R = 6371000
+                                                phi1_h = math.radians(prev_human_lat)
+                                                phi2_h = math.radians(human_lat)
+                                                delta_phi_h = math.radians(
+                                                    human_lat - prev_human_lat
+                                                )
+                                                delta_lambda_h = math.radians(
+                                                    human_lng - prev_human_lng
+                                                )
+                                                a_h = (
+                                                    math.sin(delta_phi_h / 2) ** 2
+                                                    + math.cos(phi1_h)
+                                                    * math.cos(phi2_h)
+                                                    * math.sin(delta_lambda_h / 2) ** 2
+                                                )
+                                                c_h = 2 * math.atan2(
+                                                    math.sqrt(a_h), math.sqrt(1 - a_h)
+                                                )
+                                                human_dist = R * c_h
+                                                human_time_diff = (
+                                                    human_time - prev_human_time
+                                                ).total_seconds()
+                                                if human_time_diff > 0:
+                                                    human_track_speed = (
+                                                        human_dist / human_time_diff
+                                                    )
+                                except Exception:
+                                    if distance < nearest_distance:
+                                        nearest_distance = distance
+                                        nearest_human_pos = {
+                                            "lat": human_lat,
+                                            "lng": human_lng,
+                                        }
+
+                            if nearest_human_pos:
+                                distance_to_human = nearest_distance
+
+                                # Beräkna riktning mot människaspår
+                                try:
+                                    human_lat = nearest_human_pos["lat"]
+                                    human_lng = nearest_human_pos["lng"]
+                                    lat1_rad = math.radians(orig_lat)
+                                    lat2_rad = math.radians(human_lat)
+                                    delta_lng = math.radians(human_lng - orig_lng)
+                                    y = math.sin(delta_lng) * math.cos(lat2_rad)
+                                    x = math.cos(lat1_rad) * math.sin(
+                                        lat2_rad
+                                    ) - math.sin(lat1_rad) * math.cos(
+                                        lat2_rad
+                                    ) * math.cos(delta_lng)
+                                    direction_to_human = math.degrees(math.atan2(y, x))
+                                    if direction_to_human < 0:
+                                        direction_to_human += 360
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+
+            features.extend(
+                [
+                    distance_to_human,
+                    direction_to_human,
+                    human_track_speed,
+                    human_track_exists,
+                ]
+            )
+
+            # Förutsäg korrigeringsavstånd
+            X = np.array([features])
+            X_scaled = scaler.transform(X)
+            predicted_correction_distance = model.predict(X_scaled)[0]
+
+            # Spara förutsägelsen för rolling statistics i nästa iteration
+            predicted_corrections_history.append(predicted_correction_distance)
+
+            # Beräkna förutsagd korrigerad position (samma logik som i apply_ml_correction)
+            predicted_corr_lat = orig_lat
+            predicted_corr_lng = orig_lng
+            if predicted_correction_distance > 0.1:  # Bara korrigera om > 10cm
+                if len(positions) > 1:
+                    correction_factor = min(
+                        predicted_correction_distance / 10.0, 0.5
+                    )  # Max 50% korrigering
+                    predicted_corr_lat = (
+                        orig_lat + (mean_lat - orig_lat) * correction_factor
+                    )
+                    predicted_corr_lng = (
+                        orig_lng + (mean_lng - orig_lng) * correction_factor
+                    )
+
+            # Beräkna faktiskt korrigeringsavstånd (om korrigering finns)
+            actual_correction_distance = None
+            if actual_corr_lat is not None and actual_corr_lng is not None:
+                positions_with_actual_corrections += 1
+                # Haversine distance mellan original och korrigerad
+                R = 6371000
+                phi1 = math.radians(orig_lat)
+                phi2 = math.radians(actual_corr_lat)
+                delta_phi = math.radians(actual_corr_lat - orig_lat)
+                delta_lambda = math.radians(actual_corr_lng - orig_lng)
+                a = (
+                    math.sin(delta_phi / 2) ** 2
+                    + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+                )
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                actual_correction_distance = R * c
+
+            # Beräkna avstånd mellan förutsagd och faktisk korrigering (om båda finns)
+            prediction_error = None
+            if actual_correction_distance is not None:
+                prediction_error = abs(
+                    predicted_correction_distance - actual_correction_distance
+                )
+
+            predictions.append(
+                {
+                    "position_id": pos_id,
+                    "timestamp": timestamp_str,
+                    "original_position": {"lat": orig_lat, "lng": orig_lng},
+                    "predicted_correction_distance_meters": float(
+                        predicted_correction_distance
+                    ),
+                    "predicted_corrected_position": {
+                        "lat": float(predicted_corr_lat),
+                        "lng": float(predicted_corr_lng),
+                    },
+                    "actual_correction_distance_meters": (
+                        float(actual_correction_distance)
+                        if actual_correction_distance is not None
+                        else None
+                    ),
+                    "actual_corrected_position": (
+                        {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
+                        if actual_corr_lat is not None and actual_corr_lng is not None
+                        else None
+                    ),
+                    "prediction_error_meters": (
+                        float(prediction_error)
+                        if prediction_error is not None
+                        else None
+                    ),
+                    "verified_status": verified_status,
+                    "gps_accuracy": float(accuracy) if accuracy else None,
+                }
+            )
+
+        # Beräkna statistik
+        predicted_distances = [
+            p["predicted_correction_distance_meters"] for p in predictions
+        ]
+        actual_distances = [
+            p["actual_correction_distance_meters"]
+            for p in predictions
+            if p["actual_correction_distance_meters"] is not None
+        ]
+        prediction_errors = [
+            p["prediction_error_meters"]
+            for p in predictions
+            if p["prediction_error_meters"] is not None
+        ]
+
+        statistics = {
+            "total_positions": total_positions,
+            "positions_with_actual_corrections": positions_with_actual_corrections,
+            "positions_without_corrections": (
+                total_positions - positions_with_actual_corrections
+            ),
+            "predicted_corrections": {
+                "mean_meters": float(np.mean(predicted_distances)),
+                "max_meters": float(np.max(predicted_distances)),
+                "min_meters": float(np.min(predicted_distances)),
+                "median_meters": float(np.median(predicted_distances)),
+            },
+        }
+
+        if actual_distances:
+            statistics["actual_corrections"] = {
+                "mean_meters": float(np.mean(actual_distances)),
+                "max_meters": float(np.max(actual_distances)),
+                "min_meters": float(np.min(actual_distances)),
+                "median_meters": float(np.median(actual_distances)),
+            }
+
+        if prediction_errors:
+            statistics["prediction_accuracy"] = {
+                "mean_error_meters": float(np.mean(prediction_errors)),
+                "max_error_meters": float(np.max(prediction_errors)),
+                "median_error_meters": float(np.median(prediction_errors)),
+            }
+
+        # Spara till JSON-fil
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        predictions_dir.mkdir(exist_ok=True)
+
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_track_name = "".join(
+            c if c.isalnum() or c in ("-", "_") else "_" for c in track_name
+        )
+        filename = f"predictions_{safe_track_name}_{track_id}_{timestamp_str}.json"
+        filepath = predictions_dir / filename
+
+        result = {
+            "track_id": track_id,
+            "track_name": track_name,
+            "track_type": track_type,
+            "prediction_timestamp": datetime.now().isoformat(),
+            "statistics": statistics,
+            "predictions": predictions,
+        }
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+
+        return {
+            "status": "success",
+            "message": f"Förutsägelser genererade för {total_positions} positioner",
+            "filepath": str(filepath.relative_to(Path(__file__).parent.parent)),
+            "statistics": statistics,
+            "predictions_count": len(predictions),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid ML-förutsägelse: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.get("/ml/predict/multiple")
+@app.get("/api/ml/predict/multiple")  # Stöd för frontend som använder /api prefix
+def predict_ml_corrections_multiple(
+    track_ids: str = Query(..., description="Komma-separerad lista av track_ids"),
+):
+    """
+    Förutsäg ML-korrigeringar för flera spår UTAN att ändra databasen.
+    Sparar resultaten i ml/predictions/ som JSON-filer.
+    Fungerar på både redan korrigerade spår (jämför förutsägelse vs faktisk) och nya spår.
+    """
+    try:
+        import pickle
+        import numpy as np
+        from datetime import datetime
+        import math
+
+        # Parse track_ids
+        track_id_list = [
+            int(tid.strip()) for tid in track_ids.split(",") if tid.strip()
+        ]
+        if not track_id_list:
+            raise HTTPException(status_code=400, detail="Inga track_ids angivna")
+
+        # Ladda modell och scaler
+        ml_dir = Path(__file__).parent.parent / "ml" / "output"
+        model_path = ml_dir / "gps_correction_model_best.pkl"
+        scaler_path = ml_dir / "gps_correction_scaler.pkl"
+        feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
+
+        if not model_path.exists():
+            raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
+
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
+        with open(scaler_path, "rb") as f:
+            scaler = pickle.load(f)
+        with open(feature_names_path, "rb") as f:
+            feature_names = pickle.load(f)
+
+        # Hämta alla spår och positioner
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        all_tracks_data = []
+        all_predictions = []
+        total_positions = 0
+        positions_with_actual_corrections = 0
+
+        for track_id in track_id_list:
+            # Hämta spår
+            execute_query(cursor, "SELECT * FROM tracks WHERE id = %s", (track_id,))
+            track_row = cursor.fetchone()
+            if not track_row:
+                continue  # Hoppa över om spåret inte finns
+
+            track_name = get_row_value(track_row, "name") or f"Track_{track_id}"
+            track_type = get_row_value(track_row, "track_type")
+
+            # Hämta positioner
+            execute_query(
+                cursor,
+                """
+                SELECT id, position_lat, position_lng, timestamp, accuracy,
+                       corrected_lat, corrected_lng, verified_status, environment
+                FROM track_positions
+                WHERE track_id = %s
+                ORDER BY timestamp ASC
+                """,
+                (track_id,),
+            )
+            positions = cursor.fetchall()
+
+            if not positions:
+                continue  # Hoppa över om inga positioner finns
+
+            all_tracks_data.append(
+                {
+                    "track_id": track_id,
+                    "track_name": track_name,
+                    "track_type": track_type,
+                    "positions": positions,
+                }
+            )
+
+        conn.close()
+
+        if not all_tracks_data:
+            raise HTTPException(
+                status_code=404, detail="Inga spår med positioner hittades"
+            )
+
+        # Beräkna medelvärde för normalisering (över alla spår)
+        all_lats = []
+        all_lngs = []
+        for track_data in all_tracks_data:
+            for pos in track_data["positions"]:
+                all_lats.append(get_row_value(pos, "position_lat"))
+                all_lngs.append(get_row_value(pos, "position_lng"))
+        mean_lat = np.mean(all_lats) if all_lats else 0.0
+        mean_lng = np.mean(all_lngs) if all_lngs else 0.0
+
+        # Förutsägelser för varje spår
+        for track_data in all_tracks_data:
+            track_id = track_data["track_id"]
+            track_name = track_data["track_name"]
+            track_type = track_data["track_type"]
+            positions = track_data["positions"]
+
+            predicted_corrections_history = []  # Per spår
+
+            for i, pos in enumerate(positions):
+                pos_id = get_row_value(pos, "id")
+                orig_lat = get_row_value(pos, "position_lat")
+                orig_lng = get_row_value(pos, "position_lng")
+                accuracy = get_row_value(pos, "accuracy") or 0.0
+                timestamp_str = get_row_value(pos, "timestamp")
+                actual_corr_lat = get_row_value(pos, "corrected_lat")
+                actual_corr_lng = get_row_value(pos, "corrected_lng")
+                verified_status = get_row_value(pos, "verified_status") or "pending"
+
+                # Beräkna features (samma logik som i predict_ml_corrections)
+                features = []
+
+                # GPS accuracy
+                features.append(accuracy)
+                features.append(accuracy**2)
+
+                # Position
+                features.extend([orig_lat, orig_lng])
+
+                # Normaliserad position (använd global mean)
+                features.extend([orig_lat - mean_lat, orig_lng - mean_lng])
+
+                # Track type
+                features.append(1 if track_type == "human" else 0)
+
+                # Timestamp features
+                try:
+                    if timestamp_str:
+                        dt = datetime.fromisoformat(
+                            timestamp_str.replace("Z", "+00:00")
+                        )
+                        hour = dt.hour
+                        weekday = dt.weekday()
+                        features.append(math.sin(2 * math.pi * hour / 24))
+                        features.append(math.cos(2 * math.pi * hour / 24))
+                        features.append(math.sin(2 * math.pi * weekday / 7))
+                        features.append(math.cos(2 * math.pi * weekday / 7))
+                    else:
+                        features.extend([0.0, 1.0, 0.0, 1.0])
+                except Exception:
+                    features.extend([0.0, 1.0, 0.0, 1.0])
+
+                # Hastighet, acceleration, etc. (samma logik som i predict_ml_corrections)
+                speed = 0.0
+                acceleration = 0.0
+                distance_prev_1 = 0.0
+                distance_prev_2 = 0.0
+                distance_prev_3 = 0.0
+                bearing = 0.0
+
+                if i > 0:
+                    prev_pos = positions[i - 1]
+                    prev_lat = get_row_value(prev_pos, "position_lat")
+                    prev_lng = get_row_value(prev_pos, "position_lng")
+
+                    # Haversine distance
+                    R = 6371000
+                    phi1 = math.radians(prev_lat)
+                    phi2 = math.radians(orig_lat)
+                    delta_phi = math.radians(orig_lat - prev_lat)
+                    delta_lambda = math.radians(orig_lng - prev_lng)
+                    a = (
+                        math.sin(delta_phi / 2) ** 2
+                        + math.cos(phi1)
+                        * math.cos(phi2)
+                        * math.sin(delta_lambda / 2) ** 2
+                    )
+                    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                    distance_prev_1 = R * c
+
+                    # Hastighet
+                    try:
+                        curr_time = datetime.fromisoformat(
+                            timestamp_str.replace("Z", "+00:00")
+                        )
+                        prev_timestamp = get_row_value(prev_pos, "timestamp")
+                        prev_time = datetime.fromisoformat(
+                            prev_timestamp.replace("Z", "+00:00")
+                        )
+                        time_diff = (curr_time - prev_time).total_seconds()
+                        if time_diff > 0:
+                            speed = distance_prev_1 / time_diff
+                    except Exception:
+                        pass
+
+                    # Bearing
+                    try:
+                        lat1_rad = math.radians(prev_lat)
+                        lat2_rad = math.radians(orig_lat)
+                        delta_lng = math.radians(orig_lng - prev_lng)
+                        y = math.sin(delta_lng) * math.cos(lat2_rad)
+                        x = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(
+                            lat1_rad
+                        ) * math.cos(lat2_rad) * math.cos(delta_lng)
+                        bearing = math.degrees(math.atan2(y, x))
+                        if bearing < 0:
+                            bearing += 360
+                    except Exception:
+                        pass
+
+                    # Acceleration och distance_prev_2/3
+                    if i > 1:
+                        prev2_pos = positions[i - 2]
+                        prev2_lat = get_row_value(prev2_pos, "position_lat")
+                        prev2_lng = get_row_value(prev2_pos, "position_lng")
+
+                        # Distance prev 2
+                        phi1_prev = math.radians(prev2_lat)
+                        phi2_prev = math.radians(prev_lat)
+                        delta_phi_prev = math.radians(prev_lat - prev2_lat)
+                        delta_lambda_prev = math.radians(prev_lng - prev2_lng)
+                        a_prev = (
+                            math.sin(delta_phi_prev / 2) ** 2
+                            + math.cos(phi1_prev)
+                            * math.cos(phi2_prev)
+                            * math.sin(delta_lambda_prev / 2) ** 2
+                        )
+                        c_prev = 2 * math.atan2(
+                            math.sqrt(a_prev), math.sqrt(1 - a_prev)
+                        )
+                        distance_prev_2 = R * c_prev
+
+                        # Acceleration
+                        try:
+                            prev2_timestamp = get_row_value(prev2_pos, "timestamp")
+                            prev2_time = datetime.fromisoformat(
+                                prev2_timestamp.replace("Z", "+00:00")
+                            )
+                            time_diff_prev = (prev_time - prev2_time).total_seconds()
+                            if time_diff_prev > 0:
+                                prev_speed = distance_prev_2 / time_diff_prev
+                                if time_diff > 0:
+                                    acceleration = (speed - prev_speed) / time_diff
+                        except Exception:
+                            pass
+
+                        # Distance prev 3
+                        if i > 2:
+                            prev3_pos = positions[i - 3]
+                            prev3_lat = get_row_value(prev3_pos, "position_lat")
+                            prev3_lng = get_row_value(prev3_pos, "position_lng")
+
+                            phi1_prev3 = math.radians(prev3_lat)
+                            phi2_prev3 = math.radians(prev2_lat)
+                            delta_phi_prev3 = math.radians(prev2_lat - prev3_lat)
+                            delta_lambda_prev3 = math.radians(prev2_lng - prev3_lng)
+                            a_prev3 = (
+                                math.sin(delta_phi_prev3 / 2) ** 2
+                                + math.cos(phi1_prev3)
+                                * math.cos(phi2_prev3)
+                                * math.sin(delta_lambda_prev3 / 2) ** 2
+                            )
+                            c_prev3 = 2 * math.atan2(
+                                math.sqrt(a_prev3), math.sqrt(1 - a_prev3)
+                            )
+                            distance_prev_3 = R * c_prev3
+
+                features.extend(
+                    [
+                        speed,
+                        acceleration,
+                        distance_prev_1,
+                        distance_prev_2,
+                        distance_prev_3,
+                        bearing,
+                    ]
+                )
+
+                # Rolling statistics
+                if i >= 2 and len(predicted_corrections_history) >= 2:
+                    recent_corrections = predicted_corrections_history[-2:]
+                    recent_mean = float(np.mean(recent_corrections))
+                    recent_std = (
+                        float(np.std(recent_corrections))
+                        if len(recent_corrections) > 1
+                        else 0.0
+                    )
+                else:
+                    recent_mean = 0.0
+                    recent_std = 0.0
+                features.extend([recent_mean, recent_std])
+
+                # Interaktioner
+                features.extend(
+                    [
+                        accuracy * speed,
+                        accuracy * distance_prev_1,
+                        speed * distance_prev_1,
+                    ]
+                )
+
+                # Environment features
+                environment = get_row_value(pos, "environment")
+                environment_categories = [
+                    "urban",
+                    "suburban",
+                    "forest",
+                    "open",
+                    "park",
+                    "water",
+                    "mountain",
+                    "mixed",
+                ]
+                for env_cat in environment_categories:
+                    env_value = 1.0 if environment == env_cat else 0.0
+                    features.append(env_value)
+
+                # Smoothing features (spår-jämnhet) - samma som i predict_ml_corrections
+                # Kurvatur
+                curvature = 0.0
+                if i > 0 and i < len(positions) - 1:
+                    try:
+                        prev_pos = positions[i - 1]
+                        next_pos = positions[i + 1]
+                        prev_lat = get_row_value(prev_pos, "position_lat")
+                        prev_lng = get_row_value(prev_pos, "position_lng")
+                        next_lat = get_row_value(next_pos, "position_lat")
+                        next_lng = get_row_value(next_pos, "position_lng")
+
+                        # Beräkna riktning för segment 1 (prev -> curr)
+                        lat1_rad = math.radians(prev_lat)
+                        lat2_rad = math.radians(orig_lat)
+                        delta_lng1 = math.radians(orig_lng - prev_lng)
+                        y1 = math.sin(delta_lng1) * math.cos(lat2_rad)
+                        x1 = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(
+                            lat1_rad
+                        ) * math.cos(lat2_rad) * math.cos(delta_lng1)
+                        bearing1 = math.atan2(y1, x1)
+
+                        # Beräkna riktning för segment 2 (curr -> next)
+                        lat3_rad = math.radians(next_lat)
+                        delta_lng2 = math.radians(next_lng - orig_lng)
+                        y2 = math.sin(delta_lng2) * math.cos(lat3_rad)
+                        x2 = math.cos(lat2_rad) * math.sin(lat3_rad) - math.sin(
+                            lat2_rad
+                        ) * math.cos(lat3_rad) * math.cos(delta_lng2)
+                        bearing2 = math.atan2(y2, x2)
+
+                        # Kurvatur = skillnaden i riktning
+                        curvature = abs(bearing1 - bearing2)
+                        if curvature > math.pi:
+                            curvature = 2 * math.pi - curvature
+                    except Exception:
+                        pass
+
+                # Hastighetsvariation (speed consistency)
+                speed_consistency = 0.0
+                if len(positions) >= 2:
+                    try:
+                        speeds = []
+                        window = 5
+                        start_idx = max(0, i - window)
+                        end_idx = min(len(positions), i + window + 1)
+
+                        for j in range(start_idx, end_idx - 1):
+                            if j >= len(positions) - 1:
+                                break
+                            p1 = positions[j]
+                            p2 = positions[j + 1]
+                            lat1 = get_row_value(p1, "position_lat")
+                            lng1 = get_row_value(p1, "position_lng")
+                            lat2 = get_row_value(p2, "position_lat")
+                            lng2 = get_row_value(p2, "position_lng")
+
+                            R = 6371000
+                            phi1 = math.radians(lat1)
+                            phi2 = math.radians(lat2)
+                            delta_phi = math.radians(lat2 - lat1)
+                            delta_lambda = math.radians(lng2 - lng1)
+                            a = (
+                                math.sin(delta_phi / 2) ** 2
+                                + math.cos(phi1)
+                                * math.cos(phi2)
+                                * math.sin(delta_lambda / 2) ** 2
+                            )
+                            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                            dist = R * c
+
+                            try:
+                                time1 = datetime.fromisoformat(
+                                    get_row_value(p1, "timestamp").replace(
+                                        "Z", "+00:00"
+                                    )
+                                )
+                                time2 = datetime.fromisoformat(
+                                    get_row_value(p2, "timestamp").replace(
+                                        "Z", "+00:00"
+                                    )
+                                )
+                                time_diff = (time2 - time1).total_seconds()
+                                if time_diff > 0:
+                                    speeds.append(dist / time_diff)
+                            except Exception:
+                                pass
+
+                        if len(speeds) >= 2:
+                            speed_consistency = float(np.std(speeds))
+                    except Exception:
+                        pass
+
+                # Position-jump
+                position_jump = 0.0
+                if i > 0 and speed > 0:
+                    try:
+                        prev_pos = positions[i - 1]
+                        prev_lat = get_row_value(prev_pos, "position_lat")
+                        prev_lng = get_row_value(prev_pos, "position_lng")
+                        prev_time_str = get_row_value(prev_pos, "timestamp")
+
+                        curr_time = datetime.fromisoformat(
+                            timestamp_str.replace("Z", "+00:00")
+                        )
+                        prev_time = datetime.fromisoformat(
+                            prev_time_str.replace("Z", "+00:00")
+                        )
+                        time_diff = (curr_time - prev_time).total_seconds()
+
+                        if time_diff > 0:
+                            # Förväntad avstånd
+                            expected_distance = speed * time_diff
+
+                            # Faktiskt avstånd
+                            R = 6371000
+                            phi1 = math.radians(prev_lat)
+                            phi2 = math.radians(orig_lat)
+                            delta_phi = math.radians(orig_lat - prev_lat)
+                            delta_lambda = math.radians(orig_lng - prev_lng)
+                            a = (
+                                math.sin(delta_phi / 2) ** 2
+                                + math.cos(phi1)
+                                * math.cos(phi2)
+                                * math.sin(delta_lambda / 2) ** 2
+                            )
+                            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                            actual_distance = R * c
+
+                            position_jump = abs(actual_distance - expected_distance)
+                    except Exception:
+                        pass
+
+                features.extend([curvature, speed_consistency, position_jump])
+
+                # Matchning features (närhetsmatchning med människaspår för hundspår)
+                distance_to_human = 999.0
+                direction_to_human = 0.0
+                human_track_speed = 0.0
+                human_track_exists = 0.0
+
+                if track_type == "dog":
+                    # Hitta människaspår i all_tracks_data
+                    human_track_data = None
+                    for other_track_data in all_tracks_data:
+                        if other_track_data["track_type"] == "human":
+                            human_track_data = other_track_data
+                            break
+
+                    if human_track_data and human_track_data["positions"]:
+                        human_track_exists = 1.0
+
+                        # Hitta närmaste människaspår-position
+                        try:
+                            dog_time = datetime.fromisoformat(
+                                timestamp_str.replace("Z", "+00:00")
+                            )
+                            nearest_human_pos = None
+                            nearest_distance = 999.0
+
+                            for human_pos in human_track_data["positions"]:
+                                human_lat = get_row_value(human_pos, "position_lat")
+                                human_lng = get_row_value(human_pos, "position_lng")
+                                human_time_str = get_row_value(human_pos, "timestamp")
+
+                                if not all([human_lat, human_lng, human_time_str]):
+                                    continue
+
+                                # Beräkna avstånd
+                                R = 6371000
+                                phi1 = math.radians(orig_lat)
+                                phi2 = math.radians(human_lat)
+                                delta_phi = math.radians(human_lat - orig_lat)
+                                delta_lambda = math.radians(human_lng - orig_lng)
+                                a = (
+                                    math.sin(delta_phi / 2) ** 2
+                                    + math.cos(phi1)
+                                    * math.cos(phi2)
+                                    * math.sin(delta_lambda / 2) ** 2
+                                )
+                                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                                distance = R * c
+
+                                # Prioritera positioner nära i tid
+                                try:
+                                    human_time = datetime.fromisoformat(
+                                        human_time_str.replace("Z", "+00:00")
+                                    )
+                                    time_diff = abs(
+                                        (dog_time - human_time).total_seconds()
+                                    )
+                                    combined_score = distance + (time_diff * 0.1)
+
+                                    if combined_score < nearest_distance:
+                                        nearest_distance = distance
+                                        nearest_human_pos = {
+                                            "lat": human_lat,
+                                            "lng": human_lng,
+                                            "timestamp": human_time_str,
+                                        }
+
+                                        # Beräkna hastighet på människaspår
+                                        human_idx = human_track_data["positions"].index(
+                                            human_pos
+                                        )
+                                        if human_idx > 0:
+                                            prev_human = human_track_data["positions"][
+                                                human_idx - 1
+                                            ]
+                                            prev_human_lat = get_row_value(
+                                                prev_human, "position_lat"
+                                            )
+                                            prev_human_lng = get_row_value(
+                                                prev_human, "position_lng"
+                                            )
+                                            prev_human_time_str = get_row_value(
+                                                prev_human, "timestamp"
+                                            )
+                                            if (
+                                                prev_human_lat
+                                                and prev_human_lng
+                                                and prev_human_time_str
+                                            ):
+                                                prev_human_time = (
+                                                    datetime.fromisoformat(
+                                                        prev_human_time_str.replace(
+                                                            "Z", "+00:00"
+                                                        )
+                                                    )
+                                                )
+                                                R = 6371000
+                                                phi1_h = math.radians(prev_human_lat)
+                                                phi2_h = math.radians(human_lat)
+                                                delta_phi_h = math.radians(
+                                                    human_lat - prev_human_lat
+                                                )
+                                                delta_lambda_h = math.radians(
+                                                    human_lng - prev_human_lng
+                                                )
+                                                a_h = (
+                                                    math.sin(delta_phi_h / 2) ** 2
+                                                    + math.cos(phi1_h)
+                                                    * math.cos(phi2_h)
+                                                    * math.sin(delta_lambda_h / 2) ** 2
+                                                )
+                                                c_h = 2 * math.atan2(
+                                                    math.sqrt(a_h), math.sqrt(1 - a_h)
+                                                )
+                                                human_dist = R * c_h
+                                                human_time_diff = (
+                                                    human_time - prev_human_time
+                                                ).total_seconds()
+                                                if human_time_diff > 0:
+                                                    human_track_speed = (
+                                                        human_dist / human_time_diff
+                                                    )
+                                except Exception:
+                                    if distance < nearest_distance:
+                                        nearest_distance = distance
+                                        nearest_human_pos = {
+                                            "lat": human_lat,
+                                            "lng": human_lng,
+                                        }
+
+                            if nearest_human_pos:
+                                distance_to_human = nearest_distance
+
+                                # Beräkna riktning mot människaspår
+                                try:
+                                    human_lat = nearest_human_pos["lat"]
+                                    human_lng = nearest_human_pos["lng"]
+                                    lat1_rad = math.radians(orig_lat)
+                                    lat2_rad = math.radians(human_lat)
+                                    delta_lng = math.radians(human_lng - orig_lng)
+                                    y = math.sin(delta_lng) * math.cos(lat2_rad)
+                                    x = math.cos(lat1_rad) * math.sin(
+                                        lat2_rad
+                                    ) - math.sin(lat1_rad) * math.cos(
+                                        lat2_rad
+                                    ) * math.cos(delta_lng)
+                                    direction_to_human = math.degrees(math.atan2(y, x))
+                                    if direction_to_human < 0:
+                                        direction_to_human += 360
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+
+                features.extend(
+                    [
+                        distance_to_human,
+                        direction_to_human,
+                        human_track_speed,
+                        human_track_exists,
+                    ]
+                )
+
+                # Förutsäg korrigeringsavstånd
+                X = np.array([features])
+                X_scaled = scaler.transform(X)
+                predicted_correction_distance = model.predict(X_scaled)[0]
+
+                # Spara förutsägelsen för rolling statistics
+                predicted_corrections_history.append(predicted_correction_distance)
+
+                # Beräkna förutsagd korrigerad position
+                predicted_corr_lat = orig_lat
+                predicted_corr_lng = orig_lng
+                if predicted_correction_distance > 0.1:
+                    correction_factor = min(predicted_correction_distance / 10.0, 0.5)
+                    predicted_corr_lat = (
+                        orig_lat + (mean_lat - orig_lat) * correction_factor
+                    )
+                    predicted_corr_lng = (
+                        orig_lng + (mean_lng - orig_lng) * correction_factor
+                    )
+
+                # Beräkna faktiskt korrigeringsavstånd
+                actual_correction_distance = None
+                if actual_corr_lat is not None and actual_corr_lng is not None:
+                    positions_with_actual_corrections += 1
+                    R = 6371000
+                    phi1 = math.radians(orig_lat)
+                    phi2 = math.radians(actual_corr_lat)
+                    delta_phi = math.radians(actual_corr_lat - orig_lat)
+                    delta_lambda = math.radians(actual_corr_lng - orig_lng)
+                    a = (
+                        math.sin(delta_phi / 2) ** 2
+                        + math.cos(phi1)
+                        * math.cos(phi2)
+                        * math.sin(delta_lambda / 2) ** 2
+                    )
+                    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                    actual_correction_distance = R * c
+
+                # Beräkna avstånd mellan förutsagd och faktisk korrigering
+                prediction_error = None
+                if actual_correction_distance is not None:
+                    prediction_error = abs(
+                        predicted_correction_distance - actual_correction_distance
+                    )
+
+                all_predictions.append(
+                    {
+                        "position_id": pos_id,
+                        "track_id": track_id,
+                        "track_name": track_name,
+                        "track_type": track_type,
+                        "timestamp": timestamp_str,
+                        "original_position": {"lat": orig_lat, "lng": orig_lng},
+                        "predicted_correction_distance_meters": float(
+                            predicted_correction_distance
+                        ),
+                        "predicted_corrected_position": {
+                            "lat": float(predicted_corr_lat),
+                            "lng": float(predicted_corr_lng),
+                        },
+                        "actual_correction_distance_meters": (
+                            float(actual_correction_distance)
+                            if actual_correction_distance is not None
+                            else None
+                        ),
+                        "actual_corrected_position": (
+                            {
+                                "lat": float(actual_corr_lat),
+                                "lng": float(actual_corr_lng),
+                            }
+                            if actual_corr_lat is not None
+                            and actual_corr_lng is not None
+                            else None
+                        ),
+                        "prediction_error_meters": (
+                            float(prediction_error)
+                            if prediction_error is not None
+                            else None
+                        ),
+                        "verified_status": verified_status,
+                        "gps_accuracy": float(accuracy) if accuracy else None,
+                    }
+                )
+                total_positions += 1
+
+        # Beräkna statistik
+        predicted_distances = [
+            p["predicted_correction_distance_meters"] for p in all_predictions
+        ]
+        actual_distances = [
+            p["actual_correction_distance_meters"]
+            for p in all_predictions
+            if p["actual_correction_distance_meters"] is not None
+        ]
+        prediction_errors = [
+            p["prediction_error_meters"]
+            for p in all_predictions
+            if p["prediction_error_meters"] is not None
+        ]
+
+        statistics = {
+            "total_positions": total_positions,
+            "positions_with_actual_corrections": positions_with_actual_corrections,
+            "positions_without_corrections": (
+                total_positions - positions_with_actual_corrections
+            ),
+            "predicted_corrections": {
+                "mean_meters": float(np.mean(predicted_distances)),
+                "max_meters": float(np.max(predicted_distances)),
+                "min_meters": float(np.min(predicted_distances)),
+                "median_meters": float(np.median(predicted_distances)),
+            },
+        }
+
+        if actual_distances:
+            statistics["actual_corrections"] = {
+                "mean_meters": float(np.mean(actual_distances)),
+                "max_meters": float(np.max(actual_distances)),
+                "min_meters": float(np.min(actual_distances)),
+                "median_meters": float(np.median(actual_distances)),
+            }
+
+        if prediction_errors:
+            statistics["prediction_accuracy"] = {
+                "mean_error_meters": float(np.mean(prediction_errors)),
+                "max_error_meters": float(np.max(prediction_errors)),
+                "median_error_meters": float(np.median(prediction_errors)),
+            }
+
+        # Spara till JSON-fil
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        predictions_dir.mkdir(exist_ok=True)
+
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        track_names_str = "_".join(
+            [
+                "".join(
+                    c if c.isalnum() or c in ("-", "_") else "_"
+                    for c in td["track_name"]
+                )
+                for td in all_tracks_data
+            ]
+        )
+        filename = f"predictions_{track_names_str}_{'_'.join(map(str, track_id_list))}_{timestamp_str}.json"
+        filepath = predictions_dir / filename
+
+        result = {
+            "track_ids": track_id_list,
+            "track_names": [td["track_name"] for td in all_tracks_data],
+            "prediction_timestamp": datetime.now().isoformat(),
+            "statistics": statistics,
+            "predictions": all_predictions,
+        }
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+
+        return {
+            "status": "success",
+            "message": f"Förutsägelser genererade för {total_positions} positioner från {len(track_id_list)} spår",
+            "filepath": str(filepath.relative_to(Path(__file__).parent.parent)),
+            "statistics": statistics,
+            "predictions_count": len(all_predictions),
+            "data": result,  # Inkludera full data för direkt användning
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid ML-förutsägelse: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.get("/ml/predictions")
+@app.get("/api/ml/predictions")  # Stöd för frontend som använder /api prefix
+def list_ml_predictions():
+    """Lista alla sparade ML-förutsägelser"""
+    try:
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        predictions_dir.mkdir(exist_ok=True)
+
+        predictions = []
+        for filepath in sorted(
+            predictions_dir.glob("predictions_*.json"), reverse=True
+        ):
+            try:
+                stat = filepath.stat()
+                predictions.append(
+                    {
+                        "filename": filepath.name,
+                        "filepath": str(
+                            filepath.relative_to(Path(__file__).parent.parent)
+                        ),
+                        "size_bytes": stat.st_size,
+                        "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    }
+                )
+            except Exception:
+                pass
+
+        return {
+            "status": "success",
+            "predictions": predictions,
+            "count": len(predictions),
+        }
+
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid listning av förutsägelser: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.get("/ml/predictions/{filename}")
+@app.get("/api/ml/predictions/{filename}")  # Stöd för frontend som använder /api prefix
+def get_ml_prediction(filename: str):
+    """Hämta en specifik ML-förutsägelse från fil"""
+    try:
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        filepath = predictions_dir / filename
+
+        if not filepath.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Förutsägelse '{filename}' hittades inte"
+            )
+
+        # Säkerhetskontroll - bara tillåt JSON-filer i predictions-mappen
+        if not filename.startswith("predictions_") or not filename.endswith(".json"):
+            raise HTTPException(
+                status_code=400, detail="Ogiltigt filnamn för förutsägelse"
+            )
+
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return {"status": "success", "data": data}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid läsning av förutsägelse: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.put("/ml/predictions/{filename}/feedback/{position_id}")
+@app.put("/api/ml/predictions/{filename}/feedback/{position_id}")  # Stöd för frontend
+def update_prediction_feedback(
+    filename: str,
+    position_id: int,
+    verified_status: str = Body(..., embed=True),
+):
+    """
+    Uppdatera feedback för en ML-förutsägelse.
+    Sätter verified_status för positionen i databasen.
+    """
+    try:
+        if verified_status not in ["correct", "incorrect", "pending"]:
+            raise HTTPException(
+                status_code=400,
+                detail="verified_status måste vara 'correct', 'incorrect' eller 'pending'",
+            )
+
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Uppdatera verified_status för positionen
+        placeholder = "%s" if DATABASE_URL else "?"
+        execute_query(
+            cursor,
+            f"""
+            UPDATE track_positions
+            SET verified_status = {placeholder}
+            WHERE id = {placeholder}
+            """,
+            (verified_status, position_id),
+        )
+
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(
+                status_code=404, detail=f"Position {position_id} hittades inte"
+            )
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Feedback uppdaterad för position {position_id}",
+            "position_id": position_id,
+            "verified_status": verified_status,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid uppdatering av feedback: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.get("/ml/export-feedback")
+@app.get("/api/ml/export-feedback")  # Stöd för frontend
+def export_feedback_data():
+    """
+    Exportera all data med feedback för ML-träning.
+    Inkluderar både manuellt korrigerade spår och ML-förutsägelser med feedback.
+    """
+    try:
+        from datetime import datetime
+        import json
+
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Hämta alla positioner med korrigeringar eller feedback
+        # Logik:
+        # - Alla positioner med faktisk korrigering (corrected_lat/lng) → Inkludera ALLTID
+        #   (Feedback "felaktig" betyder bara att ML-förutsägelsen var fel, inte att den faktiska korrigeringen är fel)
+        # - Positioner utan faktisk korrigering men med feedback "correct" → Inkludera (använd ML-förutsägelsen)
+        # - Positioner utan faktisk korrigering och feedback "incorrect" → Hoppa över (vi vet inte vad rätt svar är)
+        execute_query(
+            cursor,
+            """
+            SELECT 
+                tp.id,
+                tp.track_id,
+                t.name as track_name,
+                t.track_type,
+                tp.timestamp,
+                tp.verified_status,
+                tp.position_lat as original_lat,
+                tp.position_lng as original_lng,
+                tp.corrected_lat,
+                tp.corrected_lng,
+                tp.accuracy,
+                tp.annotation_notes,
+                tp.environment
+            FROM track_positions tp
+            JOIN tracks t ON tp.track_id = t.id
+            WHERE (
+                (tp.corrected_lat IS NOT NULL AND tp.corrected_lng IS NOT NULL)
+                OR tp.verified_status = 'correct'
+            )
+            ORDER BY tp.track_id, tp.timestamp
+            """,
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Konvertera till JSON-format
+        export_data = []
+        for row in rows:
+            orig_lat = get_row_value(row, "original_lat")
+            orig_lng = get_row_value(row, "original_lng")
+            corr_lat = get_row_value(row, "corrected_lat")
+            corr_lng = get_row_value(row, "corrected_lng")
+            verified_status = get_row_value(row, "verified_status") or "pending"
+
+            # Beräkna correction_distance om korrigering finns
+            correction_distance = None
+            if corr_lat and corr_lng:
+                correction_distance = haversine_meters(
+                    LatLng(lat=orig_lat, lng=orig_lng),
+                    LatLng(lat=corr_lat, lng=corr_lng),
+                )
+
+            export_data.append(
+                {
+                    "id": get_row_value(row, "id"),
+                    "track_id": get_row_value(row, "track_id"),
+                    "track_name": get_row_value(row, "track_name"),
+                    "track_type": get_row_value(row, "track_type"),
+                    "timestamp": get_row_value(row, "timestamp"),
+                    "verified_status": verified_status,
+                    "original_position": {"lat": orig_lat, "lng": orig_lng},
+                    "corrected_position": (
+                        {"lat": corr_lat, "lng": corr_lng}
+                        if corr_lat and corr_lng
+                        else None
+                    ),
+                    "correction_distance_meters": correction_distance,
+                    "accuracy": get_row_value(row, "accuracy"),
+                    "annotation_notes": get_row_value(row, "annotation_notes") or "",
+                    "environment": get_row_value(row, "environment"),
+                }
+            )
+
+        # Lägg till ML-förutsägelser markerade som "correct" från predictions-filer
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        if predictions_dir.exists():
+            for pred_file in predictions_dir.glob("predictions_*.json"):
+                try:
+                    with open(pred_file, "r", encoding="utf-8") as f:
+                        pred_data = json.load(f)
+
+                    if pred_data.get("predictions"):
+                        for pred in pred_data["predictions"]:
+                            # Bara inkludera positioner markerade som "correct" som saknar corrected_position
+                            if (
+                                pred.get("verified_status") == "correct"
+                                and pred.get("predicted_corrected_position")
+                                and not pred.get("actual_corrected_position")
+                            ):
+                                # Använd ML-förutsägelsen som träningsdata
+                                export_data.append(
+                                    {
+                                        "id": pred.get("position_id"),
+                                        "track_id": pred_data.get("track_id"),
+                                        "track_name": pred_data.get("track_name"),
+                                        "track_type": pred_data.get("track_type"),
+                                        "timestamp": pred.get("timestamp"),
+                                        "verified_status": "correct",
+                                        "original_position": pred.get(
+                                            "original_position"
+                                        ),
+                                        "corrected_position": pred.get(
+                                            "predicted_corrected_position"
+                                        ),
+                                        "correction_distance_meters": pred.get(
+                                            "predicted_correction_distance_meters"
+                                        ),
+                                        "accuracy": pred.get("gps_accuracy"),
+                                        "annotation_notes": "ML-förutsägelse markerad som korrekt",
+                                        "environment": None,
+                                    }
+                                )
+                except Exception as e:
+                    print(f"Kunde inte läsa predictions-fil {pred_file.name}: {e}")
+                    continue
+
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"ml_feedback_export_{timestamp_str}.json"
+        filepath = Path(__file__).parent.parent / "ml" / "data" / filename
+
+        # Skapa data-mappen om den inte finns
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(export_data, f, indent=2, ensure_ascii=False)
+
+        return {
+            "status": "success",
+            "message": f"Exporterade {len(export_data)} positioner med feedback",
+            "filepath": str(filepath.relative_to(Path(__file__).parent.parent)),
+            "count": len(export_data),
+            "filename": filename,
+        }
+
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid export av feedback: {str(e)}\n\n{traceback.format_exc()}",
         )

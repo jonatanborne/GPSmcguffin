@@ -105,6 +105,10 @@ Här sparas tränade modeller och resultat:
 - `feature_importance_detailed.png`: Feature importance
 - `residual_analysis.png`: Residual analys
 
+### `predictions/`
+Här sparas ML-förutsägelser för testning (skapas automatiskt):
+- `predictions_{track_name}_{track_id}_{timestamp}.json`: Förutsägelser för ett spår
+
 ## Workflow
 
 ### 1. Samla data
@@ -122,7 +126,31 @@ python analysis.py
 python analyze_model.py
 ```
 
-### 4. Förbättra
+### 4. Testa förutsägelser (utan att ändra data)
+Använd API-endpoints för att testa modellen på spår utan att ändra databasen:
+
+**Förutsäg korrigeringar för ett spår:**
+```bash
+POST /api/ml/predict/{track_id}
+```
+
+Detta kommer att:
+- Förutsäga korrigeringar för alla positioner i spåret
+- Jämföra med faktiska korrigeringar (om de finns)
+- Spara resultatet i `ml/predictions/` som JSON
+- **INTE ändra något i databasen** - bara testning!
+
+**Lista sparade förutsägelser:**
+```bash
+GET /api/ml/predictions
+```
+
+**Hämta en specifik förutsägelse:**
+```bash
+GET /api/ml/predictions/{filename}
+```
+
+### 5. Förbättra
 - Lägg till mer data
 - Förbättra features
 - Justera hyperparameters

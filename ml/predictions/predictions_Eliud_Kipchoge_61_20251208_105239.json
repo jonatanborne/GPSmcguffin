@@ -1,0 +1,4062 @@
+{
+  "track_id": 61,
+  "track_name": "Eliud Kipchoge",
+  "track_type": "human",
+  "prediction_timestamp": "2025-12-08T10:52:39.829224",
+  "statistics": {
+    "total_positions": 192,
+    "positions_with_actual_corrections": 192,
+    "positions_without_corrections": 0,
+    "predicted_corrections": {
+      "mean_meters": 1.872084457967383,
+      "max_meters": 5.030626614701434,
+      "min_meters": 1.0897576703185556,
+      "median_meters": 1.7793862343657052
+    },
+    "actual_corrections": {
+      "mean_meters": 2.465636533613883,
+      "max_meters": 32.47439456743108,
+      "min_meters": 0.5324524214994508,
+      "median_meters": 1.9625934248744856
+    },
+    "prediction_accuracy": {
+      "mean_error_meters": 0.9392422085987454,
+      "max_error_meters": 27.467741123375134,
+      "median_error_meters": 0.5948224986355354
+    }
+  },
+  "predictions": [
+    {
+      "position_id": 8293,
+      "timestamp": "2025-12-03T13:39:08.073832",
+      "original_position": {
+        "lat": 59.3673022,
+        "lng": 17.9900032
+      },
+      "predicted_correction_distance_meters": 5.006653444055941,
+      "predicted_corrected_position": {
+        "lat": 59.36719092630208,
+        "lng": 17.990053026041664
+      },
+      "actual_correction_distance_meters": 32.47439456743108,
+      "actual_corrected_position": {
+        "lat": 59.367547631492684,
+        "lng": 17.989692538976673
+      },
+      "prediction_error_meters": 27.467741123375134,
+      "verified_status": "correct",
+      "gps_accuracy": 62.599998474121094
+    },
+    {
+      "position_id": 8294,
+      "timestamp": "2025-12-03T13:39:09.125209",
+      "original_position": {
+        "lat": 59.3675445,
+        "lng": 17.9897989
+      },
+      "predicted_correction_distance_meters": 2.1908892913231743,
+      "predicted_corrected_position": {
+        "lat": 59.36744265708184,
+        "lng": 17.989865492536445
+      },
+      "actual_correction_distance_meters": 5.4404280582842794,
+      "actual_corrected_position": {
+        "lat": 59.36752781487487,
+        "lng": 17.989708632230762
+      },
+      "prediction_error_meters": 3.249538766961105,
+      "verified_status": "correct",
+      "gps_accuracy": 5.326000213623047
+    },
+    {
+      "position_id": 8295,
+      "timestamp": "2025-12-03T13:39:10.094109",
+      "original_position": {
+        "lat": 59.3675392,
+        "lng": 17.9897982
+      },
+      "predicted_correction_distance_meters": 3.2594492490719618,
+      "predicted_corrected_position": {
+        "lat": 59.36738941285857,
+        "lng": 17.989897499800424
+      },
+      "actual_correction_distance_meters": 5.3048060474308825,
+      "actual_corrected_position": {
+        "lat": 59.36751346490301,
+        "lng": 17.989719361066822
+      },
+      "prediction_error_meters": 2.0453567983589207,
+      "verified_status": "correct",
+      "gps_accuracy": 5.007999897003174
+    },
+    {
+      "position_id": 8296,
+      "timestamp": "2025-12-03T13:39:11.119993",
+      "original_position": {
+        "lat": 59.3675291,
+        "lng": 17.9898028
+      },
+      "predicted_correction_distance_meters": 2.7984238118240183,
+      "predicted_corrected_position": {
+        "lat": 59.36740332557053,
+        "lng": 17.989886767289477
+      },
+      "actual_correction_distance_meters": 5.299351539331244,
+      "actual_corrected_position": {
+        "lat": 59.36750184825468,
+        "lng": 17.98972606658936
+      },
+      "prediction_error_meters": 2.500927727507226,
+      "verified_status": "correct",
+      "gps_accuracy": 4.7829999923706055
+    },
+    {
+      "position_id": 8297,
+      "timestamp": "2025-12-03T13:39:12.191517",
+      "original_position": {
+        "lat": 59.3675196,
+        "lng": 17.9898038
+      },
+      "predicted_correction_distance_meters": 3.167796021740108,
+      "predicted_corrected_position": {
+        "lat": 59.36738023363897,
+        "lng": 17.989898533599987
+      },
+      "actual_correction_distance_meters": 4.951941839475185,
+      "actual_corrected_position": {
+        "lat": 59.367493648265246,
+        "lng": 17.989732772111896
+      },
+      "prediction_error_meters": 1.784145817735077,
+      "verified_status": "correct",
+      "gps_accuracy": 4.65500020980835
+    },
+    {
+      "position_id": 8298,
+      "timestamp": "2025-12-03T13:39:12.872439",
+      "original_position": {
+        "lat": 59.367509,
+        "lng": 17.9898157
+      },
+      "predicted_correction_distance_meters": 3.600341722481727,
+      "predicted_corrected_position": {
+        "lat": 59.367354420265734,
+        "lng": 17.989919084562633
+      },
+      "actual_correction_distance_meters": 5.0717452691340865,
+      "actual_corrected_position": {
+        "lat": 59.36749023160236,
+        "lng": 17.989734113216404
+      },
+      "prediction_error_meters": 1.4714035466523594,
+      "verified_status": "correct",
+      "gps_accuracy": 13.692999839782715
+    },
+    {
+      "position_id": 8299,
+      "timestamp": "2025-12-03T13:39:13.091175",
+      "original_position": {
+        "lat": 59.3675138,
+        "lng": 17.9898076
+      },
+      "predicted_correction_distance_meters": 3.7757631582970586,
+      "predicted_corrected_position": {
+        "lat": 59.36734987622575,
+        "lng": 17.989919080193864
+      },
+      "actual_correction_distance_meters": 5.068931313185443,
+      "actual_corrected_position": {
+        "lat": 59.36748271494288,
+        "lng": 17.98974215984345
+      },
+      "prediction_error_meters": 1.2931681548883844,
+      "verified_status": "correct",
+      "gps_accuracy": 12.505000114440918
+    },
+    {
+      "position_id": 8300,
+      "timestamp": "2025-12-03T13:39:13.415147",
+      "original_position": {
+        "lat": 59.3675154,
+        "lng": 17.9897903
+      },
+      "predicted_correction_distance_meters": 3.938511332821751,
+      "predicted_corrected_position": {
+        "lat": 59.36734378039433,
+        "lng": 17.98991339899223
+      },
+      "actual_correction_distance_meters": 4.544019368799317,
+      "actual_corrected_position": {
+        "lat": 59.36748271494288,
+        "lng": 17.98974215984345
+      },
+      "prediction_error_meters": 0.6055080359775658,
+      "verified_status": "correct",
+      "gps_accuracy": 11.536999702453613
+    },
+    {
+      "position_id": 8301,
+      "timestamp": "2025-12-03T13:39:13.903932",
+      "original_position": {
+        "lat": 59.3675145,
+        "lng": 17.9897804
+      },
+      "predicted_correction_distance_meters": 4.05278652094837,
+      "predicted_corrected_position": {
+        "lat": 59.36733826563355,
+        "lng": 17.9899110829457
+      },
+      "actual_correction_distance_meters": 4.481546495417729,
+      "actual_corrected_position": {
+        "lat": 59.3674772482804,
+        "lng": 17.989750206470493
+      },
+      "prediction_error_meters": 0.4287599744693589,
+      "verified_status": "correct",
+      "gps_accuracy": 10.869000434875488
+    },
+    {
+      "position_id": 8302,
+      "timestamp": "2025-12-03T13:39:14.085331",
+      "original_position": {
+        "lat": 59.3675138,
+        "lng": 17.9897792
+      },
+      "predicted_correction_distance_meters": 4.38951379948103,
+      "predicted_corrected_position": {
+        "lat": 59.367323230401496,
+        "lng": 17.9899212675286
+      },
+      "actual_correction_distance_meters": 4.881724397767745,
+      "actual_corrected_position": {
+        "lat": 59.367471781617006,
+        "lng": 17.989754229784015
+      },
+      "prediction_error_meters": 0.4922105982867153,
+      "verified_status": "correct",
+      "gps_accuracy": 10.916999816894531
+    },
+    {
+      "position_id": 8303,
+      "timestamp": "2025-12-03T13:39:14.459905",
+      "original_position": {
+        "lat": 59.3675094,
+        "lng": 17.9897712
+      },
+      "predicted_correction_distance_meters": 4.307872879312521,
+      "predicted_corrected_position": {
+        "lat": 59.367324270284854,
+        "lng": 17.989914071501516
+      },
+      "actual_correction_distance_meters": 4.6341424051159725,
+      "actual_corrected_position": {
+        "lat": 59.36746836495194,
+        "lng": 17.98975691199303
+      },
+      "prediction_error_meters": 0.32626952580345137,
+      "verified_status": "correct",
+      "gps_accuracy": 10.336999893188477
+    },
+    {
+      "position_id": 8304,
+      "timestamp": "2025-12-03T13:39:14.904012",
+      "original_position": {
+        "lat": 59.3675053,
+        "lng": 17.9897665
+      },
+      "predicted_correction_distance_meters": 4.358647421807022,
+      "predicted_corrected_position": {
+        "lat": 59.36731977530755,
+        "lng": 17.989913104014086
+      },
+      "actual_correction_distance_meters": 4.422175903153642,
+      "actual_corrected_position": {
+        "lat": 59.36746563161969,
+        "lng": 17.989760935306553
+      },
+      "prediction_error_meters": 0.06352848134662015,
+      "verified_status": "correct",
+      "gps_accuracy": 9.946999549865723
+    },
+    {
+      "position_id": 8305,
+      "timestamp": "2025-12-03T13:39:15.085939",
+      "original_position": {
+        "lat": 59.3675024,
+        "lng": 17.9897689
+      },
+      "predicted_correction_distance_meters": 4.375305839097312,
+      "predicted_corrected_position": {
+        "lat": 59.36731743508505,
+        "lng": 17.98991501425002
+      },
+      "actual_correction_distance_meters": 4.566706467209996,
+      "actual_corrected_position": {
+        "lat": 59.36746153162079,
+        "lng": 17.989760935306553
+      },
+      "prediction_error_meters": 0.19140062811268432,
+      "verified_status": "correct",
+      "gps_accuracy": 9.588000297546387
+    },
+    {
+      "position_id": 8306,
+      "timestamp": "2025-12-03T13:39:15.456784",
+      "original_position": {
+        "lat": 59.3674956,
+        "lng": 17.9897659
+      },
+      "predicted_correction_distance_meters": 4.334187208141347,
+      "predicted_corrected_position": {
+        "lat": 59.367315320611766,
+        "lng": 17.98991194134093
+      },
+      "actual_correction_distance_meters": 4.396154774716566,
+      "actual_corrected_position": {
+        "lat": 59.3674560649549,
+        "lng": 17.989766299724582
+      },
+      "prediction_error_meters": 0.061967566575218846,
+      "verified_status": "correct",
+      "gps_accuracy": 9.711000442504883
+    },
+    {
+      "position_id": 8307,
+      "timestamp": "2025-12-03T13:39:15.892310",
+      "original_position": {
+        "lat": 59.3674899,
+        "lng": 17.9897645
+      },
+      "predicted_correction_distance_meters": 4.209331972490062,
+      "predicted_corrected_position": {
+        "lat": 59.36731721325201,
+        "lng": 17.989906923624233
+      },
+      "actual_correction_distance_meters": 4.2376686650772335,
+      "actual_corrected_position": {
+        "lat": 59.36745196495489,
+        "lng": 17.989771664142612
+      },
+      "prediction_error_meters": 0.028336692587171086,
+      "verified_status": "correct",
+      "gps_accuracy": 9.458999633789062
+    },
+    {
+      "position_id": 8308,
+      "timestamp": "2025-12-03T13:39:16.100468",
+      "original_position": {
+        "lat": 59.367485,
+        "lng": 17.9897703
+      },
+      "predicted_correction_distance_meters": 3.9770998952728003,
+      "predicted_corrected_position": {
+        "lat": 59.36732378929145,
+        "lng": 17.98990255928558
+      },
+      "actual_correction_distance_meters": 3.978013136492267,
+      "actual_corrected_position": {
+        "lat": 59.36744923162126,
+        "lng": 17.989771664142612
+      },
+      "prediction_error_meters": 0.0009132412194667872,
+      "verified_status": "correct",
+      "gps_accuracy": 9.192000389099121
+    },
+    {
+      "position_id": 8309,
+      "timestamp": "2025-12-03T13:39:16.454065",
+      "original_position": {
+        "lat": 59.3674791,
+        "lng": 17.9897702
+      },
+      "predicted_correction_distance_meters": 3.66343196509549,
+      "predicted_corrected_position": {
+        "lat": 59.36733276516417,
+        "lng": 17.989892064827533
+      },
+      "actual_correction_distance_meters": 3.556928067357466,
+      "actual_corrected_position": {
+        "lat": 59.367447181620925,
+        "lng": 17.989774346351627
+      },
+      "prediction_error_meters": 0.10650389773802393,
+      "verified_status": "correct",
+      "gps_accuracy": 9.343000411987305
+    },
+    {
+      "position_id": 8310,
+      "timestamp": "2025-12-03T13:39:16.884946",
+      "original_position": {
+        "lat": 59.3674731,
+        "lng": 17.9897706
+      },
+      "predicted_correction_distance_meters": 3.4736809189706066,
+      "predicted_corrected_position": {
+        "lat": 59.367336428928844,
+        "lng": 17.989886013772217
+      },
+      "actual_correction_distance_meters": 3.2914781722408573,
+      "actual_corrected_position": {
+        "lat": 59.367443764953386,
+        "lng": 17.98977836966515
+      },
+      "prediction_error_meters": 0.18220274672974934,
+      "verified_status": "correct",
+      "gps_accuracy": 9.175999641418457
+    },
+    {
+      "position_id": 8311,
+      "timestamp": "2025-12-03T13:39:17.098405",
+      "original_position": {
+        "lat": 59.367468,
+        "lng": 17.9897786
+      },
+      "predicted_correction_distance_meters": 3.234819861399215,
+      "predicted_corrected_position": {
+        "lat": 59.36734237661308,
+        "lng": 17.98988348970793
+      },
+      "actual_correction_distance_meters": 3.0778668814542596,
+      "actual_corrected_position": {
+        "lat": 59.36744034828552,
+        "lng": 17.989781051874164
+      },
+      "prediction_error_meters": 0.15695297994495538,
+      "verified_status": "correct",
+      "gps_accuracy": 8.942000389099121
+    },
+    {
+      "position_id": 8312,
+      "timestamp": "2025-12-03T13:39:17.443576",
+      "original_position": {
+        "lat": 59.3674616,
+        "lng": 17.9897808
+      },
+      "predicted_correction_distance_meters": 2.986819705358596,
+      "predicted_corrected_position": {
+        "lat": 59.36734751919917,
+        "lng": 17.989876991150865
+      },
+      "actual_correction_distance_meters": 2.5926039629368094,
+      "actual_corrected_position": {
+        "lat": 59.367438298284625,
+        "lng": 17.98978239297867
+      },
+      "prediction_error_meters": 0.3942157424217867,
+      "verified_status": "correct",
+      "gps_accuracy": 9.043999671936035
+    },
+    {
+      "position_id": 8313,
+      "timestamp": "2025-12-03T13:39:17.909808",
+      "original_position": {
+        "lat": 59.3674553,
+        "lng": 17.9897833
+      },
+      "predicted_correction_distance_meters": 2.803113953821612,
+      "predicted_corrected_position": {
+        "lat": 59.3673500017543,
+        "lng": 17.989872874090377
+      },
+      "actual_correction_distance_meters": 2.2726473289665026,
+      "actual_corrected_position": {
+        "lat": 59.36743488161618,
+        "lng": 17.989785075187687
+      },
+      "prediction_error_meters": 0.5304666248551095,
+      "verified_status": "correct",
+      "gps_accuracy": 6.13700008392334
+    },
+    {
+      "position_id": 8314,
+      "timestamp": "2025-12-03T13:39:18.093320",
+      "original_position": {
+        "lat": 59.3674513,
+        "lng": 17.9897914
+      },
+      "predicted_correction_distance_meters": 2.5872967545699663,
+      "predicted_corrected_position": {
+        "lat": 59.36735514378989,
+        "lng": 17.989871981896442
+      },
+      "actual_correction_distance_meters": 1.997663669756349,
+      "actual_corrected_position": {
+        "lat": 59.36743351494872,
+        "lng": 17.989786416292194
+      },
+      "prediction_error_meters": 0.5896330848136173,
+      "verified_status": "correct",
+      "gps_accuracy": 6.033999919891357
+    },
+    {
+      "position_id": 8315,
+      "timestamp": "2025-12-03T13:39:18.406316",
+      "original_position": {
+        "lat": 59.3674456,
+        "lng": 17.9897997
+      },
+      "predicted_correction_distance_meters": 2.4698193032420983,
+      "predicted_corrected_position": {
+        "lat": 59.367355217605784,
+        "lng": 17.989874573086723
+      },
+      "actual_correction_distance_meters": 1.6826074716434734,
+      "actual_corrected_position": {
+        "lat": 59.367431464947416,
+        "lng": 17.98978909850121
+      },
+      "prediction_error_meters": 0.787211831598625,
+      "verified_status": "correct",
+      "gps_accuracy": 5.956999778747559
+    },
+    {
+      "position_id": 8316,
+      "timestamp": "2025-12-03T13:39:18.891263",
+      "original_position": {
+        "lat": 59.3674389,
+        "lng": 17.9898071
+      },
+      "predicted_correction_distance_meters": 2.385578493413776,
+      "predicted_corrected_position": {
+        "lat": 59.36735319871387,
+        "lng": 17.989877653980937
+      },
+      "actual_correction_distance_meters": 1.380445714060919,
+      "actual_corrected_position": {
+        "lat": 59.36742873161216,
+        "lng": 17.98979312181473
+      },
+      "prediction_error_meters": 1.0051327793528568,
+      "verified_status": "correct",
+      "gps_accuracy": 5.916999816894531
+    },
+    {
+      "position_id": 8317,
+      "timestamp": "2025-12-03T13:39:19.082590",
+      "original_position": {
+        "lat": 59.3674358,
+        "lng": 17.989813
+      },
+      "predicted_correction_distance_meters": 2.3031917783877343,
+      "predicted_corrected_position": {
+        "lat": 59.3673537724246,
+        "lng": 17.98987975849353
+      },
+      "actual_correction_distance_meters": 1.6851641104048185,
+      "actual_corrected_position": {
+        "lat": 59.367423948274904,
+        "lng": 17.98979446291924
+      },
+      "prediction_error_meters": 0.6180276679829158,
+      "verified_status": "correct",
+      "gps_accuracy": 5.814000129699707
+    },
+    {
+      "position_id": 8318,
+      "timestamp": "2025-12-03T13:39:19.442943",
+      "original_position": {
+        "lat": 59.3674304,
+        "lng": 17.9898192
+      },
+      "predicted_correction_distance_meters": 2.268146883474856,
+      "predicted_corrected_position": {
+        "lat": 59.36735084533873,
+        "lng": 17.98988353645888
+      },
+      "actual_correction_distance_meters": 1.6629856107669565,
+      "actual_corrected_position": {
+        "lat": 59.367420531605035,
+        "lng": 17.989797145128254
+      },
+      "prediction_error_meters": 0.6051612727078997,
+      "verified_status": "correct",
+      "gps_accuracy": 5.736999988555908
+    },
+    {
+      "position_id": 8319,
+      "timestamp": "2025-12-03T13:39:19.912814",
+      "original_position": {
+        "lat": 59.367424,
+        "lng": 17.9898258
+      },
+      "predicted_correction_distance_meters": 2.215449189950017,
+      "predicted_corrected_position": {
+        "lat": 59.36734771158408,
+        "lng": 17.989887179481357
+      },
+      "actual_correction_distance_meters": 1.7341648122110707,
+      "actual_corrected_position": {
+        "lat": 59.36741574826664,
+        "lng": 17.98979982733727
+      },
+      "prediction_error_meters": 0.4812843777389464,
+      "verified_status": "correct",
+      "gps_accuracy": 5.671000003814697
+    },
+    {
+      "position_id": 8320,
+      "timestamp": "2025-12-03T13:39:20.088178",
+      "original_position": {
+        "lat": 59.3674211,
+        "lng": 17.9898303
+      },
+      "predicted_correction_distance_meters": 2.180697998009777,
+      "predicted_corrected_position": {
+        "lat": 59.36734664063475,
+        "lng": 17.98988973537825
+      },
+      "actual_correction_distance_meters": 1.921649602982338,
+      "actual_corrected_position": {
+        "lat": 59.367410281593344,
+        "lng": 17.98980385065079
+      },
+      "prediction_error_meters": 0.2590483950274389,
+      "verified_status": "correct",
+      "gps_accuracy": 5.504000186920166
+    },
+    {
+      "position_id": 8321,
+      "timestamp": "2025-12-03T13:39:20.496467",
+      "original_position": {
+        "lat": 59.3674148,
+        "lng": 17.9898369
+      },
+      "predicted_correction_distance_meters": 2.1296104369659763,
+      "predicted_corrected_position": {
+        "lat": 59.36734342666079,
+        "lng": 17.98989353743324
+      },
+      "actual_correction_distance_meters": 2.168991820199543,
+      "actual_corrected_position": {
+        "lat": 59.367402081581766,
+        "lng": 17.989807873964313
+      },
+      "prediction_error_meters": 0.03938138323356677,
+      "verified_status": "correct",
+      "gps_accuracy": 5.38700008392334
+    },
+    {
+      "position_id": 8322,
+      "timestamp": "2025-12-03T13:39:20.875297",
+      "original_position": {
+        "lat": 59.3674099,
+        "lng": 17.9898423
+      },
+      "predicted_correction_distance_meters": 2.0787588477494485,
+      "predicted_corrected_position": {
+        "lat": 59.36734124953039,
+        "lng": 17.98989646249485
+      },
+      "actual_correction_distance_meters": 2.066844385877434,
+      "actual_corrected_position": {
+        "lat": 59.36739866490968,
+        "lng": 17.989813238382343
+      },
+      "prediction_error_meters": 0.011914461872014392,
+      "verified_status": "correct",
+      "gps_accuracy": 5.23199987411499
+    },
+    {
+      "position_id": 8323,
+      "timestamp": "2025-12-03T13:39:21.105402",
+      "original_position": {
+        "lat": 59.3674074,
+        "lng": 17.989846
+      },
+      "predicted_correction_distance_meters": 2.053726400729299,
+      "predicted_corrected_position": {
+        "lat": 59.36734008965204,
+        "lng": 17.989898750390463
+      },
+      "actual_correction_distance_meters": 2.486952425449764,
+      "actual_corrected_position": {
+        "lat": 59.367392514899095,
+        "lng": 17.989813238382343
+      },
+      "prediction_error_meters": 0.4332260247204651,
+      "verified_status": "correct",
+      "gps_accuracy": 5.105999946594238
+    },
+    {
+      "position_id": 8324,
+      "timestamp": "2025-12-03T13:39:21.489486",
+      "original_position": {
+        "lat": 59.3674009,
+        "lng": 17.9898513
+      },
+      "predicted_correction_distance_meters": 2.0361712433006933,
+      "predicted_corrected_position": {
+        "lat": 59.36733548852906,
+        "lng": 17.98990252031183
+      },
+      "actual_correction_distance_meters": 2.294404675667254,
+      "actual_corrected_position": {
+        "lat": 59.367387048222064,
+        "lng": 17.989821285009388
+      },
+      "prediction_error_meters": 0.2582334323665605,
+      "verified_status": "correct",
+      "gps_accuracy": 4.964000225067139
+    },
+    {
+      "position_id": 8325,
+      "timestamp": "2025-12-03T13:39:21.899322",
+      "original_position": {
+        "lat": 59.3673944,
+        "lng": 17.9898575
+      },
+      "predicted_correction_distance_meters": 2.0260373054986704,
+      "predicted_corrected_position": {
+        "lat": 59.367330631003426,
+        "lng": 17.98990720924738
+      },
+      "actual_correction_distance_meters": 2.3926565153210264,
+      "actual_corrected_position": {
+        "lat": 59.367382264878934,
+        "lng": 17.989822626113895
+      },
+      "prediction_error_meters": 0.36661920982235596,
+      "verified_status": "correct",
+      "gps_accuracy": 4.781000137329102
+    },
+    {
+      "position_id": 8326,
+      "timestamp": "2025-12-03T13:39:22.090520",
+      "original_position": {
+        "lat": 59.3673912,
+        "lng": 17.9898631
+      },
+      "predicted_correction_distance_meters": 2.012532877679762,
+      "predicted_corrected_position": {
+        "lat": 59.36732850006229,
+        "lng": 17.98991135089502
+      },
+      "actual_correction_distance_meters": 2.8266779003803824,
+      "actual_corrected_position": {
+        "lat": 59.367375431530434,
+        "lng": 17.989823967218403
+      },
+      "prediction_error_meters": 0.8141450227006204,
+      "verified_status": "correct",
+      "gps_accuracy": 4.684000015258789
+    },
+    {
+      "position_id": 8327,
+      "timestamp": "2025-12-03T13:39:22.430128",
+      "original_position": {
+        "lat": 59.3673853,
+        "lng": 17.9898687
+      },
+      "predicted_correction_distance_meters": 2.017030155234736,
+      "predicted_corrected_position": {
+        "lat": 59.367323649998575,
+        "lng": 17.989915929181297
+      },
+      "actual_correction_distance_meters": 2.761792776008686,
+      "actual_corrected_position": {
+        "lat": 59.367375431530434,
+        "lng": 17.989823967218403
+      },
+      "prediction_error_meters": 0.7447626207739502,
+      "verified_status": "correct",
+      "gps_accuracy": 4.538000106811523
+    },
+    {
+      "position_id": 8328,
+      "timestamp": "2025-12-03T13:39:22.874824",
+      "original_position": {
+        "lat": 59.3673789,
+        "lng": 17.9898741
+      },
+      "predicted_correction_distance_meters": 2.0208116852394244,
+      "predicted_corrected_position": {
+        "lat": 59.36731842773657,
+        "lng": 17.989920326488303
+      },
+      "actual_correction_distance_meters": 2.6973173724678565,
+      "actual_corrected_position": {
+        "lat": 59.36737064818568,
+        "lng": 17.989829331636432
+      },
+      "prediction_error_meters": 0.6765056872284321,
+      "verified_status": "correct",
+      "gps_accuracy": 4.395999908447266
+    },
+    {
+      "position_id": 8329,
+      "timestamp": "2025-12-03T13:39:23.098712",
+      "original_position": {
+        "lat": 59.3673756,
+        "lng": 17.9898778
+      },
+      "predicted_correction_distance_meters": 2.027835087290321,
+      "predicted_corrected_position": {
+        "lat": 59.367315586748674,
+        "lng": 17.989923436851104
+      },
+      "actual_correction_distance_meters": 2.653556820057358,
+      "actual_corrected_position": {
+        "lat": 59.36736244816453,
+        "lng": 17.989838719367985
+      },
+      "prediction_error_meters": 0.6257217327670372,
+      "verified_status": "correct",
+      "gps_accuracy": 4.192999839782715
+    },
+    {
+      "position_id": 8330,
+      "timestamp": "2025-12-03T13:39:23.425650",
+      "original_position": {
+        "lat": 59.3673693,
+        "lng": 17.9898822
+      },
+      "predicted_correction_distance_meters": 2.0238888435323537,
+      "predicted_corrected_position": {
+        "lat": 59.3673106785867,
+        "lng": 17.989926857528975
+      },
+      "actual_correction_distance_meters": 2.732206430465827,
+      "actual_corrected_position": {
+        "lat": 59.367354248141396,
+        "lng": 17.989844083786014
+      },
+      "prediction_error_meters": 0.7083175869334735,
+      "verified_status": "correct",
+      "gps_accuracy": 4.019999980926514
+    },
+    {
+      "position_id": 8331,
+      "timestamp": "2025-12-03T13:39:23.872776",
+      "original_position": {
+        "lat": 59.3673624,
+        "lng": 17.9898867
+      },
+      "predicted_correction_distance_meters": 2.0209954630630134,
+      "predicted_corrected_position": {
+        "lat": 59.36730525687958,
+        "lng": 17.989930384237976
+      },
+      "actual_correction_distance_meters": 2.4485917029674904,
+      "actual_corrected_position": {
+        "lat": 59.36735014812907,
+        "lng": 17.98985078930855
+      },
+      "prediction_error_meters": 0.42759623990447704,
+      "verified_status": "correct",
+      "gps_accuracy": 3.9679999351501465
+    },
+    {
+      "position_id": 8332,
+      "timestamp": "2025-12-03T13:39:24.099807",
+      "original_position": {
+        "lat": 59.3673595,
+        "lng": 17.9898896
+      },
+      "predicted_correction_distance_meters": 2.025035884675186,
+      "predicted_corrected_position": {
+        "lat": 59.36730282989812,
+        "lng": 17.989932784312124
+      },
+      "actual_correction_distance_meters": 2.429096842849199,
+      "actual_corrected_position": {
+        "lat": 59.36734673145176,
+        "lng": 17.989854812622074
+      },
+      "prediction_error_meters": 0.4040609581740129,
+      "verified_status": "correct",
+      "gps_accuracy": 3.8369998931884766
+    },
+    {
+      "position_id": 8333,
+      "timestamp": "2025-12-03T13:39:24.459672",
+      "original_position": {
+        "lat": 59.3673532,
+        "lng": 17.9898939
+      },
+      "predicted_correction_distance_meters": 2.029588364065198,
+      "predicted_corrected_position": {
+        "lat": 59.36729768113884,
+        "lng": 17.989936308671698
+      },
+      "actual_correction_distance_meters": 2.6296002765226514,
+      "actual_corrected_position": {
+        "lat": 59.36733853142484,
+        "lng": 17.98985749483109
+      },
+      "prediction_error_meters": 0.6000119124574534,
+      "verified_status": "correct",
+      "gps_accuracy": 3.690999984741211
+    },
+    {
+      "position_id": 8334,
+      "timestamp": "2025-12-03T13:39:24.918010",
+      "original_position": {
+        "lat": 59.3673465,
+        "lng": 17.9898988
+      },
+      "predicted_correction_distance_meters": 2.023956384427189,
+      "predicted_corrected_position": {
+        "lat": 59.36729249125095,
+        "lng": 17.98994009925168
+      },
+      "actual_correction_distance_meters": 2.410535659260363,
+      "actual_corrected_position": {
+        "lat": 59.36733545641422,
+        "lng": 17.989862188696865
+      },
+      "prediction_error_meters": 0.3865792748331742,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5820000171661377
+    },
+    {
+      "position_id": 8335,
+      "timestamp": "2025-12-03T13:39:25.083054",
+      "original_position": {
+        "lat": 59.3673441,
+        "lng": 17.9899011
+      },
+      "predicted_correction_distance_meters": 2.026179771340094,
+      "predicted_corrected_position": {
+        "lat": 59.367290518203596,
+        "lng": 17.98994197859901
+      },
+      "actual_correction_distance_meters": 2.4406016316815555,
+      "actual_corrected_position": {
+        "lat": 59.36733033139591,
+        "lng": 17.989867553114895
+      },
+      "prediction_error_meters": 0.41442186034146156,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5460000038146973
+    },
+    {
+      "position_id": 8336,
+      "timestamp": "2025-12-03T13:39:25.463062",
+      "original_position": {
+        "lat": 59.3673382,
+        "lng": 17.9899057
+      },
+      "predicted_correction_distance_meters": 2.024523664684119,
+      "predicted_corrected_position": {
+        "lat": 59.367285856467866,
+        "lng": 17.989945613905824
+      },
+      "actual_correction_distance_meters": 2.3471000241995124,
+      "actual_corrected_position": {
+        "lat": 59.36732486470888,
+        "lng": 17.989873588085178
+      },
+      "prediction_error_meters": 0.3225763595153932,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4670000076293945
+    },
+    {
+      "position_id": 8337,
+      "timestamp": "2025-12-03T13:39:25.909210",
+      "original_position": {
+        "lat": 59.3673317,
+        "lng": 17.9899107
+      },
+      "predicted_correction_distance_meters": 2.0170395830514667,
+      "predicted_corrected_position": {
+        "lat": 59.36728086104258,
+        "lng": 17.989949457835806
+      },
+      "actual_correction_distance_meters": 2.1763639490522477,
+      "actual_corrected_position": {
+        "lat": 59.36731973968896,
+        "lng": 17.989880293607715
+      },
+      "prediction_error_meters": 0.15932436600078104,
+      "verified_status": "correct",
+      "gps_accuracy": 3.322000026702881
+    },
+    {
+      "position_id": 8338,
+      "timestamp": "2025-12-03T13:39:26.088583",
+      "original_position": {
+        "lat": 59.3673293,
+        "lng": 17.989913
+      },
+      "predicted_correction_distance_meters": 2.018646457359329,
+      "predicted_corrected_position": {
+        "lat": 59.36727890501688,
+        "lng": 17.989951324423544
+      },
+      "actual_correction_distance_meters": 2.7424864733861734,
+      "actual_corrected_position": {
+        "lat": 59.36731051465117,
+        "lng": 17.989881634712223
+      },
+      "prediction_error_meters": 0.7238400160268443,
+      "verified_status": "correct",
+      "gps_accuracy": 3.3010001182556152
+    },
+    {
+      "position_id": 8339,
+      "timestamp": "2025-12-03T13:39:26.445935",
+      "original_position": {
+        "lat": 59.367324,
+        "lng": 17.989917
+      },
+      "predicted_correction_distance_meters": 2.018594813659258,
+      "predicted_corrected_position": {
+        "lat": 59.36727467616141,
+        "lng": 17.989954516005152
+      },
+      "actual_correction_distance_meters": 2.6696312871793486,
+      "actual_corrected_position": {
+        "lat": 59.36730607296541,
+        "lng": 17.989885658025745
+      },
+      "prediction_error_meters": 0.6510364735200906,
+      "verified_status": "correct",
+      "gps_accuracy": 3.2330000400543213
+    },
+    {
+      "position_id": 8340,
+      "timestamp": "2025-12-03T13:39:26.927366",
+      "original_position": {
+        "lat": 59.3673176,
+        "lng": 17.9899222
+      },
+      "predicted_correction_distance_meters": 2.0215261538616085,
+      "predicted_corrected_position": {
+        "lat": 59.36726949831161,
+        "lng": 17.98995871929112
+      },
+      "actual_correction_distance_meters": 2.4648792902656127,
+      "actual_corrected_position": {
+        "lat": 59.36730368128824,
+        "lng": 17.98988834023476
+      },
+      "prediction_error_meters": 0.4433531364040042,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0859999656677246
+    },
+    {
+      "position_id": 8341,
+      "timestamp": "2025-12-03T13:39:27.093304",
+      "original_position": {
+        "lat": 59.3673155,
+        "lng": 17.9899241
+      },
+      "predicted_correction_distance_meters": 2.0236665995980427,
+      "predicted_corrected_position": {
+        "lat": 59.36726777235024,
+        "lng": 17.989960273462064
+      },
+      "actual_correction_distance_meters": 2.4982440387040916,
+      "actual_corrected_position": {
+        "lat": 59.36730026460626,
+        "lng": 17.98989169299603
+      },
+      "prediction_error_meters": 0.4745774391060489,
+      "verified_status": "correct",
+      "gps_accuracy": 3.071000099182129
+    },
+    {
+      "position_id": 8342,
+      "timestamp": "2025-12-03T13:39:27.485606",
+      "original_position": {
+        "lat": 59.3673098,
+        "lng": 17.9899287
+      },
+      "predicted_correction_distance_meters": 2.0242493982859613,
+      "predicted_corrected_position": {
+        "lat": 59.36726321242725,
+        "lng": 17.989963952724988
+      },
+      "actual_correction_distance_meters": 2.4064775200019914,
+      "actual_corrected_position": {
+        "lat": 59.36729616458741,
+        "lng": 17.98989571630955
+      },
+      "prediction_error_meters": 0.38222812171603016,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0480000972747803
+    },
+    {
+      "position_id": 8343,
+      "timestamp": "2025-12-03T13:39:27.918940",
+      "original_position": {
+        "lat": 59.3673039,
+        "lng": 17.9899335
+      },
+      "predicted_correction_distance_meters": 2.020677106619294,
+      "predicted_corrected_position": {
+        "lat": 59.367258586842105,
+        "lng": 17.989967720587774
+      },
+      "actual_correction_distance_meters": 2.4085070544728766,
+      "actual_corrected_position": {
+        "lat": 59.367292747904685,
+        "lng": 17.98989705741406
+      },
+      "prediction_error_meters": 0.3878299478535827,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0139999389648438
+    },
+    {
+      "position_id": 8344,
+      "timestamp": "2025-12-03T13:39:28.091649",
+      "original_position": {
+        "lat": 59.3673019,
+        "lng": 17.9899351
+      },
+      "predicted_correction_distance_meters": 2.024621457057539,
+      "predicted_corrected_position": {
+        "lat": 59.367256903315365,
+        "lng": 17.98996906344674
+      },
+      "actual_correction_distance_meters": 2.3527515632317337,
+      "actual_corrected_position": {
+        "lat": 59.36729138123148,
+        "lng": 17.98989906907082
+      },
+      "prediction_error_meters": 0.3281301061741946,
+      "verified_status": "correct",
+      "gps_accuracy": 3.013000011444092
+    },
+    {
+      "position_id": 8345,
+      "timestamp": "2025-12-03T13:39:28.456434",
+      "original_position": {
+        "lat": 59.367297,
+        "lng": 17.9899385
+      },
+      "predicted_correction_distance_meters": 2.0223392079362092,
+      "predicted_corrected_position": {
+        "lat": 59.36725304498397,
+        "lng": 17.989971737566204
+      },
+      "actual_correction_distance_meters": 2.3458395022995786,
+      "actual_corrected_position": {
+        "lat": 59.367287281211574,
+        "lng": 17.989901751279834
+      },
+      "prediction_error_meters": 0.32350029436336936,
+      "verified_status": "correct",
+      "gps_accuracy": 3.01200008392334
+    },
+    {
+      "position_id": 8346,
+      "timestamp": "2025-12-03T13:39:28.916036",
+      "original_position": {
+        "lat": 59.3672913,
+        "lng": 17.9899432
+      },
+      "predicted_correction_distance_meters": 2.0157732371214054,
+      "predicted_corrected_position": {
+        "lat": 59.36724863668437,
+        "lng": 17.98997538223968
+      },
+      "actual_correction_distance_meters": 2.2332288845857917,
+      "actual_corrected_position": {
+        "lat": 59.3672818145176,
+        "lng": 17.98990845680237
+      },
+      "prediction_error_meters": 0.21745564746438628,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8347,
+      "timestamp": "2025-12-03T13:39:29.090953",
+      "original_position": {
+        "lat": 59.3672892,
+        "lng": 17.9899447
+      },
+      "predicted_correction_distance_meters": 2.0186354505766473,
+      "predicted_corrected_position": {
+        "lat": 59.36724690001982,
+        "lng": 17.989976625140198
+      },
+      "actual_correction_distance_meters": 2.2050689710091187,
+      "actual_corrected_position": {
+        "lat": 59.3672797645071,
+        "lng": 17.989910468459133
+      },
+      "prediction_error_meters": 0.1864335204324714,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8348,
+      "timestamp": "2025-12-03T13:39:29.470699",
+      "original_position": {
+        "lat": 59.3672841,
+        "lng": 17.9899482
+      },
+      "predicted_correction_distance_meters": 2.013016608318766,
+      "predicted_corrected_position": {
+        "lat": 59.36724294439966,
+        "lng": 17.989979331721226
+      },
+      "actual_correction_distance_meters": 2.1851209491408956,
+      "actual_corrected_position": {
+        "lat": 59.36727668949116,
+        "lng": 17.989912480115894
+      },
+      "prediction_error_meters": 0.17210434082212966,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8349,
+      "timestamp": "2025-12-03T13:39:29.959733",
+      "original_position": {
+        "lat": 59.3672777,
+        "lng": 17.9899526
+      },
+      "predicted_correction_distance_meters": 2.010608222277117,
+      "predicted_corrected_position": {
+        "lat": 59.36723788042775,
+        "lng": 17.989982809807415
+      },
+      "actual_correction_distance_meters": 2.2426167195337716,
+      "actual_corrected_position": {
+        "lat": 59.36727224780098,
+        "lng": 17.989914491772655
+      },
+      "prediction_error_meters": 0.2320084972566545,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8350,
+      "timestamp": "2025-12-03T13:39:30.099899",
+      "original_position": {
+        "lat": 59.3672756,
+        "lng": 17.989954
+      },
+      "predicted_correction_distance_meters": 2.0088335031254583,
+      "predicted_corrected_position": {
+        "lat": 59.36723623743064,
+        "lng": 17.9899839019052
+      },
+      "actual_correction_distance_meters": 2.1394842064585817,
+      "actual_corrected_position": {
+        "lat": 59.36726814777878,
+        "lng": 17.98991918563843
+      },
+      "prediction_error_meters": 0.13065070333312345,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8351,
+      "timestamp": "2025-12-03T13:39:30.476662",
+      "original_position": {
+        "lat": 59.3672698,
+        "lng": 17.989958
+      },
+      "predicted_correction_distance_meters": 2.002448930404897,
+      "predicted_corrected_position": {
+        "lat": 59.36723172395506,
+        "lng": 17.989987005889933
+      },
+      "actual_correction_distance_meters": 2.072351170272392,
+      "actual_corrected_position": {
+        "lat": 59.367264047756045,
+        "lng": 17.989923208951954
+      },
+      "prediction_error_meters": 0.06990223986749511,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8352,
+      "timestamp": "2025-12-03T13:39:30.913369",
+      "original_position": {
+        "lat": 59.3672641,
+        "lng": 17.9899627
+      },
+      "predicted_correction_distance_meters": 1.9990098122414202,
+      "predicted_corrected_position": {
+        "lat": 59.367227228784586,
+        "lng": 17.98999071653898
+      },
+      "actual_correction_distance_meters": 2.006901158410757,
+      "actual_corrected_position": {
+        "lat": 59.36725926439559,
+        "lng": 17.989928573369983
+      },
+      "prediction_error_meters": 0.007891346169336844,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8353,
+      "timestamp": "2025-12-03T13:39:31.085378",
+      "original_position": {
+        "lat": 59.3672611,
+        "lng": 17.9899649
+      },
+      "predicted_correction_distance_meters": 2.0010046554043095,
+      "predicted_corrected_position": {
+        "lat": 59.36722479229162,
+        "lng": 17.9899925042761
+      },
+      "actual_correction_distance_meters": 2.0079653512259923,
+      "actual_corrected_position": {
+        "lat": 59.36725448103445,
+        "lng": 17.989931926131252
+      },
+      "prediction_error_meters": 0.006960695821682794,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8354,
+      "timestamp": "2025-12-03T13:39:31.515124",
+      "original_position": {
+        "lat": 59.3672546,
+        "lng": 17.9899696
+      },
+      "predicted_correction_distance_meters": 1.9917621496264675,
+      "predicted_corrected_position": {
+        "lat": 59.36721975463988,
+        "lng": 17.989996140645594
+      },
+      "actual_correction_distance_meters": 2.0433531057081513,
+      "actual_corrected_position": {
+        "lat": 59.367247989328966,
+        "lng": 17.989935949444774
+      },
+      "prediction_error_meters": 0.05159095608168385,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8355,
+      "timestamp": "2025-12-03T13:39:31.963298",
+      "original_position": {
+        "lat": 59.3672483,
+        "lng": 17.9899738
+      },
+      "predicted_correction_distance_meters": 1.9861763441290747,
+      "predicted_corrected_position": {
+        "lat": 59.36721480365319,
+        "lng": 17.98999943201951
+      },
+      "actual_correction_distance_meters": 1.935163479099083,
+      "actual_corrected_position": {
+        "lat": 59.36724115595344,
+        "lng": 17.98994265496731
+      },
+      "prediction_error_meters": 0.051012865029991694,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8356,
+      "timestamp": "2025-12-03T13:39:32.092436",
+      "original_position": {
+        "lat": 59.367246,
+        "lng": 17.9899755
+      },
+      "predicted_correction_distance_meters": 1.9885861770988604,
+      "predicted_corrected_position": {
+        "lat": 59.367212920386805,
+        "lng": 17.990000825059255
+      },
+      "actual_correction_distance_meters": 1.9866996327713837,
+      "actual_corrected_position": {
+        "lat": 59.367235347583154,
+        "lng": 17.989947348833088
+      },
+      "prediction_error_meters": 0.0018865443274767024,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8357,
+      "timestamp": "2025-12-03T13:39:32.506318",
+      "original_position": {
+        "lat": 59.3672401,
+        "lng": 17.9899803
+      },
+      "predicted_correction_distance_meters": 1.9792650270291263,
+      "predicted_corrected_position": {
+        "lat": 59.36720834320807,
+        "lng": 17.99000455630525
+      },
+      "actual_correction_distance_meters": 1.9720209955643098,
+      "actual_corrected_position": {
+        "lat": 59.36722885587401,
+        "lng": 17.98995338380337
+      },
+      "prediction_error_meters": 0.007244031464816558,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8358,
+      "timestamp": "2025-12-03T13:39:32.985251",
+      "original_position": {
+        "lat": 59.3672343,
+        "lng": 17.9899848
+      },
+      "predicted_correction_distance_meters": 1.9781161348076528,
+      "predicted_corrected_position": {
+        "lat": 59.367203708949106,
+        "lng": 17.990008152073077
+      },
+      "actual_correction_distance_meters": 1.870532034343308,
+      "actual_corrected_position": {
+        "lat": 59.367225439184494,
+        "lng": 17.98995673656464
+      },
+      "prediction_error_meters": 0.10758410046434475,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8359,
+      "timestamp": "2025-12-03T13:39:33.147495",
+      "original_position": {
+        "lat": 59.3672325,
+        "lng": 17.9899869
+      },
+      "predicted_correction_distance_meters": 1.9761097822104048,
+      "predicted_corrected_position": {
+        "lat": 59.36720229567659,
+        "lng": 17.990009813404615
+      },
+      "actual_correction_distance_meters": 1.985784211853131,
+      "actual_corrected_position": {
+        "lat": 59.367220997487614,
+        "lng": 17.98996008932591
+      },
+      "prediction_error_meters": 0.009674429642726246,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8360,
+      "timestamp": "2025-12-03T13:39:33.565923",
+      "original_position": {
+        "lat": 59.3672244,
+        "lng": 17.989994
+      },
+      "predicted_correction_distance_meters": 1.9692997344673446,
+      "predicted_corrected_position": {
+        "lat": 59.367195894899176,
+        "lng": 17.99001543623788
+      },
+      "actual_correction_distance_meters": 1.8027413652846942,
+      "actual_corrected_position": {
+        "lat": 59.36721723912823,
+        "lng": 17.989965453743938
+      },
+      "prediction_error_meters": 0.16655836918265043,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8361,
+      "timestamp": "2025-12-03T13:39:33.571961",
+      "original_position": {
+        "lat": 59.3672311,
+        "lng": 17.9899884
+      },
+      "predicted_correction_distance_meters": 1.9625017547767794,
+      "predicted_corrected_position": {
+        "lat": 59.36720137842199,
+        "lng": 17.990010861241437
+      },
+      "actual_correction_distance_meters": 2.4782530417035558,
+      "actual_corrected_position": {
+        "lat": 59.3672104057465,
+        "lng": 17.989972159266475
+      },
+      "prediction_error_meters": 0.5157512869267764,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8362,
+      "timestamp": "2025-12-03T13:39:33.873077",
+      "original_position": {
+        "lat": 59.3672207,
+        "lng": 17.9899969
+      },
+      "predicted_correction_distance_meters": 1.9555953001526314,
+      "predicted_corrected_position": {
+        "lat": 59.367193116837555,
+        "lng": 17.99001761993962
+      },
+      "actual_correction_distance_meters": 2.077853461405267,
+      "actual_corrected_position": {
+        "lat": 59.367205280709335,
+        "lng": 17.989976182579998
+      },
+      "prediction_error_meters": 0.12225816125263567,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8363,
+      "timestamp": "2025-12-03T13:39:34.103055",
+      "original_position": {
+        "lat": 59.3672179,
+        "lng": 17.9899991
+      },
+      "predicted_correction_distance_meters": 1.9713786440239465,
+      "predicted_corrected_position": {
+        "lat": 59.367190646203625,
+        "lng": 17.990019553464133
+      },
+      "actual_correction_distance_meters": 2.3284888322378103,
+      "actual_corrected_position": {
+        "lat": 59.367199130663664,
+        "lng": 17.989980876445774
+      },
+      "prediction_error_meters": 0.35711018821386387,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8364,
+      "timestamp": "2025-12-03T13:39:34.532509",
+      "original_position": {
+        "lat": 59.3672124,
+        "lng": 17.9900029
+      },
+      "predicted_correction_distance_meters": 1.9550269218080054,
+      "predicted_corrected_position": {
+        "lat": 59.367186447526734,
+        "lng": 17.99002244090138
+      },
+      "actual_correction_distance_meters": 2.321850306091198,
+      "actual_corrected_position": {
+        "lat": 59.367193322286205,
+        "lng": 17.989986240863804
+      },
+      "prediction_error_meters": 0.3668233842831927,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8365,
+      "timestamp": "2025-12-03T13:39:34.967813",
+      "original_position": {
+        "lat": 59.3672072,
+        "lng": 17.9900059
+      },
+      "predicted_correction_distance_meters": 1.963673844263844,
+      "predicted_corrected_position": {
+        "lat": 59.36718215385149,
+        "lng": 17.99002493822702
+      },
+      "actual_correction_distance_meters": 2.1852384853779134,
+      "actual_corrected_position": {
+        "lat": 59.36718990559308,
+        "lng": 17.98998758196831
+      },
+      "prediction_error_meters": 0.22156464111406948,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8366,
+      "timestamp": "2025-12-03T13:39:35.094403",
+      "original_position": {
+        "lat": 59.367206,
+        "lng": 17.9900066
+      },
+      "predicted_correction_distance_meters": 1.971740231815817,
+      "predicted_corrected_position": {
+        "lat": 59.367181087575645,
+        "lng": 17.99002557841051
+      },
+      "actual_correction_distance_meters": 2.643172295931964,
+      "actual_corrected_position": {
+        "lat": 59.36718307220587,
+        "lng": 17.98999428749085
+      },
+      "prediction_error_meters": 0.6714320641161471,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8367,
+      "timestamp": "2025-12-03T13:39:35.518785",
+      "original_position": {
+        "lat": 59.3672009,
+        "lng": 17.9900097
+      },
+      "predicted_correction_distance_meters": 1.9724630931750533,
+      "predicted_corrected_position": {
+        "lat": 59.367176984398654,
+        "lng": 17.990028073904643
+      },
+      "actual_correction_distance_meters": 2.448827460533973,
+      "actual_corrected_position": {
+        "lat": 59.36717965551175,
+        "lng": 17.98999831080437
+      },
+      "prediction_error_meters": 0.4763643673589195,
+      "verified_status": "correct",
+      "gps_accuracy": 3.005000114440918
+    },
+    {
+      "position_id": 8368,
+      "timestamp": "2025-12-03T13:39:36.030034",
+      "original_position": {
+        "lat": 59.3671948,
+        "lng": 17.9900134
+      },
+      "predicted_correction_distance_meters": 1.9660483081624969,
+      "predicted_corrected_position": {
+        "lat": 59.367172161465724,
+        "lng": 17.99003098671171
+      },
+      "actual_correction_distance_meters": 2.099757049306308,
+      "actual_corrected_position": {
+        "lat": 59.36717726382564,
+        "lng": 17.989999651908878
+      },
+      "prediction_error_meters": 0.13370874114381093,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0230000019073486
+    },
+    {
+      "position_id": 8369,
+      "timestamp": "2025-12-03T13:39:36.463276",
+      "original_position": {
+        "lat": 59.3671885,
+        "lng": 17.990018
+      },
+      "predicted_correction_distance_meters": 1.9621980245283788,
+      "predicted_corrected_position": {
+        "lat": 59.36716714198549,
+        "lng": 17.99003464965903
+      },
+      "actual_correction_distance_meters": 1.789046434261737,
+      "actual_corrected_position": {
+        "lat": 59.367174530469896,
+        "lng": 17.990002334117893
+      },
+      "prediction_error_meters": 0.17315159026664184,
+      "verified_status": "correct",
+      "gps_accuracy": 3.062000036239624
+    },
+    {
+      "position_id": 8370,
+      "timestamp": "2025-12-03T13:39:36.970012",
+      "original_position": {
+        "lat": 59.3671816,
+        "lng": 17.990023
+      },
+      "predicted_correction_distance_meters": 1.9482404667866524,
+      "predicted_corrected_position": {
+        "lat": 59.3671617381958,
+        "lng": 17.99003855710601
+      },
+      "actual_correction_distance_meters": 1.4923438197946939,
+      "actual_corrected_position": {
+        "lat": 59.36717248045294,
+        "lng": 17.9900036752224
+      },
+      "prediction_error_meters": 0.45589664699195853,
+      "verified_status": "correct",
+      "gps_accuracy": 3.1070001125335693
+    },
+    {
+      "position_id": 8371,
+      "timestamp": "2025-12-03T13:39:37.104403",
+      "original_position": {
+        "lat": 59.3671807,
+        "lng": 17.9900239
+      },
+      "predicted_correction_distance_meters": 1.9501290290095585,
+      "predicted_corrected_position": {
+        "lat": 59.367160994454004,
+        "lng": 17.99003929667496
+      },
+      "actual_correction_distance_meters": 1.5373224508048657,
+      "actual_corrected_position": {
+        "lat": 59.367170772105375,
+        "lng": 17.990005016326908
+      },
+      "prediction_error_meters": 0.4128065782046928,
+      "verified_status": "correct",
+      "gps_accuracy": 3.1410000324249268
+    },
+    {
+      "position_id": 8372,
+      "timestamp": "2025-12-03T13:39:37.503928",
+      "original_position": {
+        "lat": 59.3671752,
+        "lng": 17.990028
+      },
+      "predicted_correction_distance_meters": 1.942525958775022,
+      "predicted_corrected_position": {
+        "lat": 59.36715663967033,
+        "lng": 17.990042540211494
+      },
+      "actual_correction_distance_meters": 1.3989717551592267,
+      "actual_corrected_position": {
+        "lat": 59.3671680387491,
+        "lng": 17.990007698535923
+      },
+      "prediction_error_meters": 0.5435542036157954,
+      "verified_status": "correct",
+      "gps_accuracy": 3.177000045776367
+    },
+    {
+      "position_id": 8373,
+      "timestamp": "2025-12-03T13:39:37.969869",
+      "original_position": {
+        "lat": 59.367169,
+        "lng": 17.9900323
+      },
+      "predicted_correction_distance_meters": 1.923114302444501,
+      "predicted_corrected_position": {
+        "lat": 59.367151817474515,
+        "lng": 17.99004586797205
+      },
+      "actual_correction_distance_meters": 1.3560346239948309,
+      "actual_corrected_position": {
+        "lat": 59.3671622303663,
+        "lng": 17.9900123924017
+      },
+      "prediction_error_meters": 0.5670796784496701,
+      "verified_status": "correct",
+      "gps_accuracy": 3.253999948501587
+    },
+    {
+      "position_id": 8374,
+      "timestamp": "2025-12-03T13:39:38.094079",
+      "original_position": {
+        "lat": 59.3671673,
+        "lng": 17.9900335
+      },
+      "predicted_correction_distance_meters": 1.9133894791017432,
+      "predicted_corrected_position": {
+        "lat": 59.36715052963949,
+        "lng": 17.99004676975466
+      },
+      "actual_correction_distance_meters": 1.3518094240375145,
+      "actual_corrected_position": {
+        "lat": 59.36715881367009,
+        "lng": 17.99001641571522
+      },
+      "prediction_error_meters": 0.5615800550642287,
+      "verified_status": "correct",
+      "gps_accuracy": 3.302999973297119
+    },
+    {
+      "position_id": 8375,
+      "timestamp": "2025-12-03T13:39:38.527445",
+      "original_position": {
+        "lat": 59.3671598,
+        "lng": 17.9900378
+      },
+      "predicted_correction_distance_meters": 1.8943806299001833,
+      "predicted_corrected_position": {
+        "lat": 59.36714461703258,
+        "lng": 17.99005012334066
+      },
+      "actual_correction_distance_meters": 1.2713556778721196,
+      "actual_corrected_position": {
+        "lat": 59.36715403029477,
+        "lng": 17.990018427371982
+      },
+      "prediction_error_meters": 0.6230249520280637,
+      "verified_status": "correct",
+      "gps_accuracy": 3.3469998836517334
+    },
+    {
+      "position_id": 8376,
+      "timestamp": "2025-12-03T13:39:38.961607",
+      "original_position": {
+        "lat": 59.3671532,
+        "lng": 17.9900419
+      },
+      "predicted_correction_distance_meters": 1.8745328729118256,
+      "predicted_corrected_position": {
+        "lat": 59.36713941329888,
+        "lng": 17.990053325668388
+      },
+      "actual_correction_distance_meters": 1.1842808544944323,
+      "actual_corrected_position": {
+        "lat": 59.36714788023984,
+        "lng": 17.990023791790012
+      },
+      "prediction_error_meters": 0.6902520184173933,
+      "verified_status": "correct",
+      "gps_accuracy": 3.3949999809265137
+    },
+    {
+      "position_id": 8377,
+      "timestamp": "2025-12-03T13:39:39.097590",
+      "original_position": {
+        "lat": 59.367152,
+        "lng": 17.9900429
+      },
+      "predicted_correction_distance_meters": 1.8701749112546073,
+      "predicted_corrected_position": {
+        "lat": 59.36713846977154,
+        "lng": 17.990054112088213
+      },
+      "actual_correction_distance_meters": 1.2238708098647069,
+      "actual_corrected_position": {
+        "lat": 59.36714412187237,
+        "lng": 17.990027815103534
+      },
+      "prediction_error_meters": 0.6463041013899005,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4079999923706055
+    },
+    {
+      "position_id": 8378,
+      "timestamp": "2025-12-03T13:39:39.569193",
+      "original_position": {
+        "lat": 59.3671453,
+        "lng": 17.9900472
+      },
+      "predicted_correction_distance_meters": 1.855797557051337,
+      "predicted_corrected_position": {
+        "lat": 59.367133117172315,
+        "lng": 17.990057527900028
+      },
+      "actual_correction_distance_meters": 0.9811224672384002,
+      "actual_corrected_position": {
+        "lat": 59.36713968016483,
+        "lng": 17.990033850073818
+      },
+      "prediction_error_meters": 0.8746750898129367,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4739999771118164
+    },
+    {
+      "position_id": 8379,
+      "timestamp": "2025-12-03T13:39:39.947165",
+      "original_position": {
+        "lat": 59.3671397,
+        "lng": 17.9900512
+      },
+      "predicted_correction_distance_meters": 1.8368255776392142,
+      "predicted_corrected_position": {
+        "lat": 59.36712867034075,
+        "lng": 17.99006068758678
+      },
+      "actual_correction_distance_meters": 1.0463708909961518,
+      "actual_corrected_position": {
+        "lat": 59.3671328467675,
+        "lng": 17.990038543939594
+      },
+      "prediction_error_meters": 0.7904546866430624,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5209999084472656
+    },
+    {
+      "position_id": 8380,
+      "timestamp": "2025-12-03T13:39:40.067885",
+      "original_position": {
+        "lat": 59.3671299,
+        "lng": 17.9900607
+      },
+      "predicted_correction_distance_meters": 1.8198466728071687,
+      "predicted_corrected_position": {
+        "lat": 59.36712075574439,
+        "lng": 17.990068371032862
+      },
+      "actual_correction_distance_meters": 0.9423446539217926,
+      "actual_corrected_position": {
+        "lat": 59.36712601336877,
+        "lng": 17.990045920014385
+      },
+      "prediction_error_meters": 0.8775020188853762,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5339999198913574
+    },
+    {
+      "position_id": 8381,
+      "timestamp": "2025-12-03T13:39:40.573560",
+      "original_position": {
+        "lat": 59.3671244,
+        "lng": 17.9900641
+      },
+      "predicted_correction_distance_meters": 1.8255943281584914,
+      "predicted_corrected_position": {
+        "lat": 59.367116230940795,
+        "lng": 17.990071174558356
+      },
+      "actual_correction_distance_meters": 0.8760292799567325,
+      "actual_corrected_position": {
+        "lat": 59.36712054664881,
+        "lng": 17.99005061388016
+      },
+      "prediction_error_meters": 0.9495650482017589,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5910000801086426
+    },
+    {
+      "position_id": 8382,
+      "timestamp": "2025-12-03T13:39:40.963535",
+      "original_position": {
+        "lat": 59.3671196,
+        "lng": 17.9900671
+      },
+      "predicted_correction_distance_meters": 1.8021861527132774,
+      "predicted_corrected_position": {
+        "lat": 59.36711240073564,
+        "lng": 17.990073543190952
+      },
+      "actual_correction_distance_meters": 0.7575798825429502,
+      "actual_corrected_position": {
+        "lat": 59.36711405491771,
+        "lng": 17.99005933105946
+      },
+      "prediction_error_meters": 1.0446062701703274,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5929999351501465
+    },
+    {
+      "position_id": 8383,
+      "timestamp": "2025-12-03T13:39:41.119828",
+      "original_position": {
+        "lat": 59.3671205,
+        "lng": 17.9900674
+      },
+      "predicted_correction_distance_meters": 1.7832563427494994,
+      "predicted_corrected_position": {
+        "lat": 59.367113215862226,
+        "lng": 17.990073722015246
+      },
+      "actual_correction_distance_meters": 1.153087915691949,
+      "actual_corrected_position": {
+        "lat": 59.36711097988673,
+        "lng": 17.99005933105946
+      },
+      "prediction_error_meters": 0.6301684270575505,
+      "verified_status": "correct",
+      "gps_accuracy": 3.631999969482422
+    },
+    {
+      "position_id": 8384,
+      "timestamp": "2025-12-03T13:39:41.622084",
+      "original_position": {
+        "lat": 59.3671154,
+        "lng": 17.9900713
+      },
+      "predicted_correction_distance_meters": 1.775516125981911,
+      "predicted_corrected_position": {
+        "lat": 59.36710905299223,
+        "lng": 17.990076902123278
+      },
+      "actual_correction_distance_meters": 0.8812645729086166,
+      "actual_corrected_position": {
+        "lat": 59.367109613206225,
+        "lng": 17.990060672163967
+      },
+      "prediction_error_meters": 0.8942515530732944,
+      "verified_status": "correct",
+      "gps_accuracy": 3.638000011444092
+    },
+    {
+      "position_id": 8385,
+      "timestamp": "2025-12-03T13:39:42.115649",
+      "original_position": {
+        "lat": 59.3671104,
+        "lng": 17.9900762
+      },
+      "predicted_correction_distance_meters": 1.7642604113937106,
+      "predicted_corrected_position": {
+        "lat": 59.36710497535868,
+        "lng": 17.99008090212155
+      },
+      "actual_correction_distance_meters": 0.7920121634603376,
+      "actual_corrected_position": {
+        "lat": 59.36710517149419,
+        "lng": 17.99006670713425
+      },
+      "prediction_error_meters": 0.9722482479333729,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6500000953674316
+    },
+    {
+      "position_id": 8386,
+      "timestamp": "2025-12-03T13:39:42.674674",
+      "original_position": {
+        "lat": 59.3671039,
+        "lng": 17.9900811
+      },
+      "predicted_correction_distance_meters": 1.7455504170229394,
+      "predicted_corrected_position": {
+        "lat": 59.367099667494806,
+        "lng": 17.990084896935816
+      },
+      "actual_correction_distance_meters": 0.7456143563673069,
+      "actual_corrected_position": {
+        "lat": 59.36709902143035,
+        "lng": 17.99007207155228
+      },
+      "prediction_error_meters": 0.9999360606556326,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6500000953674316
+    },
+    {
+      "position_id": 8387,
+      "timestamp": "2025-12-03T13:39:43.060999",
+      "original_position": {
+        "lat": 59.3670977,
+        "lng": 17.9900858
+      },
+      "predicted_correction_distance_meters": 1.729755166065599,
+      "predicted_corrected_position": {
+        "lat": 59.36709457824238,
+        "lng": 17.990088749592925
+      },
+      "actual_correction_distance_meters": 0.8246075760002253,
+      "actual_corrected_position": {
+        "lat": 59.36709287136544,
+        "lng": 17.990074753761295
+      },
+      "prediction_error_meters": 0.9051475900653737,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6489999294281006
+    },
+    {
+      "position_id": 8388,
+      "timestamp": "2025-12-03T13:39:43.653010",
+      "original_position": {
+        "lat": 59.3670901,
+        "lng": 17.9900907
+      },
+      "predicted_correction_distance_meters": 1.7058194046587771,
+      "predicted_corrected_position": {
+        "lat": 59.367088317862944,
+        "lng": 17.990092772925955
+      },
+      "actual_correction_distance_meters": 0.781321784616303,
+      "actual_corrected_position": {
+        "lat": 59.36708603795867,
+        "lng": 17.99007944762707
+      },
+      "prediction_error_meters": 0.9244976200424742,
+      "verified_status": "correct",
+      "gps_accuracy": 3.630000114440918
+    },
+    {
+      "position_id": 8389,
+      "timestamp": "2025-12-03T13:39:44.107239",
+      "original_position": {
+        "lat": 59.3670851,
+        "lng": 17.9900953
+      },
+      "predicted_correction_distance_meters": 1.6765254838770502,
+      "predicted_corrected_position": {
+        "lat": 59.3670841867302,
+        "lng": 17.990096566126017
+      },
+      "actual_correction_distance_meters": 0.8082613724013756,
+      "actual_corrected_position": {
+        "lat": 59.36708057123228,
+        "lng": 17.990084141492847
+      },
+      "prediction_error_meters": 0.8682641114756746,
+      "verified_status": "correct",
+      "gps_accuracy": 3.619999885559082
+    },
+    {
+      "position_id": 8390,
+      "timestamp": "2025-12-03T13:39:44.655706",
+      "original_position": {
+        "lat": 59.3670775,
+        "lng": 17.9901008
+      },
+      "predicted_correction_distance_meters": 1.639221055185013,
+      "predicted_corrected_position": {
+        "lat": 59.36707785285941,
+        "lng": 17.99010113638182
+      },
+      "actual_correction_distance_meters": 0.8291784511379855,
+      "actual_corrected_position": {
+        "lat": 59.367072371141006,
+        "lng": 17.99009017646313
+      },
+      "prediction_error_meters": 0.8100426040470275,
+      "verified_status": "correct",
+      "gps_accuracy": 3.614000082015991
+    },
+    {
+      "position_id": 8391,
+      "timestamp": "2025-12-03T13:39:45.099869",
+      "original_position": {
+        "lat": 59.3670727,
+        "lng": 17.990105
+      },
+      "predicted_correction_distance_meters": 1.6186405357359928,
+      "predicted_corrected_position": {
+        "lat": 59.36707382537669,
+        "lng": 17.990104652329503
+      },
+      "actual_correction_distance_meters": 0.8629558853242951,
+      "actual_corrected_position": {
+        "lat": 59.367066904412376,
+        "lng": 17.990094870328907
+      },
+      "prediction_error_meters": 0.7556846504116976,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6010000705718994
+    },
+    {
+      "position_id": 8392,
+      "timestamp": "2025-12-03T13:39:45.723259",
+      "original_position": {
+        "lat": 59.3670649,
+        "lng": 17.9901103
+      },
+      "predicted_correction_distance_meters": 1.5982385927931506,
+      "predicted_corrected_position": {
+        "lat": 59.367067257818135,
+        "lng": 17.990109109645214
+      },
+      "actual_correction_distance_meters": 0.9413483357917132,
+      "actual_corrected_position": {
+        "lat": 59.367060412671016,
+        "lng": 17.990096211433414
+      },
+      "prediction_error_meters": 0.6568902570014374,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6010000705718994
+    },
+    {
+      "position_id": 8393,
+      "timestamp": "2025-12-03T13:39:46.083038",
+      "original_position": {
+        "lat": 59.3670603,
+        "lng": 17.9901156
+      },
+      "predicted_correction_distance_meters": 1.584371041410684,
+      "predicted_corrected_position": {
+        "lat": 59.36706336617056,
+        "lng": 17.990113580257
+      },
+      "actual_correction_distance_meters": 0.9705646164715408,
+      "actual_corrected_position": {
+        "lat": 59.36705528761115,
+        "lng": 17.990101575851444
+      },
+      "prediction_error_meters": 0.6138064249391432,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5940001010894775
+    },
+    {
+      "position_id": 8394,
+      "timestamp": "2025-12-03T13:39:46.137037",
+      "original_position": {
+        "lat": 59.3670595,
+        "lng": 17.9901149
+      },
+      "predicted_correction_distance_meters": 1.5601696321708531,
+      "predicted_corrected_position": {
+        "lat": 59.367062644148106,
+        "lng": 17.990113020320628
+      },
+      "actual_correction_distance_meters": 1.1277976298168755,
+      "actual_corrected_position": {
+        "lat": 59.36704982087982,
+        "lng": 17.990108951926235
+      },
+      "prediction_error_meters": 0.43237200235397766,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5840001106262207
+    },
+    {
+      "position_id": 8395,
+      "timestamp": "2025-12-03T13:39:46.697353",
+      "original_position": {
+        "lat": 59.3670528,
+        "lng": 17.9901196
+      },
+      "predicted_correction_distance_meters": 1.5230820858570593,
+      "predicted_corrected_position": {
+        "lat": 59.36705688987204,
+        "lng": 17.990117049154815
+      },
+      "actual_correction_distance_meters": 0.8948179008760105,
+      "actual_corrected_position": {
+        "lat": 59.36704606250148,
+        "lng": 17.990110963582996
+      },
+      "prediction_error_meters": 0.6282641849810487,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5810000896453857
+    },
+    {
+      "position_id": 8396,
+      "timestamp": "2025-12-03T13:39:47.118923",
+      "original_position": {
+        "lat": 59.3670486,
+        "lng": 17.990123
+      },
+      "predicted_correction_distance_meters": 1.4937353514910157,
+      "predicted_corrected_position": {
+        "lat": 59.36705323843726,
+        "lng": 17.99011999043446
+      },
+      "actual_correction_distance_meters": 1.0239978005173946,
+      "actual_corrected_position": {
+        "lat": 59.367040937439455,
+        "lng": 17.990112975239757
+      },
+      "prediction_error_meters": 0.469737550973621,
+      "verified_status": "correct",
+      "gps_accuracy": 3.569000005722046
+    },
+    {
+      "position_id": 8397,
+      "timestamp": "2025-12-03T13:39:47.753340",
+      "original_position": {
+        "lat": 59.3670406,
+        "lng": 17.9901267
+      },
+      "predicted_correction_distance_meters": 1.468172477825954,
+      "predicted_corrected_position": {
+        "lat": 59.367046333595866,
+        "lng": 17.99012319871451
+      },
+      "actual_correction_distance_meters": 0.8583041434898144,
+      "actual_corrected_position": {
+        "lat": 59.367036154047554,
+        "lng": 17.990114316344265
+      },
+      "prediction_error_meters": 0.6098683343361395,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5380001068115234
+    },
+    {
+      "position_id": 8398,
+      "timestamp": "2025-12-03T13:39:48.083794",
+      "original_position": {
+        "lat": 59.3670362,
+        "lng": 17.9901291
+      },
+      "predicted_correction_distance_meters": 1.4451392682966122,
+      "predicted_corrected_position": {
+        "lat": 59.36704247950646,
+        "lng": 17.99012530681049
+      },
+      "actual_correction_distance_meters": 0.8917392066373732,
+      "actual_corrected_position": {
+        "lat": 59.36703068731312,
+        "lng": 17.990117669105533
+      },
+      "prediction_error_meters": 0.553400061659239,
+      "verified_status": "correct",
+      "gps_accuracy": 3.50600004196167
+    },
+    {
+      "position_id": 8399,
+      "timestamp": "2025-12-03T13:39:48.719719",
+      "original_position": {
+        "lat": 59.3670275,
+        "lng": 17.9901336
+      },
+      "predicted_correction_distance_meters": 1.4312885108051185,
+      "predicted_corrected_position": {
+        "lat": 59.36703496454231,
+        "lng": 17.990129199086013
+      },
+      "actual_correction_distance_meters": 0.5324524214994508,
+      "actual_corrected_position": {
+        "lat": 59.367026587261705,
+        "lng": 17.99012437462807
+      },
+      "prediction_error_meters": 0.8988360893056677,
+      "verified_status": "correct",
+      "gps_accuracy": 3.496000051498413
+    },
+    {
+      "position_id": 8400,
+      "timestamp": "2025-12-03T13:39:49.105873",
+      "original_position": {
+        "lat": 59.3670229,
+        "lng": 17.9901375
+      },
+      "predicted_correction_distance_meters": 1.4105324171517706,
+      "predicted_corrected_position": {
+        "lat": 59.3670309051388,
+        "lng": 17.990132612799034
+      },
+      "actual_correction_distance_meters": 0.6018380683931835,
+      "actual_corrected_position": {
+        "lat": 59.36702077885466,
+        "lng": 17.99012772738934
+      },
+      "prediction_error_meters": 0.808694348758587,
+      "verified_status": "correct",
+      "gps_accuracy": 3.49399995803833
+    },
+    {
+      "position_id": 8401,
+      "timestamp": "2025-12-03T13:39:49.139284",
+      "original_position": {
+        "lat": 59.3670219,
+        "lng": 17.9901384
+      },
+      "predicted_correction_distance_meters": 1.4107987932784638,
+      "predicted_corrected_position": {
+        "lat": 59.367030047730424,
+        "lng": 17.990133384904205
+      },
+      "actual_correction_distance_meters": 0.7105237354074908,
+      "actual_corrected_position": {
+        "lat": 59.36701804548632,
+        "lng": 17.990128397941593
+      },
+      "prediction_error_meters": 0.700275057870973,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4779999256134033
+    },
+    {
+      "position_id": 8402,
+      "timestamp": "2025-12-03T13:39:49.730412",
+      "original_position": {
+        "lat": 59.3670146,
+        "lng": 17.9901439
+      },
+      "predicted_correction_distance_meters": 1.3886240947976376,
+      "predicted_corrected_position": {
+        "lat": 59.367023633361356,
+        "lng": 17.99013819998739
+      },
+      "actual_correction_distance_meters": 0.704246504051839,
+      "actual_corrected_position": {
+        "lat": 59.367013262091184,
+        "lng": 17.99013175070286
+      },
+      "prediction_error_meters": 0.6843775907457986,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4760000705718994
+    },
+    {
+      "position_id": 8403,
+      "timestamp": "2025-12-03T13:39:50.116216",
+      "original_position": {
+        "lat": 59.3670097,
+        "lng": 17.9901494
+      },
+      "predicted_correction_distance_meters": 1.378217768259617,
+      "predicted_corrected_position": {
+        "lat": 59.367019340992194,
+        "lng": 17.990142984683416
+      },
+      "actual_correction_distance_meters": 0.7182156780561937,
+      "actual_corrected_position": {
+        "lat": 59.36700711201071,
+        "lng": 17.990137785673145
+      },
+      "prediction_error_meters": 0.6600020902034234,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4790000915527344
+    },
+    {
+      "position_id": 8404,
+      "timestamp": "2025-12-03T13:39:50.179073",
+      "original_position": {
+        "lat": 59.3670083,
+        "lng": 17.9901506
+      },
+      "predicted_correction_distance_meters": 1.3808458322632058,
+      "predicted_corrected_position": {
+        "lat": 59.36701815269461,
+        "lng": 17.990144006748828
+      },
+      "actual_correction_distance_meters": 0.7956897663751042,
+      "actual_corrected_position": {
+        "lat": 59.36700301195645,
+        "lng": 17.990141138434414
+      },
+      "prediction_error_meters": 0.5851560658881015,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4690001010894775
+    },
+    {
+      "position_id": 8405,
+      "timestamp": "2025-12-03T13:39:50.740791",
+      "original_position": {
+        "lat": 59.3670016,
+        "lng": 17.9901565
+      },
+      "predicted_correction_distance_meters": 1.357789977223437,
+      "predicted_corrected_position": {
+        "lat": 59.367012197904366,
+        "lng": 17.990149215739645
+      },
+      "actual_correction_distance_meters": 0.8361212772368432,
+      "actual_corrected_position": {
+        "lat": 59.36699925357294,
+        "lng": 17.99014247953892
+      },
+      "prediction_error_meters": 0.5216686999865938,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4749999046325684
+    },
+    {
+      "position_id": 8406,
+      "timestamp": "2025-12-03T13:39:51.114116",
+      "original_position": {
+        "lat": 59.3669976,
+        "lng": 17.9901615
+      },
+      "predicted_correction_distance_meters": 1.3391603395223017,
+      "predicted_corrected_position": {
+        "lat": 59.36700858815932,
+        "lng": 17.9901536461036
+      },
+      "actual_correction_distance_meters": 0.9533473166863775,
+      "actual_corrected_position": {
+        "lat": 59.366993103489946,
+        "lng": 17.990147173404697
+      },
+      "prediction_error_meters": 0.3858130228359242,
+      "verified_status": "correct",
+      "gps_accuracy": 3.486999988555908
+    },
+    {
+      "position_id": 8407,
+      "timestamp": "2025-12-03T13:39:51.180098",
+      "original_position": {
+        "lat": 59.3669969,
+        "lng": 17.9901617
+      },
+      "predicted_correction_distance_meters": 1.333477318431931,
+      "predicted_corrected_position": {
+        "lat": 59.36700793487206,
+        "lng": 17.99015385276379
+      },
+      "actual_correction_distance_meters": 1.3783663177971253,
+      "actual_corrected_position": {
+        "lat": 59.36698627006307,
+        "lng": 17.99014918506146
+      },
+      "prediction_error_meters": 0.04488899936519419,
+      "verified_status": "correct",
+      "gps_accuracy": 3.494999885559082
+    },
+    {
+      "position_id": 8408,
+      "timestamp": "2025-12-03T13:39:51.762277",
+      "original_position": {
+        "lat": 59.3669906,
+        "lng": 17.9901669
+      },
+      "predicted_correction_distance_meters": 1.2836870393103985,
+      "predicted_corrected_position": {
+        "lat": 59.36700203156738,
+        "lng": 17.990158678251948
+      },
+      "actual_correction_distance_meters": 1.2004139798544406,
+      "actual_corrected_position": {
+        "lat": 59.36698182833488,
+        "lng": 17.990154549479488
+      },
+      "prediction_error_meters": 0.08327305945595787,
+      "verified_status": "correct",
+      "gps_accuracy": 3.510999917984009
+    },
+    {
+      "position_id": 8409,
+      "timestamp": "2025-12-03T13:39:52.097099",
+      "original_position": {
+        "lat": 59.366986,
+        "lng": 17.9901728
+      },
+      "predicted_correction_distance_meters": 1.2583405944502912,
+      "predicted_corrected_position": {
+        "lat": 59.366997784687356,
+        "lng": 17.990163998169695
+      },
+      "actual_correction_distance_meters": 1.1947012003249906,
+      "actual_corrected_position": {
+        "lat": 59.36697806994903,
+        "lng": 17.99015857279301
+      },
+      "prediction_error_meters": 0.06363939412530062,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5299999713897705
+    },
+    {
+      "position_id": 8410,
+      "timestamp": "2025-12-03T13:39:52.291527",
+      "original_position": {
+        "lat": 59.366984,
+        "lng": 17.9901743
+      },
+      "predicted_correction_distance_meters": 1.2540578562013922,
+      "predicted_corrected_position": {
+        "lat": 59.36699599538997,
+        "lng": 17.990165340017878
+      },
+      "actual_correction_distance_meters": 1.2753214615367607,
+      "actual_corrected_position": {
+        "lat": 59.366974653234244,
+        "lng": 17.990161255002025
+      },
+      "prediction_error_meters": 0.02126360533536853,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5409998893737793
+    },
+    {
+      "position_id": 8411,
+      "timestamp": "2025-12-03T13:39:52.706317",
+      "original_position": {
+        "lat": 59.3669766,
+        "lng": 17.9901802
+      },
+      "predicted_correction_distance_meters": 1.2042113855641525,
+      "predicted_corrected_position": {
+        "lat": 59.36698900971192,
+        "lng": 17.99017088567581
+      },
+      "actual_correction_distance_meters": 1.0876038886240693,
+      "actual_corrected_position": {
+        "lat": 59.36697089484758,
+        "lng": 17.990164607763294
+      },
+      "prediction_error_meters": 0.11660749694008321,
+      "verified_status": "correct",
+      "gps_accuracy": 3.558000087738037
+    },
+    {
+      "position_id": 8412,
+      "timestamp": "2025-12-03T13:39:53.098614",
+      "original_position": {
+        "lat": 59.3669716,
+        "lng": 17.990185
+      },
+      "predicted_correction_distance_meters": 1.1650468871501694,
+      "predicted_corrected_position": {
+        "lat": 59.366984188635016,
+        "lng": 17.99017542938254
+      },
+      "actual_correction_distance_meters": 1.0073959877932483,
+      "actual_corrected_position": {
+        "lat": 59.36696542810262,
+        "lng": 17.990171983838085
+      },
+      "prediction_error_meters": 0.157650899356921,
+      "verified_status": "correct",
+      "gps_accuracy": 3.571000099182129
+    },
+    {
+      "position_id": 8413,
+      "timestamp": "2025-12-03T13:39:53.154556",
+      "original_position": {
+        "lat": 59.36697,
+        "lng": 17.9901863
+      },
+      "predicted_correction_distance_meters": 1.1621432800934413,
+      "predicted_corrected_position": {
+        "lat": 59.36698274320371,
+        "lng": 17.990176602156442
+      },
+      "actual_correction_distance_meters": 1.293196024400465,
+      "actual_corrected_position": {
+        "lat": 59.36695961968513,
+        "lng": 17.990176007151607
+      },
+      "prediction_error_meters": 0.13105274430702374,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5899999141693115
+    },
+    {
+      "position_id": 8414,
+      "timestamp": "2025-12-03T13:39:53.748679",
+      "original_position": {
+        "lat": 59.3669622,
+        "lng": 17.9901927
+      },
+      "predicted_correction_distance_meters": 1.1335984047055268,
+      "predicted_corrected_position": {
+        "lat": 59.36697551440847,
+        "lng": 17.990182514854503
+      },
+      "actual_correction_distance_meters": 1.1671973802459352,
+      "actual_corrected_position": {
+        "lat": 59.36695483628176,
+        "lng": 17.99017801880837
+      },
+      "prediction_error_meters": 0.03359897554040847,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6089999675750732
+    },
+    {
+      "position_id": 8415,
+      "timestamp": "2025-12-03T13:39:54.090875",
+      "original_position": {
+        "lat": 59.3669578,
+        "lng": 17.9901978
+      },
+      "predicted_correction_distance_meters": 1.1244159705997796,
+      "predicted_corrected_position": {
+        "lat": 59.36697150130142,
+        "lng": 17.99018712390461
+      },
+      "actual_correction_distance_meters": 1.003936482610802,
+      "actual_corrected_position": {
+        "lat": 59.3669521029081,
+        "lng": 17.990184053778652
+      },
+      "prediction_error_meters": 0.12047948798897767,
+      "verified_status": "correct",
+      "gps_accuracy": 3.618000030517578
+    },
+    {
+      "position_id": 8416,
+      "timestamp": "2025-12-03T13:39:54.184644",
+      "original_position": {
+        "lat": 59.366956,
+        "lng": 17.9901996
+      },
+      "predicted_correction_distance_meters": 1.128687534417272,
+      "predicted_corrected_position": {
+        "lat": 59.36696995651529,
+        "lng": 17.99018868018325
+      },
+      "actual_correction_distance_meters": 1.3935631425278034,
+      "actual_corrected_position": {
+        "lat": 59.366944927801185,
+        "lng": 17.990188077092174
+      },
+      "prediction_error_meters": 0.26487560811053146,
+      "verified_status": "correct",
+      "gps_accuracy": 3.627000093460083
+    },
+    {
+      "position_id": 8417,
+      "timestamp": "2025-12-03T13:39:54.786377",
+      "original_position": {
+        "lat": 59.3669486,
+        "lng": 17.990205
+      },
+      "predicted_correction_distance_meters": 1.1110774633139364,
+      "predicted_corrected_position": {
+        "lat": 59.3669631609595,
+        "lng": 17.990193650575186
+      },
+      "actual_correction_distance_meters": 1.1017694988533455,
+      "actual_corrected_position": {
+        "lat": 59.36694185275491,
+        "lng": 17.99019075930119
+      },
+      "prediction_error_meters": 0.0093079644605909,
+      "verified_status": "correct",
+      "gps_accuracy": 3.63700008392334
+    },
+    {
+      "position_id": 8418,
+      "timestamp": "2025-12-03T13:39:55.091046",
+      "original_position": {
+        "lat": 59.3669445,
+        "lng": 17.9902088
+      },
+      "predicted_correction_distance_meters": 1.1094315110376483,
+      "predicted_corrected_position": {
+        "lat": 59.36695949425579,
+        "lng": 17.990197045804273
+      },
+      "actual_correction_distance_meters": 1.0981036441245922,
+      "actual_corrected_position": {
+        "lat": 59.36693894854428,
+        "lng": 17.99019277095795
+      },
+      "prediction_error_meters": 0.011327866913056095,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6470000743865967
+    },
+    {
+      "position_id": 8419,
+      "timestamp": "2025-12-03T13:39:55.204638",
+      "original_position": {
+        "lat": 59.3669433,
+        "lng": 17.99021
+      },
+      "predicted_correction_distance_meters": 1.1085711617314258,
+      "predicted_corrected_position": {
+        "lat": 59.366958415656484,
+        "lng": 17.990198121890955
+      },
+      "actual_correction_distance_meters": 1.1447994278968991,
+      "actual_corrected_position": {
+        "lat": 59.36693672767714,
+        "lng": 17.99019444733858
+      },
+      "prediction_error_meters": 0.036228266165473366,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6579999923706055
+    },
+    {
+      "position_id": 8420,
+      "timestamp": "2025-12-03T13:39:55.806948",
+      "original_position": {
+        "lat": 59.3669364,
+        "lng": 17.9902152
+      },
+      "predicted_correction_distance_meters": 1.102039634523434,
+      "predicted_corrected_position": {
+        "lat": 59.366952187004756,
+        "lng": 17.9902028188143
+      },
+      "actual_correction_distance_meters": 1.0979446207532935,
+      "actual_corrected_position": {
+        "lat": 59.36693331095821,
+        "lng": 17.990196794271473
+      },
+      "prediction_error_meters": 0.004095013770140543,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6649999618530273
+    },
+    {
+      "position_id": 8421,
+      "timestamp": "2025-12-03T13:39:56.083017",
+      "original_position": {
+        "lat": 59.3669331,
+        "lng": 17.9902191
+      },
+      "predicted_correction_distance_meters": 1.1016558982840245,
+      "predicted_corrected_position": {
+        "lat": 59.36694924505407,
+        "lng": 17.990206293479694
+      },
+      "actual_correction_distance_meters": 1.2276431430358028,
+      "actual_corrected_position": {
+        "lat": 59.36692972340293,
+        "lng": 17.990198470652103
+      },
+      "prediction_error_meters": 0.12598724475177825,
+      "verified_status": "correct",
+      "gps_accuracy": 3.6689999103546143
+    },
+    {
+      "position_id": 8422,
+      "timestamp": "2025-12-03T13:39:56.253795",
+      "original_position": {
+        "lat": 59.3669312,
+        "lng": 17.9902205
+      },
+      "predicted_correction_distance_meters": 1.1031805910317258,
+      "predicted_corrected_position": {
+        "lat": 59.36694757700316,
+        "lng": 17.990207521310175
+      },
+      "actual_correction_distance_meters": 1.223784864803303,
+      "actual_corrected_position": {
+        "lat": 59.36692630668331,
+        "lng": 17.99020115286112
+      },
+      "prediction_error_meters": 0.12060427377157712,
+      "verified_status": "correct",
+      "gps_accuracy": 3.680000066757202
+    },
+    {
+      "position_id": 8423,
+      "timestamp": "2025-12-03T13:39:56.817563",
+      "original_position": {
+        "lat": 59.3669245,
+        "lng": 17.9902259
+      },
+      "predicted_correction_distance_meters": 1.097354251224053,
+      "predicted_corrected_position": {
+        "lat": 59.366941525736976,
+        "lng": 17.99021239728455
+      },
+      "actual_correction_distance_meters": 1.2272619649075112,
+      "actual_corrected_position": {
+        "lat": 59.366920327423095,
+        "lng": 17.990205846726898
+      },
+      "prediction_error_meters": 0.1299077136834581,
+      "verified_status": "correct",
+      "gps_accuracy": 3.684000015258789
+    },
+    {
+      "position_id": 8424,
+      "timestamp": "2025-12-03T13:39:57.107845",
+      "original_position": {
+        "lat": 59.3669209,
+        "lng": 17.9902298
+      },
+      "predicted_correction_distance_meters": 1.0996014159828147,
+      "predicted_corrected_position": {
+        "lat": 59.36693835645883,
+        "lng": 17.99021584078911
+      },
+      "actual_correction_distance_meters": 1.1573905852779773,
+      "actual_corrected_position": {
+        "lat": 59.36691622735835,
+        "lng": 17.990211546421055
+      },
+      "prediction_error_meters": 0.057789169295162646,
+      "verified_status": "correct",
+      "gps_accuracy": 3.684000015258789
+    },
+    {
+      "position_id": 8425,
+      "timestamp": "2025-12-03T13:39:57.286482",
+      "original_position": {
+        "lat": 59.3669184,
+        "lng": 17.9902307
+      },
+      "predicted_correction_distance_meters": 1.0991057228171357,
+      "predicted_corrected_position": {
+        "lat": 59.36693612336601,
+        "lng": 17.990216648162317
+      },
+      "actual_correction_distance_meters": 1.1047699154851085,
+      "actual_corrected_position": {
+        "lat": 59.36691366481764,
+        "lng": 17.990213558077816
+      },
+      "prediction_error_meters": 0.0056641926679728005,
+      "verified_status": "correct",
+      "gps_accuracy": 3.684999942779541
+    },
+    {
+      "position_id": 8426,
+      "timestamp": "2025-12-03T13:39:57.844014",
+      "original_position": {
+        "lat": 59.366912,
+        "lng": 17.9902346
+      },
+      "predicted_correction_distance_meters": 1.0958157376012199,
+      "predicted_corrected_position": {
+        "lat": 59.36693037163621,
+        "lng": 17.99022016285595
+      },
+      "actual_correction_distance_meters": 1.0702660328091766,
+      "actual_corrected_position": {
+        "lat": 59.36690973558814,
+        "lng": 17.99021624028683
+      },
+      "prediction_error_meters": 0.025549704792043215,
+      "verified_status": "correct",
+      "gps_accuracy": 3.687999963760376
+    },
+    {
+      "position_id": 8427,
+      "timestamp": "2025-12-03T13:39:58.090643",
+      "original_position": {
+        "lat": 59.3669085,
+        "lng": 17.9902376
+      },
+      "predicted_correction_distance_meters": 1.098607209363772,
+      "predicted_corrected_position": {
+        "lat": 59.36692730294848,
+        "lng": 17.99022279649673
+      },
+      "actual_correction_distance_meters": 1.1051273992839288,
+      "actual_corrected_position": {
+        "lat": 59.36690563552212,
+        "lng": 17.990218922495846
+      },
+      "prediction_error_meters": 0.006520189920156794,
+      "verified_status": "correct",
+      "gps_accuracy": 3.687999963760376
+    },
+    {
+      "position_id": 8428,
+      "timestamp": "2025-12-03T13:39:58.304916",
+      "original_position": {
+        "lat": 59.3669045,
+        "lng": 17.9902404
+      },
+      "predicted_correction_distance_meters": 1.0960361887119094,
+      "predicted_corrected_position": {
+        "lat": 59.36692369735927,
+        "lng": 17.990225324250567
+      },
+      "actual_correction_distance_meters": 1.084481484247039,
+      "actual_corrected_position": {
+        "lat": 59.36690136461948,
+        "lng": 17.990222275257114
+      },
+      "prediction_error_meters": 0.011554704464870502,
+      "verified_status": "correct",
+      "gps_accuracy": 3.7100000381469727
+    },
+    {
+      "position_id": 8429,
+      "timestamp": "2025-12-03T13:39:58.879538",
+      "original_position": {
+        "lat": 59.3668972,
+        "lng": 17.9902454
+      },
+      "predicted_correction_distance_meters": 1.095710533247343,
+      "predicted_corrected_position": {
+        "lat": 59.36691719152402,
+        "lng": 17.99022978087462
+      },
+      "actual_correction_distance_meters": 1.0073270341773712,
+      "actual_corrected_position": {
+        "lat": 59.36689470201028,
+        "lng": 17.990228310227398
+      },
+      "prediction_error_meters": 0.08838349906997167,
+      "verified_status": "correct",
+      "gps_accuracy": 3.7309999465942383
+    },
+    {
+      "position_id": 8430,
+      "timestamp": "2025-12-03T13:39:59.083069",
+      "original_position": {
+        "lat": 59.3668939,
+        "lng": 17.9902488
+      },
+      "predicted_correction_distance_meters": 1.0987215317080947,
+      "predicted_corrected_position": {
+        "lat": 59.36691430903858,
+        "lng": 17.990232764388146
+      },
+      "actual_correction_distance_meters": 0.9772118974687157,
+      "actual_corrected_position": {
+        "lat": 59.366891285287124,
+        "lng": 17.99023233354092
+      },
+      "prediction_error_meters": 0.121509634239379,
+      "verified_status": "correct",
+      "gps_accuracy": 3.743000030517578
+    },
+    {
+      "position_id": 8431,
+      "timestamp": "2025-12-03T13:39:59.301553",
+      "original_position": {
+        "lat": 59.3668896,
+        "lng": 17.9902523
+      },
+      "predicted_correction_distance_meters": 1.0977466094986779,
+      "predicted_corrected_position": {
+        "lat": 59.366910462960185,
+        "lng": 17.990235894405618
+      },
+      "actual_correction_distance_meters": 0.9667699296572095,
+      "actual_corrected_position": {
+        "lat": 59.3668865018741,
+        "lng": 17.990236356854442
+      },
+      "prediction_error_meters": 0.13097667984146832,
+      "verified_status": "correct",
+      "gps_accuracy": 3.7760000228881836
+    },
+    {
+      "position_id": 8432,
+      "timestamp": "2025-12-03T13:40:00.134589",
+      "original_position": {
+        "lat": 59.3668782,
+        "lng": 17.9902694
+      },
+      "predicted_correction_distance_meters": 1.0897576703185556,
+      "predicted_corrected_position": {
+        "lat": 59.36690015345206,
+        "lng": 17.990251250313033
+      },
+      "actual_correction_distance_meters": 1.3497232334765028,
+      "actual_corrected_position": {
+        "lat": 59.36687351832108,
+        "lng": 17.99024742096663
+      },
+      "prediction_error_meters": 0.25996556315794717,
+      "verified_status": "correct",
+      "gps_accuracy": 3.746000051498413
+    },
+    {
+      "position_id": 8433,
+      "timestamp": "2025-12-03T13:40:00.297458",
+      "original_position": {
+        "lat": 59.3668742,
+        "lng": 17.9902751
+      },
+      "predicted_correction_distance_meters": 1.1389153576834794,
+      "predicted_corrected_position": {
+        "lat": 59.366897599312615,
+        "lng": 17.99025548242024
+      },
+      "actual_correction_distance_meters": 1.5002430611886075,
+      "actual_corrected_position": {
+        "lat": 59.36687027243205,
+        "lng": 17.990249767899517
+      },
+      "prediction_error_meters": 0.3613277035051281,
+      "verified_status": "correct",
+      "gps_accuracy": 3.7130000591278076
+    },
+    {
+      "position_id": 8434,
+      "timestamp": "2025-12-03T13:40:00.890113",
+      "original_position": {
+        "lat": 59.3668667,
+        "lng": 17.9902831
+      },
+      "predicted_correction_distance_meters": 1.1264099235136726,
+      "predicted_corrected_position": {
+        "lat": 59.36689068719266,
+        "lng": 17.990262796695795
+      },
+      "actual_correction_distance_meters": 1.6180048460419991,
+      "actual_corrected_position": {
+        "lat": 59.366864207743845,
+        "lng": 17.99025496467948
+      },
+      "prediction_error_meters": 0.4915949225283265,
+      "verified_status": "correct",
+      "gps_accuracy": 3.683000087738037
+    },
+    {
+      "position_id": 8435,
+      "timestamp": "2025-12-03T13:40:01.101609",
+      "original_position": {
+        "lat": 59.3668643,
+        "lng": 17.9902886
+      },
+      "predicted_correction_distance_meters": 1.1432693073785094,
+      "predicted_corrected_position": {
+        "lat": 59.366888920602264,
+        "lng": 17.990267364010798
+      },
+      "actual_correction_distance_meters": 1.7255909478930502,
+      "actual_corrected_position": {
+        "lat": 59.36686104727205,
+        "lng": 17.990258820354942
+      },
+      "prediction_error_meters": 0.5823216405145408,
+      "verified_status": "correct",
+      "gps_accuracy": 3.63100004196167
+    },
+    {
+      "position_id": 8436,
+      "timestamp": "2025-12-03T13:40:01.379044",
+      "original_position": {
+        "lat": 59.3668604,
+        "lng": 17.9902932
+      },
+      "predicted_correction_distance_meters": 1.1357520344186651,
+      "predicted_corrected_position": {
+        "lat": 59.366885301659124,
+        "lng": 17.99027158119664
+      },
+      "actual_correction_distance_meters": 1.7541315076976385,
+      "actual_corrected_position": {
+        "lat": 59.36685489716402,
+        "lng": 17.990264184772972
+      },
+      "prediction_error_meters": 0.6183794732789734,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5789999961853027
+    },
+    {
+      "position_id": 8437,
+      "timestamp": "2025-12-03T13:40:01.882494",
+      "original_position": {
+        "lat": 59.3668541,
+        "lng": 17.9902985
+      },
+      "predicted_correction_distance_meters": 1.1395356879023684,
+      "predicted_corrected_position": {
+        "lat": 59.366879802524195,
+        "lng": 17.990276205221672
+      },
+      "actual_correction_distance_meters": 1.777363407193024,
+      "actual_corrected_position": {
+        "lat": 59.366851053345904,
+        "lng": 17.990267705172304
+      },
+      "prediction_error_meters": 0.6378277192906556,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5199999809265137
+    },
+    {
+      "position_id": 8438,
+      "timestamp": "2025-12-03T13:40:02.068507",
+      "original_position": {
+        "lat": 59.366851,
+        "lng": 17.9903023
+      },
+      "predicted_correction_distance_meters": 1.1416262833176367,
+      "predicted_corrected_position": {
+        "lat": 59.36687710358226,
+        "lng": 17.990279530501617
+      },
+      "actual_correction_distance_meters": 1.818977347975455,
+      "actual_corrected_position": {
+        "lat": 59.36684550116345,
+        "lng": 17.99027206376195
+      },
+      "prediction_error_meters": 0.6773510646578182,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4719998836517334
+    },
+    {
+      "position_id": 8439,
+      "timestamp": "2025-12-03T13:40:02.328018",
+      "original_position": {
+        "lat": 59.3668476,
+        "lng": 17.9903055
+      },
+      "predicted_correction_distance_meters": 1.1434551027008395,
+      "predicted_corrected_position": {
+        "lat": 59.36687413417343,
+        "lng": 17.990282328120564
+      },
+      "actual_correction_distance_meters": 1.8219652629320953,
+      "actual_corrected_position": {
+        "lat": 59.36683960730721,
+        "lng": 17.99027742817998
+      },
+      "prediction_error_meters": 0.6785101602312558,
+      "verified_status": "correct",
+      "gps_accuracy": 3.4189999103546143
+    },
+    {
+      "position_id": 8440,
+      "timestamp": "2025-12-03T13:40:02.900520",
+      "original_position": {
+        "lat": 59.3668398,
+        "lng": 17.9903127
+      },
+      "predicted_correction_distance_meters": 1.1371505242850248,
+      "predicted_corrected_position": {
+        "lat": 59.366867074851456,
+        "lng": 17.990288837133154
+      },
+      "actual_correction_distance_meters": 1.8337122054442576,
+      "actual_corrected_position": {
+        "lat": 59.366834396795795,
+        "lng": 17.99028212204576
+      },
+      "prediction_error_meters": 0.6965616811592328,
+      "verified_status": "correct",
+      "gps_accuracy": 3.3589999675750732
+    },
+    {
+      "position_id": 8441,
+      "timestamp": "2025-12-03T13:40:03.092035",
+      "original_position": {
+        "lat": 59.3668376,
+        "lng": 17.9903164
+      },
+      "predicted_correction_distance_meters": 1.1444892840337813,
+      "predicted_corrected_position": {
+        "lat": 59.36686530266116,
+        "lng": 17.990291959669776
+      },
+      "actual_correction_distance_meters": 1.8540012142779774,
+      "actual_corrected_position": {
+        "lat": 59.36683029672064,
+        "lng": 17.990286983549595
+      },
+      "prediction_error_meters": 0.7095119302441961,
+      "verified_status": "correct",
+      "gps_accuracy": 3.309000015258789
+    },
+    {
+      "position_id": 8442,
+      "timestamp": "2025-12-03T13:40:03.351147",
+      "original_position": {
+        "lat": 59.3668343,
+        "lng": 17.9903197
+      },
+      "predicted_correction_distance_meters": 1.145902856593222,
+      "predicted_corrected_position": {
+        "lat": 59.366862415025,
+        "lng": 17.990294851335285
+      },
+      "actual_correction_distance_meters": 1.9609230625668694,
+      "actual_corrected_position": {
+        "lat": 59.36682482995303,
+        "lng": 17.99029050394893
+      },
+      "prediction_error_meters": 0.8150202059736473,
+      "verified_status": "correct",
+      "gps_accuracy": 3.243000030517578
+    },
+    {
+      "position_id": 8443,
+      "timestamp": "2025-12-03T13:40:03.914979",
+      "original_position": {
+        "lat": 59.3668272,
+        "lng": 17.9903257
+      },
+      "predicted_correction_distance_meters": 1.141192225095769,
+      "predicted_corrected_position": {
+        "lat": 59.366856009694914,
+        "lng": 17.990300268769012
+      },
+      "actual_correction_distance_meters": 1.8968366436544986,
+      "actual_corrected_position": {
+        "lat": 59.366820559040214,
+        "lng": 17.990294862538576
+      },
+      "prediction_error_meters": 0.7556444185587297,
+      "verified_status": "correct",
+      "gps_accuracy": 3.1659998893737793
+    },
+    {
+      "position_id": 8444,
+      "timestamp": "2025-12-03T13:40:04.087140",
+      "original_position": {
+        "lat": 59.3668249,
+        "lng": 17.9903291
+      },
+      "predicted_correction_distance_meters": 1.1459097374416678,
+      "predicted_corrected_position": {
+        "lat": 59.36685409234897,
+        "lng": 17.99030317403092
+      },
+      "actual_correction_distance_meters": 1.9956545904445764,
+      "actual_corrected_position": {
+        "lat": 59.366816117290334,
+        "lng": 17.99029838293791
+      },
+      "prediction_error_meters": 0.8497448530029086,
+      "verified_status": "correct",
+      "gps_accuracy": 3.1549999713897705
+    },
+    {
+      "position_id": 8445,
+      "timestamp": "2025-12-03T13:40:04.387362",
+      "original_position": {
+        "lat": 59.3668214,
+        "lng": 17.9903319
+      },
+      "predicted_correction_distance_meters": 1.144638881250445,
+      "predicted_corrected_position": {
+        "lat": 59.36685096059719,
+        "lng": 17.99030568228489
+      },
+      "actual_correction_distance_meters": 1.9740999963613945,
+      "actual_corrected_position": {
+        "lat": 59.36681364016033,
+        "lng": 17.990300562232733
+      },
+      "prediction_error_meters": 0.8294611151109494,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0369999408721924
+    },
+    {
+      "position_id": 8446,
+      "timestamp": "2025-12-03T13:40:04.998175",
+      "original_position": {
+        "lat": 59.3668143,
+        "lng": 17.9903379
+      },
+      "predicted_correction_distance_meters": 1.1401108126058197,
+      "predicted_corrected_position": {
+        "lat": 59.36684455313732,
+        "lng": 17.99031110193287
+      },
+      "actual_correction_distance_meters": 1.8319144519079642,
+      "actual_corrected_position": {
+        "lat": 59.36680902757294,
+        "lng": 17.990307267755274
+      },
+      "prediction_error_meters": 0.6918036393021445,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0350000858306885
+    },
+    {
+      "position_id": 8447,
+      "timestamp": "2025-12-03T13:40:05.078263",
+      "original_position": {
+        "lat": 59.3668125,
+        "lng": 17.9903409
+      },
+      "predicted_correction_distance_meters": 1.1453477853012213,
+      "predicted_corrected_position": {
+        "lat": 59.366843098264354,
+        "lng": 17.990313635234585
+      },
+      "actual_correction_distance_meters": 2.064504740091206,
+      "actual_corrected_position": {
+        "lat": 59.36680458582154,
+        "lng": 17.990307938307527
+      },
+      "prediction_error_meters": 0.9191569547899847,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0329999923706055
+    },
+    {
+      "position_id": 8448,
+      "timestamp": "2025-12-03T13:40:05.378257",
+      "original_position": {
+        "lat": 59.3668086,
+        "lng": 17.9903445
+      },
+      "predicted_correction_distance_meters": 1.1440618299683936,
+      "predicted_corrected_position": {
+        "lat": 59.366839610093834,
+        "lng": 17.990316853984226
+      },
+      "actual_correction_distance_meters": 1.9634127085359128,
+      "actual_corrected_position": {
+        "lat": 59.36680091283437,
+        "lng": 17.990313302725557
+      },
+      "prediction_error_meters": 0.8193508785675192,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0179998874664307
+    },
+    {
+      "position_id": 8449,
+      "timestamp": "2025-12-03T13:40:05.950430",
+      "original_position": {
+        "lat": 59.3668016,
+        "lng": 17.9903512
+      },
+      "predicted_correction_distance_meters": 1.1406151738137176,
+      "predicted_corrected_position": {
+        "lat": 59.36683331510194,
+        "lng": 17.990322873059785
+      },
+      "actual_correction_distance_meters": 2.0142412755464036,
+      "actual_corrected_position": {
+        "lat": 59.366796983591826,
+        "lng": 17.99031682312489
+      },
+      "prediction_error_meters": 0.8736261017326861,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8450,
+      "timestamp": "2025-12-03T13:40:06.086530",
+      "original_position": {
+        "lat": 59.3668,
+        "lng": 17.9903534
+      },
+      "predicted_correction_distance_meters": 1.1476717208135592,
+      "predicted_corrected_position": {
+        "lat": 59.366832094938545,
+        "lng": 17.990324645324133
+      },
+      "actual_correction_distance_meters": 1.9926251099937051,
+      "actual_corrected_position": {
+        "lat": 59.366793652277146,
+        "lng": 17.990320511162285
+      },
+      "prediction_error_meters": 0.844953389180146,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8451,
+      "timestamp": "2025-12-03T13:40:06.366128",
+      "original_position": {
+        "lat": 59.3667963,
+        "lng": 17.9903562
+      },
+      "predicted_correction_distance_meters": 1.1430118299683938,
+      "predicted_corrected_position": {
+        "lat": 59.36682868753786,
+        "lng": 17.990327242033416
+      },
+      "actual_correction_distance_meters": 2.0273654756296,
+      "actual_corrected_position": {
+        "lat": 59.366789466778734,
+        "lng": 17.990323025733232
+      },
+      "prediction_error_meters": 0.884353645661206,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8452,
+      "timestamp": "2025-12-03T13:40:06.976445",
+      "original_position": {
+        "lat": 59.3667886,
+        "lng": 17.9903622
+      },
+      "predicted_correction_distance_meters": 1.144069788207056,
+      "predicted_corrected_position": {
+        "lat": 59.36682189844912,
+        "lng": 17.99033252878839
+      },
+      "actual_correction_distance_meters": 1.9617741412130585,
+      "actual_corrected_position": {
+        "lat": 59.36678442709631,
+        "lng": 17.990328557789326
+      },
+      "prediction_error_meters": 0.8177043530060024,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8453,
+      "timestamp": "2025-12-03T13:40:07.096182",
+      "original_position": {
+        "lat": 59.3667863,
+        "lng": 17.990364
+      },
+      "predicted_correction_distance_meters": 1.1593570581231545,
+      "predicted_corrected_position": {
+        "lat": 59.36682031004121,
+        "lng": 17.99033372363196
+      },
+      "actual_correction_distance_meters": 1.9066947678848105,
+      "actual_corrected_position": {
+        "lat": 59.3667797290866,
+        "lng": 17.99033291637898
+      },
+      "prediction_error_meters": 0.747337709761656,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8454,
+      "timestamp": "2025-12-03T13:40:07.419998",
+      "original_position": {
+        "lat": 59.3667817,
+        "lng": 17.9903671
+      },
+      "predicted_correction_distance_meters": 1.1596375672591477,
+      "predicted_corrected_position": {
+        "lat": 59.366816251703305,
+        "lng": 17.990336456818877
+      },
+      "actual_correction_distance_meters": 1.9130083630697026,
+      "actual_corrected_position": {
+        "lat": 59.36677597067836,
+        "lng": 17.990335263311863
+      },
+      "prediction_error_meters": 0.7533707958105549,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8455,
+      "timestamp": "2025-12-03T13:40:08.022281",
+      "original_position": {
+        "lat": 59.3667739,
+        "lng": 17.990373
+      },
+      "predicted_correction_distance_meters": 1.1595522750748557,
+      "predicted_corrected_position": {
+        "lat": 59.36680935361277,
+        "lng": 17.990341674936865
+      },
+      "actual_correction_distance_meters": 1.8565621039504645,
+      "actual_corrected_position": {
+        "lat": 59.36676879553419,
+        "lng": 17.99034180119634
+      },
+      "prediction_error_meters": 0.6970098288756088,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8456,
+      "timestamp": "2025-12-03T13:40:08.411770",
+      "original_position": {
+        "lat": 59.3667684,
+        "lng": 17.9903776
+      },
+      "predicted_correction_distance_meters": 1.1606395658774806,
+      "predicted_corrected_position": {
+        "lat": 59.366804525208735,
+        "lng": 17.990345711669725
+      },
+      "actual_correction_distance_meters": 1.8422536095791928,
+      "actual_corrected_position": {
+        "lat": 59.366762132898984,
+        "lng": 17.990347500890497
+      },
+      "prediction_error_meters": 0.6816140437017122,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8457,
+      "timestamp": "2025-12-03T13:40:08.982234",
+      "original_position": {
+        "lat": 59.3667612,
+        "lng": 17.9903839
+      },
+      "predicted_correction_distance_meters": 1.1598676992151438,
+      "predicted_corrected_position": {
+        "lat": 59.36679813628893,
+        "lng": 17.990351302159954
+      },
+      "actual_correction_distance_meters": 1.9042194225796314,
+      "actual_corrected_position": {
+        "lat": 59.366756922375636,
+        "lng": 17.990351356565956
+      },
+      "prediction_error_meters": 0.7443517233644876,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8458,
+      "timestamp": "2025-12-03T13:40:09.091439",
+      "original_position": {
+        "lat": 59.3667597,
+        "lng": 17.990385
+      },
+      "predicted_correction_distance_meters": 1.1691414311625627,
+      "predicted_corrected_position": {
+        "lat": 59.366797106984556,
+        "lng": 17.99035201291809
+      },
+      "actual_correction_distance_meters": 1.9536020952799547,
+      "actual_corrected_position": {
+        "lat": 59.366752907709596,
+        "lng": 17.99035320058465
+      },
+      "prediction_error_meters": 0.7844606641173919,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8459,
+      "timestamp": "2025-12-03T13:40:09.447037",
+      "original_position": {
+        "lat": 59.3667551,
+        "lng": 17.9903882
+      },
+      "predicted_correction_distance_meters": 1.1650716116970066,
+      "predicted_corrected_position": {
+        "lat": 59.36679291270256,
+        "lng": 17.990354954924285
+      },
+      "actual_correction_distance_meters": 1.8947291759716178,
+      "actual_corrected_position": {
+        "lat": 59.36674889304305,
+        "lng": 17.990357056260113
+      },
+      "prediction_error_meters": 0.7296575642746113,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8460,
+      "timestamp": "2025-12-03T13:40:10.033575",
+      "original_position": {
+        "lat": 59.3667472,
+        "lng": 17.9903936
+      },
+      "predicted_correction_distance_meters": 1.1621644367761552,
+      "predicted_corrected_position": {
+        "lat": 59.36678583645934,
+        "lng": 17.99035981031112
+      },
+      "actual_correction_distance_meters": 1.8756250746218484,
+      "actual_corrected_position": {
+        "lat": 59.366742913751594,
+        "lng": 17.990361582487825
+      },
+      "prediction_error_meters": 0.7134606378456931,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8461,
+      "timestamp": "2025-12-03T13:40:10.473390",
+      "original_position": {
+        "lat": 59.366741,
+        "lng": 17.9903985
+      },
+      "predicted_correction_distance_meters": 1.1623581408767558,
+      "predicted_corrected_position": {
+        "lat": 59.36678036356113,
+        "lng": 17.990364135123723
+      },
+      "actual_correction_distance_meters": 1.9670994542190712,
+      "actual_corrected_position": {
+        "lat": 59.36673616569279,
+        "lng": 17.990365102887157
+      },
+      "prediction_error_meters": 0.8047413133423154,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8462,
+      "timestamp": "2025-12-03T13:40:10.985914",
+      "original_position": {
+        "lat": 59.3667386,
+        "lng": 17.9904007
+      },
+      "predicted_correction_distance_meters": 1.1708939690804436,
+      "predicted_corrected_position": {
+        "lat": 59.36677853364373,
+        "lng": 17.990365825167064
+      },
+      "actual_correction_distance_meters": 2.056872814991125,
+      "actual_corrected_position": {
+        "lat": 59.3667301009806,
+        "lng": 17.990368455648426
+      },
+      "prediction_error_meters": 0.8859788459106814,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8463,
+      "timestamp": "2025-12-03T13:40:11.086679",
+      "original_position": {
+        "lat": 59.3667273,
+        "lng": 17.9904067
+      },
+      "predicted_correction_distance_meters": 1.1475452353221711,
+      "predicted_corrected_position": {
+        "lat": 59.36676773405521,
+        "lng": 17.9903718320771
+      },
+      "actual_correction_distance_meters": 1.9483114818155172,
+      "actual_corrected_position": {
+        "lat": 59.36672309666376,
+        "lng": 17.99037331715226
+      },
+      "prediction_error_meters": 0.800766246493346,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8464,
+      "timestamp": "2025-12-03T13:40:12.206992",
+      "original_position": {
+        "lat": 59.3667117,
+        "lng": 17.9904155
+      },
+      "predicted_correction_distance_meters": 1.106468711121459,
+      "predicted_corrected_position": {
+        "lat": 59.366752412804374,
+        "lng": 17.990380906486262
+      },
+      "actual_correction_distance_meters": 1.9883439871159045,
+      "actual_corrected_position": {
+        "lat": 59.36670883177009,
+        "lng": 17.990380860865116
+      },
+      "prediction_error_meters": 0.8818752759944455,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8465,
+      "timestamp": "2025-12-03T13:40:12.439229",
+      "original_position": {
+        "lat": 59.3667054,
+        "lng": 17.9904178
+      },
+      "predicted_correction_distance_meters": 1.1886586000666148,
+      "predicted_corrected_position": {
+        "lat": 59.36674988585765,
+        "lng": 17.990380363445027
+      },
+      "actual_correction_distance_meters": 1.8705465139998945,
+      "actual_corrected_position": {
+        "lat": 59.36670268163445,
+        "lng": 17.99038521945477
+      },
+      "prediction_error_meters": 0.6818879139332796,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0
+    },
+    {
+      "position_id": 8466,
+      "timestamp": "2025-12-03T13:40:12.993256",
+      "original_position": {
+        "lat": 59.3666975,
+        "lng": 17.9904248
+      },
+      "predicted_correction_distance_meters": 1.1549206545215354,
+      "predicted_corrected_position": {
+        "lat": 59.36674163559357,
+        "lng": 17.990387617570136
+      },
+      "actual_correction_distance_meters": 1.9939813543150955,
+      "actual_corrected_position": {
+        "lat": 59.36669456687044,
+        "lng": 17.99039008095861
+      },
+      "prediction_error_meters": 0.8390606997935601,
+      "verified_status": "correct",
+      "gps_accuracy": 3.006999969482422
+    },
+    {
+      "position_id": 8467,
+      "timestamp": "2025-12-03T13:40:13.451372",
+      "original_position": {
+        "lat": 59.3666919,
+        "lng": 17.9904346
+      },
+      "predicted_correction_distance_meters": 1.1621341618458865,
+      "predicted_corrected_position": {
+        "lat": 59.366736962054766,
+        "lng": 17.990396046441294
+      },
+      "actual_correction_distance_meters": 2.3897448656427502,
+      "actual_corrected_position": {
+        "lat": 59.36668722087187,
+        "lng": 17.990393433719873
+      },
+      "prediction_error_meters": 1.2276107037968638,
+      "verified_status": "correct",
+      "gps_accuracy": 3.0269999504089355
+    },
+    {
+      "position_id": 8468,
+      "timestamp": "2025-12-03T13:40:14.045073",
+      "original_position": {
+        "lat": 59.3666858,
+        "lng": 17.9904476
+      },
+      "predicted_correction_distance_meters": 1.1571045694300515,
+      "predicted_corrected_position": {
+        "lat": 59.3667313728648,
+        "lng": 17.99040770906103
+      },
+      "actual_correction_distance_meters": 2.9040739442525894,
+      "actual_corrected_position": {
+        "lat": 59.36668038738339,
+        "lng": 17.990397457033396
+      },
+      "prediction_error_meters": 1.746969374822538,
+      "verified_status": "correct",
+      "gps_accuracy": 3.062999963760376
+    },
+    {
+      "position_id": 8469,
+      "timestamp": "2025-12-03T13:40:14.423896",
+      "original_position": {
+        "lat": 59.3666798,
+        "lng": 17.9904543
+      },
+      "predicted_correction_distance_meters": 1.156746658357971,
+      "predicted_corrected_position": {
+        "lat": 59.36672605281637,
+        "lng": 17.99041364637968
+      },
+      "actual_correction_distance_meters": 3.076466418623004,
+      "actual_corrected_position": {
+        "lat": 59.36667415182396,
+        "lng": 17.990401145070795
+      },
+      "prediction_error_meters": 1.919719760265033,
+      "verified_status": "correct",
+      "gps_accuracy": 3.125999927520752
+    },
+    {
+      "position_id": 8470,
+      "timestamp": "2025-12-03T13:40:15.051895",
+      "original_position": {
+        "lat": 59.3666717,
+        "lng": 17.9904627
+      },
+      "predicted_correction_distance_meters": 1.168320519084075,
+      "predicted_corrected_position": {
+        "lat": 59.36671936193982,
+        "lng": 17.99042065822952
+      },
+      "actual_correction_distance_meters": 3.1746284282324018,
+      "actual_corrected_position": {
+        "lat": 59.366666293309066,
+        "lng": 17.99040768295527
+      },
+      "prediction_error_meters": 2.006307909148327,
+      "verified_status": "correct",
+      "gps_accuracy": 3.181999921798706
+    },
+    {
+      "position_id": 8471,
+      "timestamp": "2025-12-03T13:40:15.520334",
+      "original_position": {
+        "lat": 59.3666637,
+        "lng": 17.990468
+      },
+      "predicted_correction_distance_meters": 1.1685741681371418,
+      "predicted_corrected_position": {
+        "lat": 59.366712307146834,
+        "lng": 17.990425329757702
+      },
+      "actual_correction_distance_meters": 3.2257582717606663,
+      "actual_corrected_position": {
+        "lat": 59.36665997232838,
+        "lng": 17.990411538630724
+      },
+      "prediction_error_meters": 2.0571841036235243,
+      "verified_status": "correct",
+      "gps_accuracy": 3.305000066757202
+    },
+    {
+      "position_id": 8472,
+      "timestamp": "2025-12-03T13:40:16.070816",
+      "original_position": {
+        "lat": 59.3666557,
+        "lng": 17.9904736
+      },
+      "predicted_correction_distance_meters": 1.180378002686741,
+      "predicted_corrected_position": {
+        "lat": 59.36670574243281,
+        "lng": 17.990429837731465
+      },
+      "actual_correction_distance_meters": 3.2871699801694363,
+      "actual_corrected_position": {
+        "lat": 59.36665262632232,
+        "lng": 17.990415897220377
+      },
+      "prediction_error_meters": 2.106791977482695,
+      "verified_status": "correct",
+      "gps_accuracy": 3.3489999771118164
+    },
+    {
+      "position_id": 8473,
+      "timestamp": "2025-12-03T13:40:16.524360",
+      "original_position": {
+        "lat": 59.3666491,
+        "lng": 17.9904762
+      },
+      "predicted_correction_distance_meters": 1.1807084558148342,
+      "predicted_corrected_position": {
+        "lat": 59.36669993571004,
+        "lng": 17.990432118495782
+      },
+      "actual_correction_distance_meters": 3.297935751709108,
+      "actual_corrected_position": {
+        "lat": 59.36664434070894,
+        "lng": 17.990418747067455
+      },
+      "prediction_error_meters": 2.117227295894274,
+      "verified_status": "correct",
+      "gps_accuracy": 3.447000026702881
+    },
+    {
+      "position_id": 8474,
+      "timestamp": "2025-12-03T13:40:17.087272",
+      "original_position": {
+        "lat": 59.3666419,
+        "lng": 17.9904806
+      },
+      "predicted_correction_distance_meters": 1.1875252473818696,
+      "predicted_corrected_position": {
+        "lat": 59.366693884226954,
+        "lng": 17.990435741481182
+      },
+      "actual_correction_distance_meters": 3.3264539554617065,
+      "actual_corrected_position": {
+        "lat": 59.36663725095564,
+        "lng": 17.990422602742914
+      },
+      "prediction_error_meters": 2.138928708079837,
+      "verified_status": "correct",
+      "gps_accuracy": 3.5290000438690186
+    },
+    {
+      "position_id": 8475,
+      "timestamp": "2025-12-03T13:40:17.564526",
+      "original_position": {
+        "lat": 59.366634,
+        "lng": 17.9904835
+      },
+      "predicted_correction_distance_meters": 1.1753056551051781,
+      "predicted_corrected_position": {
+        "lat": 59.36668637780259,
+        "lng": 17.990438762235094
+      },
+      "actual_correction_distance_meters": 3.3662521921071584,
+      "actual_corrected_position": {
+        "lat": 59.36663067371332,
+        "lng": 17.99042444676161
+      },
+      "prediction_error_meters": 2.19094653700198,
+      "verified_status": "correct",
+      "gps_accuracy": 3.615999937057495
+    },
+    {
+      "position_id": 8476,
+      "timestamp": "2025-12-03T13:40:18.088792",
+      "original_position": {
+        "lat": 59.3666259,
+        "lng": 17.9904843
+      },
+      "predicted_correction_distance_meters": 1.1804958578894609,
+      "predicted_corrected_position": {
+        "lat": 59.36667946530697,
+        "lng": 17.990439270231438
+      },
+      "actual_correction_distance_meters": 3.290518595382034,
+      "actual_corrected_position": {
+        "lat": 59.36662324228217,
+        "lng": 17.99042645841837
+      },
+      "prediction_error_meters": 2.110022737492573,
+      "verified_status": "correct",
+      "gps_accuracy": 3.696000099182129
+    },
+    {
+      "position_id": 8477,
+      "timestamp": "2025-12-03T13:40:18.570428",
+      "original_position": {
+        "lat": 59.3666192,
+        "lng": 17.9904852
+      },
+      "predicted_correction_distance_meters": 1.1862550634151292,
+      "predicted_corrected_position": {
+        "lat": 59.36667382142332,
+        "lng": 17.990439843784785
+      },
+      "actual_correction_distance_meters": 3.2927852587066653,
+      "actual_corrected_position": {
+        "lat": 59.36661803173749,
+        "lng": 17.990427128970627
+      },
+      "prediction_error_meters": 2.106530195291536,
+      "verified_status": "correct",
+      "gps_accuracy": 3.8340001106262207
+    },
+    {
+      "position_id": 8478,
+      "timestamp": "2025-12-03T13:40:18.996948",
+      "original_position": {
+        "lat": 59.3666138,
+        "lng": 17.9904871
+      },
+      "predicted_correction_distance_meters": 1.1896956877151748,
+      "predicted_corrected_position": {
+        "lat": 59.366669222283434,
+        "lng": 17.99044138619105
+      },
+      "actual_correction_distance_meters": 3.308603711215135,
+      "actual_corrected_position": {
+        "lat": 59.36661205242298,
+        "lng": 17.99042880535126
+      },
+      "prediction_error_meters": 2.1189080234999604,
+      "verified_status": "correct",
+      "gps_accuracy": 3.8570001125335693
+    },
+    {
+      "position_id": 8479,
+      "timestamp": "2025-12-03T13:40:19.563731",
+      "original_position": {
+        "lat": 59.3666061,
+        "lng": 17.990485
+      },
+      "predicted_correction_distance_meters": 1.1808590876705076,
+      "predicted_corrected_position": {
+        "lat": 59.36666201988961,
+        "lng": 17.990439873715978
+      },
+      "actual_correction_distance_meters": 2.9753791850965357,
+      "actual_corrected_position": {
+        "lat": 59.36660564601338,
+        "lng": 17.990432493388653
+      },
+      "prediction_error_meters": 1.794520097426028,
+      "verified_status": "correct",
+      "gps_accuracy": 3.944999933242798
+    },
+    {
+      "position_id": 8480,
+      "timestamp": "2025-12-03T14:13:48.131214",
+      "original_position": {
+        "lat": 59.3664338,
+        "lng": 17.9902431
+      },
+      "predicted_correction_distance_meters": 3.2633474142759975,
+      "predicted_corrected_position": {
+        "lat": 59.36664456414258,
+        "lng": 17.99019733223238
+      },
+      "actual_correction_distance_meters": 17.741238973481085,
+      "actual_corrected_position": {
+        "lat": 59.366560203179944,
+        "lng": 17.99043416976929
+      },
+      "prediction_error_meters": 14.477891559205087,
+      "verified_status": "correct",
+      "gps_accuracy": 16.9950008392334
+    },
+    {
+      "position_id": 8481,
+      "timestamp": "2025-12-03T14:13:48.132726",
+      "original_position": {
+        "lat": 59.3664338,
+        "lng": 17.9902431
+      },
+      "predicted_correction_distance_meters": 3.4520327417139787,
+      "predicted_corrected_position": {
+        "lat": 59.36665675043359,
+        "lng": 17.99019468595997
+      },
+      "actual_correction_distance_meters": 13.473205435025054,
+      "actual_corrected_position": {
+        "lat": 59.366515101961774,
+        "lng": 17.99041941761971
+      },
+      "prediction_error_meters": 10.021172693311076,
+      "verified_status": "correct",
+      "gps_accuracy": 16.9950008392334
+    },
+    {
+      "position_id": 8482,
+      "timestamp": "2025-12-03T14:13:49.104015",
+      "original_position": {
+        "lat": 59.3663811,
+        "lng": 17.9903704
+      },
+      "predicted_correction_distance_meters": 4.592325125663838,
+      "predicted_corrected_position": {
+        "lat": 59.36670189806757,
+        "lng": 17.990247533297996
+      },
+      "actual_correction_distance_meters": 7.349051528672453,
+      "actual_corrected_position": {
+        "lat": 59.366446766668446,
+        "lng": 17.990355715155605
+      },
+      "prediction_error_meters": 2.7567264030086145,
+      "verified_status": "correct",
+      "gps_accuracy": 14.130999565124512
+    },
+    {
+      "position_id": 8483,
+      "timestamp": "2025-12-03T14:13:50.074748",
+      "original_position": {
+        "lat": 59.3663739,
+        "lng": 17.9903996
+      },
+      "predicted_correction_distance_meters": 4.748903872379378,
+      "predicted_corrected_position": {
+        "lat": 59.36670905512749,
+        "lng": 17.99025867726694
+      },
+      "actual_correction_distance_meters": 9.113140011975114,
+      "actual_corrected_position": {
+        "lat": 59.36634323843691,
+        "lng": 17.99025043845177
+      },
+      "prediction_error_meters": 4.364236139595736,
+      "verified_status": "correct",
+      "gps_accuracy": 12.791000366210938
+    },
+    {
+      "position_id": 8484,
+      "timestamp": "2025-12-03T14:13:51.076276",
+      "original_position": {
+        "lat": 59.3663694,
+        "lng": 17.9904056
+      },
+      "predicted_correction_distance_meters": 5.030626614701434,
+      "predicted_corrected_position": {
+        "lat": 59.36672452630208,
+        "lng": 17.990254226041664
+      },
+      "actual_correction_distance_meters": 11.322216925616907,
+      "actual_corrected_position": {
+        "lat": 59.366324446149804,
+        "lng": 17.990226298570636
+      },
+      "prediction_error_meters": 6.291590310915473,
+      "verified_status": "correct",
+      "gps_accuracy": 11.79699993133545
+    }
+  ]
+}

@@ -73,6 +73,12 @@ const TestLab = () => {
     const [tileSize, setTileSize] = useState(512) // Standard tile-storlek (förstoringsfaktor 2)
     const [statusFilter, setStatusFilter] = useState('all') // Filter för status: 'all', 'pending', 'correct', 'incorrect'
 
+    // ML-integration state
+    const [mlPredictions, setMlPredictions] = useState(null) // ML-förutsägelser för valda spår
+    const [isLoadingMLPredictions, setIsLoadingMLPredictions] = useState(false)
+    const [mlComparisonMode, setMlComparisonMode] = useState(false) // Visa både manuell och ML-korrigering
+    const mlPredictionLayerRef = useRef(null) // Layer för ML-förutsägelser på kartan
+
     const selectedPosition = useMemo(
         () => {
             if (!selectedPositionId || !selectedPositionTrackType) return null
@@ -227,6 +233,71 @@ const TestLab = () => {
         }
         fetchTrack(dogTrackId, 'dog')
     }, [dogTrackId])
+
+    // Visualisera ML-förutsägelser på kartan
+    useEffect(() => {
+        if (!mapInstanceRef.current) return
+
+        // Om ML-jämförelse är avstängd, ta bort lagret
+        if (!mlComparisonMode || !mlPredictions) {
+            if (mlPredictionLayerRef.current) {
+                mlPredictionLayerRef.current.clearLayers()
+                if (mapInstanceRef.current.hasLayer(mlPredictionLayerRef.current)) {
+                    mapInstanceRef.current.removeLayer(mlPredictionLayerRef.current)
+                }
+                mlPredictionLayerRef.current = null
+            }
+            return
+        }
+
+        // Skapa eller återanvänd ML-lager
+        if (!mlPredictionLayerRef.current) {
+            mlPredictionLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current)
+        } else {
+            mlPredictionLayerRef.current.clearLayers()
+            if (!mapInstanceRef.current.hasLayer(mlPredictionLayerRef.current)) {
+                mlPredictionLayerRef.current.addTo(mapInstanceRef.current)
+            }
+        }
+
+        // Rita ML-korrigerade spår (blå, streckad linje)
+        if (mlPredictions.predictions && mlPredictions.predictions.length > 0) {
+            const mlCoords = mlPredictions.predictions
+                .filter(p => p.predicted_corrected_position)
+                .map(p => [p.predicted_corrected_position.lat, p.predicted_corrected_position.lng])
+
+            if (mlCoords.length > 0) {
+                const mlPolyline = L.polyline(mlCoords, {
+                    color: '#3b82f6', // Blå
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '10, 5',
+                }).addTo(mlPredictionLayerRef.current)
+
+                mlPolyline.bindTooltip('🔮 ML-korrigerat spår', { sticky: true })
+            }
+
+            // Rita linjer från original till ML-korrigerad (för stora korrigeringar)
+            mlPredictions.predictions.forEach((pred) => {
+                if (pred.predicted_correction_distance_meters > 1.0 && pred.predicted_corrected_position) {
+                    const from = [pred.original_position.lat, pred.original_position.lng]
+                    const to = [pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng]
+
+                    const correctionLine = L.polyline([from, to], {
+                        color: '#3b82f6',
+                        weight: 2,
+                        opacity: 0.5,
+                        dashArray: '5, 5',
+                    }).addTo(mlPredictionLayerRef.current)
+
+                    correctionLine.bindTooltip(
+                        `ML: ${pred.predicted_correction_distance_meters.toFixed(2)}m`,
+                        { sticky: true }
+                    )
+                }
+            })
+        }
+    }, [mlPredictions, mlComparisonMode])
 
     // Rita spår på kartan när de laddas
     useEffect(() => {
@@ -1134,6 +1205,77 @@ const TestLab = () => {
         }, 'Anteckningar sparade.')
     }
 
+    // ML-integration: Hämta ML-förutsägelser för valda spår
+    const fetchMLPredictions = async () => {
+        const trackIds = []
+        if (humanTrackId) trackIds.push(humanTrackId)
+        if (dogTrackId) trackIds.push(dogTrackId)
+
+        if (trackIds.length === 0) {
+            setError('Välj minst ett spår först')
+            setTimeout(() => setError(null), 3000)
+            return
+        }
+
+        setIsLoadingMLPredictions(true)
+        setError(null)
+        setMessage(null)
+
+        try {
+            let response
+            if (trackIds.length > 1) {
+                // Flera spår
+                response = await axios.get(`${API_BASE}/ml/predict/multiple?track_ids=${trackIds.join(',')}`)
+            } else {
+                // Ett spår
+                response = await axios.post(`${API_BASE}/ml/predict/${trackIds[0]}`)
+            }
+
+            setMlPredictions(response.data.data || response.data)
+            setMessage(`✅ ML-förutsägelser laddade för ${trackIds.length} spår`)
+            setTimeout(() => setMessage(null), 3000)
+        } catch (err) {
+            console.error('Fel vid hämtning av ML-förutsägelser:', err)
+            setError(err.response?.data?.detail || 'Kunde inte hämta ML-förutsägelser. Kontrollera att en modell är tränad.')
+            setTimeout(() => setError(null), 5000)
+        } finally {
+            setIsLoadingMLPredictions(false)
+        }
+    }
+
+    // ML-integration: Hämta ML-förutsägelse för en specifik position
+    const getMLPredictionForPosition = (positionId) => {
+        if (!mlPredictions || !mlPredictions.predictions) return null
+        return mlPredictions.predictions.find(p => p.position_id === positionId)
+    }
+
+    // ML-integration: Acceptera ML-förutsägelse för vald position
+    const handleAcceptMLPrediction = async () => {
+        if (!selectedPositionId || !selectedPosition) return
+
+        const mlPred = getMLPredictionForPosition(selectedPositionId)
+        if (!mlPred || !mlPred.predicted_corrected_position) {
+            setError('Ingen ML-förutsägelse tillgänglig för denna position')
+            setTimeout(() => setError(null), 3000)
+            return
+        }
+
+        await saveAnnotation(selectedPositionId, {
+            verified_status: 'correct',
+            corrected_position: mlPred.predicted_corrected_position,
+            annotation_notes: notes,
+            environment: environment || null,
+        }, 'ML-förutsägelse accepterad och sparad.')
+
+        // Gå till nästa position
+        const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+        const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
+        if (currentIndex < positions.length - 1) {
+            const nextPosition = positions[currentIndex + 1]
+            handleSelectPosition(nextPosition.id, selectedPositionTrackType, batchAdjustMode)
+        }
+    }
+
     // Hitta alla positioner som är justerade men inte godkända än (pending + corrected_position)
     const getPendingAdjustedPositions = () => {
         const allPositions = [...humanPositions, ...dogPositions]
@@ -1142,6 +1284,77 @@ const TestLab = () => {
             pos.corrected_position !== null &&
             pos.corrected_position !== undefined
         )
+    }
+
+    // ML-integration: Batch-acceptera ML-förutsägelser
+    const handleBatchAcceptMLPredictions = async () => {
+        if (!mlPredictions || !mlPredictions.predictions) {
+            setError('Inga ML-förutsägelser tillgängliga. Hämta förutsägelser först.')
+            setTimeout(() => setError(null), 3000)
+            return
+        }
+
+        // Filtrera positioner där ML-förutsägelsen är "bra nog" (< 1m fel jämfört med faktisk korrigering, eller < 2m om ingen faktisk korrigering finns)
+        const acceptablePredictions = mlPredictions.predictions.filter(pred => {
+            if (!pred.predicted_corrected_position) return false
+
+            // Om det finns en faktisk korrigering, jämför skillnaden
+            const position = [...humanPositions, ...dogPositions].find(pos => pos.id === pred.position_id)
+            if (position && position.corrected_position) {
+                const actualDistance = haversineDistance(
+                    position.position,
+                    position.corrected_position
+                )
+                const difference = Math.abs(pred.predicted_correction_distance_meters - actualDistance)
+                return difference < 1.0 // Acceptera om skillnaden är < 1m
+            }
+
+            // Om ingen faktisk korrigering finns, acceptera om förutsägelsen är < 2m
+            return pred.predicted_correction_distance_meters < 2.0
+        })
+
+        if (acceptablePredictions.length === 0) {
+            setMessage('Inga ML-förutsägelser som är "bra nog" att acceptera automatiskt.')
+            setTimeout(() => setMessage(null), 3000)
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+        setMessage(null)
+
+        try {
+            let successCount = 0
+            let failCount = 0
+
+            for (const pred of acceptablePredictions) {
+                try {
+                    await axios.put(`${API_BASE}/track-positions/${pred.position_id}`, {
+                        verified_status: 'correct',
+                        corrected_position: pred.predicted_corrected_position,
+                        annotation_notes: 'ML-förutsägelse accepterad automatiskt',
+                        environment: null,
+                    })
+                    successCount++
+                } catch (err) {
+                    console.error(`Kunde inte uppdatera position ${pred.position_id}:`, err)
+                    failCount++
+                }
+            }
+
+            setMessage(`✅ ${successCount} ML-förutsägelser accepterade automatiskt${failCount > 0 ? ` (${failCount} misslyckades)` : ''}`)
+            setTimeout(() => setMessage(null), 5000)
+
+            // Uppdatera spåren
+            if (humanTrackId) await fetchTrack(humanTrackId, 'human')
+            if (dogTrackId) await fetchTrack(dogTrackId, 'dog')
+        } catch (err) {
+            console.error('Fel vid batch-acceptering av ML-förutsägelser:', err)
+            setError('Kunde inte acceptera ML-förutsägelser.')
+            setTimeout(() => setError(null), 3000)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleApproveAllAdjusted = async () => {
@@ -1317,6 +1530,25 @@ const TestLab = () => {
                         </p>
                         <div className="text-sm text-gray-500">
                             <p>Detta kan ta 1-5 minuter beroende på områdets storlek.</p>
+                            <p className="mt-2 font-semibold">Vänligen vänta...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Loading overlay för ML-förutsägelser */}
+            {isLoadingMLPredictions && (
+                <div className="absolute inset-0 bg-black bg-opacity-60 z-[9999] flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md mx-4 text-center">
+                        <div className="mb-4">
+                            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">🔮 Hämtar ML-förutsägelser</h3>
+                        <p className="text-gray-600 mb-4">
+                            Modellen analyserar dina spår och genererar förutsägelser...
+                        </p>
+                        <div className="text-sm text-gray-500">
+                            <p>Detta kan ta 10-30 sekunder beroende på antal positioner.</p>
                             <p className="mt-2 font-semibold">Vänligen vänta...</p>
                         </div>
                     </div>
@@ -1923,6 +2155,56 @@ const TestLab = () => {
                         </div>
                     )}
 
+                    {/* ML-integration */}
+                    {(humanTrack || dogTrack) && (
+                        <div className="bg-white border border-blue-200 rounded p-3 space-y-2 text-xs">
+                            <div className="font-semibold text-blue-700">🔮 ML-förutsägelser</div>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={fetchMLPredictions}
+                                    disabled={isLoadingMLPredictions || loading}
+                                    className="w-full px-3 py-2 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition"
+                                >
+                                    {isLoadingMLPredictions ? '🔄 Hämtar ML-förutsägelser...' : '🔮 Hämta ML-förutsägelser'}
+                                </button>
+
+                                {mlPredictions && (
+                                    <div className="text-[10px] text-blue-600">
+                                        ✅ {mlPredictions.predictions?.length || 0} förutsägelser laddade
+                                    </div>
+                                )}
+
+                                {mlPredictions && (
+                                    <>
+                                        <div className="flex items-center justify-between pt-2 border-t border-blue-200">
+                                            <label className="text-blue-600">Jämför med ML på karta</label>
+                                            <button
+                                                onClick={() => setMlComparisonMode(!mlComparisonMode)}
+                                                className={`px-3 py-1 rounded text-[10px] font-semibold transition ${mlComparisonMode
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-blue-100 text-blue-600'
+                                                    }`}
+                                            >
+                                                {mlComparisonMode ? 'På' : 'Av'}
+                                            </button>
+                                        </div>
+
+                                        <button
+                                            onClick={handleBatchAcceptMLPredictions}
+                                            disabled={loading}
+                                            className="w-full px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition mt-2"
+                                        >
+                                            ⚡ Batch-acceptera ML-förutsägelser
+                                        </button>
+                                        <div className="text-[9px] text-blue-500">
+                                            Accepterar automatiskt ML-förutsägelser som är "bra nog" (&lt; 1m fel)
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Snapping-inställningar - endast när båda spår är valda */}
                     {humanTrack && dogTrack && (
                         <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
@@ -2157,6 +2439,45 @@ const TestLab = () => {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* ML-förutsägelse för denna position */}
+                                {(() => {
+                                    const mlPred = getMLPredictionForPosition(selectedPosition.id)
+                                    if (mlPred && mlPred.predicted_corrected_position) {
+                                        const correctionDistance = mlPred.predicted_correction_distance_meters || 0
+                                        const hasActualCorrection = selectedPosition.corrected_position !== null
+                                        const actualDistance = hasActualCorrection ? haversineDistance(
+                                            selectedPosition.position,
+                                            selectedPosition.corrected_position
+                                        ) : null
+                                        const difference = actualDistance !== null ? Math.abs(correctionDistance - actualDistance) : null
+
+                                        return (
+                                            <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                                                <div className="text-[10px] font-semibold text-blue-800 mb-1">🔮 ML-förutsägelse</div>
+                                                <div className="text-[10px] text-blue-600 space-y-1">
+                                                    <div>Förutsagd korrigering: <span className="font-medium">{correctionDistance.toFixed(2)}m</span></div>
+                                                    {hasActualCorrection && actualDistance !== null && (
+                                                        <div>Faktisk korrigering: <span className="font-medium">{actualDistance.toFixed(2)}m</span></div>
+                                                    )}
+                                                    {difference !== null && (
+                                                        <div className={difference < 0.5 ? 'text-green-600' : difference < 1.0 ? 'text-amber-600' : 'text-red-600'}>
+                                                            Skillnad: <span className="font-medium">{difference.toFixed(2)}m</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={handleAcceptMLPrediction}
+                                                    disabled={loading}
+                                                    className="w-full mt-2 px-2 py-1 rounded bg-blue-600 text-white text-[10px] font-semibold hover:bg-blue-700 disabled:bg-blue-300 transition"
+                                                >
+                                                    ✅ Acceptera ML-förutsägelse
+                                                </button>
+                                            </div>
+                                        )
+                                    }
+                                    return null
+                                })()}
 
                                 <div className="flex flex-col gap-2">
                                     <button

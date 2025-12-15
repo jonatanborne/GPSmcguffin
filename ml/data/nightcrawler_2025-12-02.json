@@ -57,6 +57,25 @@
     "annotation_notes": ""
   },
   {
+    "id": 6911,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:20.114978",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3689845,
+      "lng": 17.988045
+    },
+    "corrected_position": {
+      "lat": 59.3689845,
+      "lng": 17.988045
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 5.584000110626221,
+    "annotation_notes": ""
+  },
+  {
     "id": 6912,
     "track_id": 41,
     "track_name": "Nightcrawler",
@@ -1691,6 +1710,120 @@
     "annotation_notes": ""
   },
   {
+    "id": 6998,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:55.347177",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686394,
+      "lng": 17.9885527
+    },
+    "corrected_position": {
+      "lat": 59.3686394,
+      "lng": 17.9885527
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.5360000133514404,
+    "annotation_notes": ""
+  },
+  {
+    "id": 6999,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:55.805538",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686335,
+      "lng": 17.9885549
+    },
+    "corrected_position": {
+      "lat": 59.3686335,
+      "lng": 17.9885549
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.513000011444092,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7000,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:56.114454",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686304,
+      "lng": 17.9885566
+    },
+    "corrected_position": {
+      "lat": 59.3686304,
+      "lng": 17.9885566
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.502000093460083,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7001,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:56.377517",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686268,
+      "lng": 17.9885601
+    },
+    "corrected_position": {
+      "lat": 59.3686268,
+      "lng": 17.9885601
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.4700000286102295,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7002,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:56.851464",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686205,
+      "lng": 17.9885641
+    },
+    "corrected_position": {
+      "lat": 59.3686205,
+      "lng": 17.9885641
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.431999921798706,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7003,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:49:57.081474",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686178,
+      "lng": 17.9885672
+    },
+    "corrected_position": {
+      "lat": 59.3686178,
+      "lng": 17.9885672
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.4140000343322754,
+    "annotation_notes": ""
+  },
+  {
     "id": 7004,
     "track_id": 41,
     "track_name": "Nightcrawler",
@@ -2049,6 +2182,82 @@
     },
     "correction_distance_meters": 0.13,
     "accuracy": 3.3420000076293945,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7023,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:50:04.068313",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685408,
+      "lng": 17.9886249
+    },
+    "corrected_position": {
+      "lat": 59.3685408,
+      "lng": 17.9886249
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.3459999561309814,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7024,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:50:04.109910",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685391,
+      "lng": 17.9886267
+    },
+    "corrected_position": {
+      "lat": 59.3685391,
+      "lng": 17.9886267
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.3580000400543213,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7025,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:50:04.472255",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685354,
+      "lng": 17.9886283
+    },
+    "corrected_position": {
+      "lat": 59.3685354,
+      "lng": 17.9886283
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.359999895095825,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7026,
+    "track_id": 41,
+    "track_name": "Nightcrawler",
+    "track_type": "human",
+    "timestamp": "2025-11-26T13:50:05.072982",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685293,
+      "lng": 17.988633
+    },
+    "corrected_position": {
+      "lat": 59.3685293,
+      "lng": 17.988633
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.3589999675750732,
     "annotation_notes": ""
   },
   {
@@ -2695,6 +2904,158 @@
     },
     "correction_distance_meters": 0.23,
     "accuracy": 6.489999771118164,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7061,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:10.771743",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685612,
+      "lng": 17.9886096
+    },
+    "corrected_position": {
+      "lat": 59.3685612,
+      "lng": 17.9886096
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 6.396999835968018,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7062,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:11.044998",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685623,
+      "lng": 17.9886087
+    },
+    "corrected_position": {
+      "lat": 59.3685623,
+      "lng": 17.9886087
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 6.308000087738037,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7063,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:11.077812",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685794,
+      "lng": 17.9885961
+    },
+    "corrected_position": {
+      "lat": 59.3685794,
+      "lng": 17.9885961
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 6.051000118255615,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7064,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:11.364545",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.368582,
+      "lng": 17.9885932
+    },
+    "corrected_position": {
+      "lat": 59.368582,
+      "lng": 17.9885932
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 5.925000190734863,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7065,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:12.044589",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685889,
+      "lng": 17.9885876
+    },
+    "corrected_position": {
+      "lat": 59.3685889,
+      "lng": 17.9885876
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 5.633999824523926,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7066,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:12.528970",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3685944,
+      "lng": 17.9885833
+    },
+    "corrected_position": {
+      "lat": 59.3685944,
+      "lng": 17.9885833
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 5.3520002365112305,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7067,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:13.055064",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686001,
+      "lng": 17.9885794
+    },
+    "corrected_position": {
+      "lat": 59.3686001,
+      "lng": 17.9885794
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 5.283999919891357,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7068,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:13.627842",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3686075,
+      "lng": 17.988575
+    },
+    "corrected_position": {
+      "lat": 59.3686075,
+      "lng": 17.988575
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 4.936999797821045,
     "annotation_notes": ""
   },
   {
@@ -3705,6 +4066,82 @@
     "annotation_notes": ""
   },
   {
+    "id": 7122,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:35.180141",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687926,
+      "lng": 17.9884108
+    },
+    "corrected_position": {
+      "lat": 59.3687926,
+      "lng": 17.9884108
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.694000005722046,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7123,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:35.765838",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3687975,
+      "lng": 17.9884052
+    },
+    "corrected_position": {
+      "lat": 59.3687975,
+      "lng": 17.9884052
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.7190001010894775,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7124,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:36.097535",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688016,
+      "lng": 17.9884013
+    },
+    "corrected_position": {
+      "lat": 59.3688016,
+      "lng": 17.9884013
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.73799991607666,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7125,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:36.275856",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688035,
+      "lng": 17.9883981
+    },
+    "corrected_position": {
+      "lat": 59.3688035,
+      "lng": 17.9883981
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.740000009536743,
+    "annotation_notes": ""
+  },
+  {
     "id": 7126,
     "track_id": 42,
     "track_name": "Nightcrawlers hund",
@@ -3721,6 +4158,44 @@
     },
     "correction_distance_meters": 0.12,
     "accuracy": 3.7669999599456787,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7127,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:37.136298",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688115,
+      "lng": 17.9883906
+    },
+    "corrected_position": {
+      "lat": 59.3688115,
+      "lng": 17.9883906
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.7869999408721924,
+    "annotation_notes": ""
+  },
+  {
+    "id": 7128,
+    "track_id": 42,
+    "track_name": "Nightcrawlers hund",
+    "track_type": "dog",
+    "timestamp": "2025-11-26T14:31:37.433887",
+    "verified_status": "correct",
+    "original_position": {
+      "lat": 59.3688154,
+      "lng": 17.988387
+    },
+    "corrected_position": {
+      "lat": 59.3688154,
+      "lng": 17.988387
+    },
+    "correction_distance_meters": 0,
+    "accuracy": 3.806999921798706,
     "annotation_notes": ""
   },
   {

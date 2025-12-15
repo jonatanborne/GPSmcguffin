@@ -16,6 +16,30 @@ body {
     width: 100%;
 }
 
+.feedback-highlight {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+.feedback-tooltip {
+    background-color: #f59e0b !important;
+    color: white !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+}
+
 
 
 
