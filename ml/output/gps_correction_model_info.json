@@ -1,6 +1,6 @@
 {
   "best_model": "Extra Trees",
-  "test_mae": 0.07199616921193959,
+  "test_mae": 0.07199616921193958,
   "test_rmse": 0.16779470574370414,
   "test_r2": 0.9831853992561514,
   "hyperparameters": {
