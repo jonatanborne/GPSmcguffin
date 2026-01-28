@@ -996,7 +996,7 @@ const MLDashboard = () => {
                         <button
                             onClick={async () => {
                                 try {
-                                    const response = await fetch(`${API_BASE}/api/ml/export-feedback`)
+                                    const response = await fetch(`${API_BASE}/ml/export-feedback`)
                                     if (!response.ok) throw new Error('Export misslyckades')
                                     const data = await response.json()
                                     alert(`✅ Feedback exporterad!\n\nFil: ${data.filename}\nPositioner: ${data.total_positions}\n\nFilen finns i: ml/data/${data.filename}\n\nNu kan du träna om modellen med:\ncd ml\npython analysis.py`)

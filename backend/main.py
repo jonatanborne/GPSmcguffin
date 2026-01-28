@@ -634,10 +634,14 @@ class TrackPosition(BaseModel):
         None  # Miljö-kategorisering: "urban", "forest", "open", "mixed", etc.
     )
     # FAS 1: Truth levels och ML-metadata
-    truth_level: Optional[Literal["T0", "T1", "T2", "T3"]] = "T3"  # T0=manual, T1=verified, T2=ML, T3=raw
+    truth_level: Optional[Literal["T0", "T1", "T2", "T3"]] = (
+        "T3"  # T0=manual, T1=verified, T2=ML, T3=raw
+    )
     ml_confidence: Optional[float] = None  # Confidence score 0-1 för ML-korrigeringar
     ml_model_version: Optional[str] = None  # Version av ML-modell som användes
-    correction_source: Optional[Literal["manual", "ml", "none"]] = "none"  # Källa för korrigering
+    correction_source: Optional[Literal["manual", "ml", "none"]] = (
+        "none"  # Källa för korrigering
+    )
 
 
 class TrackCreate(BaseModel):
@@ -806,12 +810,18 @@ def row_to_track_position(row):
         )
 
     verified_status = row["verified_status"] if row["verified_status"] else "pending"
-    
+
     # FAS 1: Hämta truth level och ML-metadata (med fallback till default)
     truth_level = row.get("truth_level", "T3") if "truth_level" in row.keys() else "T3"
     ml_confidence = row.get("ml_confidence") if "ml_confidence" in row.keys() else None
-    ml_model_version = row.get("ml_model_version") if "ml_model_version" in row.keys() else None
-    correction_source = row.get("correction_source", "none") if "correction_source" in row.keys() else "none"
+    ml_model_version = (
+        row.get("ml_model_version") if "ml_model_version" in row.keys() else None
+    )
+    correction_source = (
+        row.get("correction_source", "none")
+        if "correction_source" in row.keys()
+        else "none"
+    )
 
     return TrackPosition(
         id=row["id"],
@@ -852,7 +862,7 @@ def calculate_truth_level_for_manual_correction(
 ) -> tuple[str, str]:
     """
     Beräkna truth level och correction_source för manuell korrigering.
-    
+
     Returns:
         (truth_level, correction_source)
         - Om korrigering > 1 meter: ('T0', 'manual')
@@ -860,12 +870,12 @@ def calculate_truth_level_for_manual_correction(
     """
     if corrected_lat is None or corrected_lng is None:
         return ("T3", "none")
-    
+
     # Beräkna avstånd mellan original och korrigerad position
     original = LatLng(lat=original_lat, lng=original_lng)
     corrected = LatLng(lat=corrected_lat, lng=corrected_lng)
     distance = haversine_meters(original, corrected)
-    
+
     # Om avståndet är > 1 meter = faktiskt flyttad (T0)
     # Om avståndet är <= 1 meter = var korrekt från början (T1)
     if distance > 1.0:
@@ -1804,7 +1814,15 @@ def add_position_to_track(track_id: int, payload: TrackPositionAdd):
         INSERT INTO track_positions (track_id, position_lat, position_lng, timestamp, accuracy, truth_level, correction_source)
         VALUES ({", ".join([placeholder] * 7)}){returning}
     """,
-        (track_id, payload.position.lat, payload.position.lng, now, payload.accuracy, "T3", "none"),
+        (
+            track_id,
+            payload.position.lat,
+            payload.position.lng,
+            now,
+            payload.accuracy,
+            "T3",
+            "none",
+        ),
     )
 
     conn.commit()
@@ -3103,19 +3121,22 @@ def apply_ml_correction(track_id: int):
             X = np.array([features])
             X_scaled = scaler.transform(X)
             predicted_correction = model.predict(X_scaled)[0]
-            
+
             # FAS 1: Beräkna confidence score (förenklad - använd prediction variance)
             # För nu använder vi en enkel heuristik baserad på predicted_correction
             # Högre predicted_correction = högre confidence (tills vidare)
             # TODO: Implementera riktig confidence-beräkning med ensemble eller prediction intervals
-            confidence = min(1.0, max(0.0, predicted_correction / 10.0))  # Normalisera till 0-1
-            
+            confidence = min(
+                1.0, max(0.0, predicted_correction / 10.0)
+            )  # Normalisera till 0-1
+
             # Hämta modellversion (försök läsa från model_info)
             model_version = "unknown"
             try:
                 model_info_path = ml_dir / "gps_correction_model_info.json"
                 if model_info_path.exists():
                     import json
+
                     with open(model_info_path, "r", encoding="utf-8") as f:
                         model_info = json.load(f)
                         model_version = model_info.get("model_version", "unknown")
@@ -4727,10 +4748,11 @@ def predict_ml_corrections_multiple(
 @app.get("/ml/predictions")
 @app.get("/api/ml/predictions")  # Stöd för frontend som använder /api prefix
 def list_ml_predictions():
-    """Lista alla sparade ML-förutsägelser"""
+    """Lista alla sparade ML-förutsägelser. Returnerar tom lista om ml/predictions saknas (t.ex. Railway ephemeral)."""
     try:
-        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
-        predictions_dir.mkdir(exist_ok=True)
+        base = Path(__file__).resolve().parent.parent
+        predictions_dir = base / "ml" / "predictions"
+        predictions_dir.mkdir(parents=True, exist_ok=True)
 
         predictions = []
         for filepath in sorted(
@@ -4741,9 +4763,7 @@ def list_ml_predictions():
                 predictions.append(
                     {
                         "filename": filepath.name,
-                        "filepath": str(
-                            filepath.relative_to(Path(__file__).parent.parent)
-                        ),
+                        "filepath": str(filepath.relative_to(base)),
                         "size_bytes": stat.st_size,
                         "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
                     }
@@ -4759,11 +4779,14 @@ def list_ml_predictions():
 
     except Exception as e:
         import traceback
+        import logging
 
-        raise HTTPException(
-            status_code=500,
-            detail=f"Fel vid listning av förutsägelser: {str(e)}\n\n{traceback.format_exc()}",
+        logging.getLogger("uvicorn.error").warning(
+            "list_ml_predictions failed (returning []): %s\n%s",
+            e,
+            traceback.format_exc(),
         )
+        return {"status": "success", "predictions": [], "count": 0}
 
 
 @app.get("/ml/predictions/{filename}")
