@@ -100,12 +100,24 @@ const MLDashboard = () => {
         setIsAnalyzing(true)
         setError(null)
         try {
-            const response = await axios.post(`${API_BASE}/ml/analyze`)
+            const response = await axios.post(`${API_BASE}/ml/analyze`, null, {
+                timeout: 11 * 60 * 1000, // 11 min – backend har 10 min
+            })
             setAnalysisResults(response.data)
-            // Ladda om modellinfo efter analys
             await loadModelInfo()
         } catch (err) {
-            setError(err.response?.data?.detail || err.message || 'Fel vid analys')
+            const isNetwork = err.code === 'ERR_NETWORK' || (err.message && err.message.includes('Network Error'))
+            const isReset = err.message && /ERR_CONNECTION_RESET|ECONNRESET/i.test(String(err.message))
+            const isTimeout = err.code === 'ECONNABORTED' || (err.message && /timeout|timed out/i.test(String(err.message)))
+            if (isNetwork || isReset || isTimeout) {
+                setError(
+                    'Analysen tog för lång tid och anslutningen avbröts (timeout). ' +
+                    'Kör analysen lokalt istället: i terminalen, cd ml och sedan python analysis.py. ' +
+                    'Modellen sparas i ml/output/ – pusha och redeploya om du vill använda den på Railway.'
+                )
+            } else {
+                setError(err.response?.data?.detail || err.message || 'Fel vid analys')
+            }
             console.error('Fel vid analys:', err)
         } finally {
             setIsAnalyzing(false)
@@ -673,8 +685,35 @@ const MLDashboard = () => {
         }
     }
 
+    const mlBusy = isAnalyzing || isPredicting || isApplyingCorrection
+    const mlBusyLabel = isAnalyzing
+        ? 'Kör ML-analys'
+        : isApplyingCorrection
+            ? 'Tillämpar ML-korrigering'
+            : isPredicting
+                ? 'Testar förutsägelse'
+                : 'Arbetar…'
+
     return (
-        <div className="h-full flex flex-col bg-gray-50">
+        <div className="h-full flex flex-col bg-gray-50 relative">
+            {/* Loading overlay under ML-operationer */}
+            {mlBusy && (
+                <div className="absolute inset-0 bg-black/60 z-[9999] flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm mx-4 text-center">
+                        <div className="mb-4 flex justify-center">
+                            <div className="w-16 h-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">{mlBusyLabel}</h3>
+                        <p className="text-gray-600 text-sm">
+                            {isAnalyzing && 'Tränar modell och genererar visualiseringar. Kan ta flera minuter.'}
+                            {isPredicting && 'Beräknar förutsägelser för valda spår. Det kan ta 10–30 sekunder.'}
+                            {isApplyingCorrection && 'Uppdaterar positioner i databasen. Nästan klart.'}
+                        </p>
+                        <p className="text-gray-500 text-xs mt-3 font-medium">Vänligen vänta…</p>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white border-b shadow-sm px-6 py-4">
                 <h2 className="text-2xl font-bold text-gray-800">ML Dashboard</h2>
                 <p className="text-gray-600 mt-1">
@@ -734,6 +773,9 @@ const MLDashboard = () => {
                     >
                         {isAnalyzing ? 'Analyserar...' : '🚀 Kör ML-analys'}
                     </button>
+                    <p className="text-xs text-amber-700 mt-3">
+                        ⏱️ Analysen kan ta flera minuter. På Railway kan anslutningen timeout:a – kör då lokalt: <code className="bg-amber-100 px-1 rounded">cd ml && python analysis.py</code>.
+                    </p>
                 </div>
 
                 {/* Analysresultat */}
