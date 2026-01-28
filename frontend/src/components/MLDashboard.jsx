@@ -12,12 +12,17 @@ L.Icon.Default.mergeOptions({
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 
+// FAS 1: Truth levels (samma som TestLab)
+const TRUTH_LEVEL_LABELS = { T0: 'Manuellt flyttad', T1: 'Verifierad', T2: 'ML-korrigerad', T3: 'Rå GPS' }
+const TRUTH_LEVEL_COLORS = { T0: '#22c55e', T1: '#3b82f6', T2: '#a855f7', T3: '#6b7280' }
+
 const MLDashboard = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [analysisResults, setAnalysisResults] = useState(null)
     const [modelInfo, setModelInfo] = useState(null)
     const [error, setError] = useState(null)
     const [selectedTrack, setSelectedTrack] = useState(null)
+    const [selectedTrackDetails, setSelectedTrackDetails] = useState(null)
     const [tracks, setTracks] = useState([])
     const [isApplyingCorrection, setIsApplyingCorrection] = useState(false)
     const [selectedTrackForPrediction, setSelectedTrackForPrediction] = useState(null)
@@ -53,6 +58,24 @@ const MLDashboard = () => {
         loadModelInfo()
         loadSavedPredictions()
     }, [])
+
+    // FAS 1: Hämta spårdetaljer (positions med truth_level) när valt spår ändras
+    useEffect(() => {
+        if (!selectedTrack) {
+            setSelectedTrackDetails(null)
+            return
+        }
+        const load = async () => {
+            try {
+                const res = await axios.get(`${API_BASE}/tracks/${selectedTrack}`)
+                setSelectedTrackDetails(res.data)
+            } catch (err) {
+                console.error('Kunde inte hämta spårdetaljer:', err)
+                setSelectedTrackDetails(null)
+            }
+        }
+        load()
+    }, [selectedTrack])
 
     const loadTracks = async () => {
         try {
@@ -636,8 +659,12 @@ const MLDashboard = () => {
         try {
             const response = await axios.post(`${API_BASE}/ml/apply-correction/${trackId}`)
             alert(`ML-korrigering tillämpad på ${response.data.corrected_count} positioner!`)
-            // Ladda om spår
             await loadTracks()
+            // FAS 1: Uppdatera truth summary för valt spår
+            if (selectedTrack === trackId || selectedTrack === String(trackId)) {
+                const res = await axios.get(`${API_BASE}/tracks/${trackId}`)
+                setSelectedTrackDetails(res.data)
+            }
         } catch (err) {
             setError(err.response?.data?.detail || err.message || 'Fel vid korrigering')
             console.error('Fel vid korrigering:', err)
@@ -676,6 +703,18 @@ const MLDashboard = () => {
                                 <div className="text-2xl font-bold text-purple-600">
                                     {(modelInfo.test_r2 * 100).toFixed(1)}%
                                 </div>
+                            </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-gray-600 mb-2">Truth levels (FAS 1)</div>
+                            <div className="flex flex-wrap gap-3 text-[11px] text-gray-600">
+                                {Object.entries(TRUTH_LEVEL_LABELS).map(([tl, label]) => (
+                                    <span key={tl} className="flex items-center gap-1.5">
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: TRUTH_LEVEL_COLORS[tl] }} />
+                                        <span className="font-medium text-gray-700">{tl}</span>
+                                        <span>{label}</span>
+                                    </span>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -863,8 +902,8 @@ const MLDashboard = () => {
                         <strong>Varning:</strong> Detta kommer att <strong>ändra positionerna i databasen</strong>.
                         Använd först "Testa förutsägelser" ovan för att se vad modellen skulle göra.
                     </p>
-                    <div className="flex gap-4 items-end">
-                        <div className="flex-1">
+                    <div className="flex gap-4 items-end flex-wrap">
+                        <div className="flex-1 min-w-[200px]">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Välj spår att korrigera
                             </label>
@@ -889,6 +928,26 @@ const MLDashboard = () => {
                             {isApplyingCorrection ? 'Korrigerar...' : '✨ Tillämpa ML-korrigering'}
                         </button>
                     </div>
+                    {selectedTrackDetails?.positions?.length > 0 && (
+                        <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                            <div className="text-sm font-semibold text-gray-700 mb-2">Truth levels (valt spår)</div>
+                            <div className="flex flex-wrap gap-3 text-xs">
+                                {['T0', 'T1', 'T2', 'T3'].map((tl) => {
+                                    const n = selectedTrackDetails.positions.filter((p) => (p.truth_level || 'T3') === tl).length
+                                    return (
+                                        <div key={tl} className="flex items-center gap-1.5" title={TRUTH_LEVEL_LABELS[tl]}>
+                                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: TRUTH_LEVEL_COLORS[tl] }} />
+                                            <span className="text-gray-600">{tl}</span>
+                                            <span className="font-bold text-gray-800">{n}</span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            <div className="text-[10px] text-gray-500 mt-1.5">
+                                T0=manuellt flyttad · T1=verifierad · T2=ML · T3=rå GPS
+                            </div>
+                        </div>
+                    )}
                     {!modelInfo && (
                         <p className="text-sm text-amber-600 mt-2">
                             ⚠️ Ingen modell tränad ännu. Kör ML-analys först.

@@ -36,6 +36,26 @@ const STATUS_BG_COLORS = {
     incorrect: '#fee2e2', // Light red
 }
 
+// FAS 1: Truth levels (T0–T3)
+const TRUTH_LEVEL_LABELS = {
+    T0: 'Manuellt flyttad',
+    T1: 'Verifierad',
+    T2: 'ML-korrigerad',
+    T3: 'Rå GPS',
+}
+const TRUTH_LEVEL_COLORS = {
+    T0: '#22c55e',  // green
+    T1: '#3b82f6',  // blue
+    T2: '#a855f7',  // purple
+    T3: '#6b7280',  // gray
+}
+const TRUTH_LEVEL_BG_COLORS = {
+    T0: '#dcfce7',
+    T1: '#dbeafe',
+    T2: '#f3e8ff',
+    T3: '#f3f4f6',
+}
+
 const TestLab = () => {
     const mapRef = useRef(null)
     const mapInstanceRef = useRef(null)
@@ -146,6 +166,14 @@ const TestLab = () => {
         const annotatedCount = correct + incorrect
         const progressPercentage = total > 0 ? Math.round((annotatedCount / total) * 100) : 0
 
+        // FAS 1: Truth level counts
+        const truthLevelCounts = {
+            T0: allPositions.filter(p => (p.truth_level || 'T3') === 'T0').length,
+            T1: allPositions.filter(p => (p.truth_level || 'T3') === 'T1').length,
+            T2: allPositions.filter(p => (p.truth_level || 'T3') === 'T2').length,
+            T3: allPositions.filter(p => (p.truth_level || 'T3') === 'T3').length,
+        }
+
         return {
             pending,
             correct,
@@ -154,7 +182,8 @@ const TestLab = () => {
             correctedCount: correctedPositions.length,
             avgCorrectionDistance,
             annotatedCount,
-            progressPercentage
+            progressPercentage,
+            truthLevelCounts,
         }
     }, [humanPositions, dogPositions])
 
@@ -234,7 +263,7 @@ const TestLab = () => {
         fetchTrack(dogTrackId, 'dog')
     }, [dogTrackId])
 
-    // Visualisera ML-förutsägelser på kartan
+    // Visualisera ML-förutsägelser på kartan - Jämför med ML-läge (INGA ändringar sparas)
     useEffect(() => {
         if (!mapInstanceRef.current) return
 
@@ -260,44 +289,137 @@ const TestLab = () => {
             }
         }
 
+        if (!mlPredictions.predictions || mlPredictions.predictions.length === 0) return
+
+        // Hämta alla positioner för att jämföra med ML-förutsägelser
+        const allPositions = [...humanPositions, ...dogPositions]
+
         // Rita ML-korrigerade spår (blå, streckad linje)
-        if (mlPredictions.predictions && mlPredictions.predictions.length > 0) {
-            const mlCoords = mlPredictions.predictions
-                .filter(p => p.predicted_corrected_position)
-                .map(p => [p.predicted_corrected_position.lat, p.predicted_corrected_position.lng])
+        const mlCoords = mlPredictions.predictions
+            .filter(p => p.predicted_corrected_position)
+            .map(p => [p.predicted_corrected_position.lat, p.predicted_corrected_position.lng])
 
-            if (mlCoords.length > 0) {
-                const mlPolyline = L.polyline(mlCoords, {
-                    color: '#3b82f6', // Blå
-                    weight: 3,
-                    opacity: 0.7,
-                    dashArray: '10, 5',
+        if (mlCoords.length > 0) {
+            const mlPolyline = L.polyline(mlCoords, {
+                color: '#3b82f6', // Blå för ML
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '10, 5',
+            }).addTo(mlPredictionLayerRef.current)
+
+            mlPolyline.bindTooltip('🔮 ML-korrigerat spår (blå, streckad)', { sticky: true })
+        }
+
+        // För varje position: visa original, manuell korrigering (om finns) och ML-korrigering
+        mlPredictions.predictions.forEach((pred) => {
+            const position = allPositions.find(p => p.id === pred.position_id)
+            if (!position || !pred.predicted_corrected_position) return
+
+            const originalPos = [pred.original_position.lat, pred.original_position.lng]
+            const mlPos = [pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng]
+            const hasManualCorrection = position.corrected_position !== null && position.corrected_position !== undefined
+            const manualPos = hasManualCorrection 
+                ? [position.corrected_position.lat, position.corrected_position.lng]
+                : null
+
+            // Beräkna avstånd
+            const mlDistance = pred.predicted_correction_distance_meters || 0
+            const manualDistance = hasManualCorrection 
+                ? haversineDistance(position.position, position.corrected_position)
+                : null
+            const difference = manualDistance !== null 
+                ? Math.abs(mlDistance - manualDistance)
+                : null
+
+            // Markör för original position (grå)
+            const originalMarker = L.circleMarker(originalPos, {
+                radius: 6,
+                fillColor: '#6b7280', // Grå
+                color: '#374151',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8,
+            }).addTo(mlPredictionLayerRef.current)
+            originalMarker.bindTooltip(
+                `📍 Original GPS\nLat: ${pred.original_position.lat.toFixed(6)}\nLng: ${pred.original_position.lng.toFixed(6)}`,
+                { sticky: true }
+            )
+
+            // Markör för ML-korrigering (blå)
+            const mlMarker = L.circleMarker(mlPos, {
+                radius: 8,
+                fillColor: '#3b82f6', // Blå
+                color: '#1e40af',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9,
+            }).addTo(mlPredictionLayerRef.current)
+            
+            let mlTooltip = `🔮 ML-korrigering\nAvstånd: ${mlDistance.toFixed(2)}m\nLat: ${pred.predicted_corrected_position.lat.toFixed(6)}\nLng: ${pred.predicted_corrected_position.lng.toFixed(6)}`
+            if (difference !== null) {
+                const quality = difference < 0.5 ? '✅ Mycket bra' : difference < 1.0 ? '⚠️ Bra' : '❌ Stor skillnad'
+                mlTooltip += `\n\nJämfört med manuell:\nSkillnad: ${difference.toFixed(2)}m\n${quality}`
+            }
+            mlMarker.bindTooltip(mlTooltip, { sticky: true })
+
+            // Markör för manuell korrigering (grön) - om den finns
+            if (hasManualCorrection && manualPos) {
+                const manualMarker = L.circleMarker(manualPos, {
+                    radius: 8,
+                    fillColor: '#22c55e', // Grön
+                    color: '#15803d',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9,
                 }).addTo(mlPredictionLayerRef.current)
+                manualMarker.bindTooltip(
+                    `✅ Manuell korrigering\nAvstånd: ${manualDistance.toFixed(2)}m\nLat: ${position.corrected_position.lat.toFixed(6)}\nLng: ${position.corrected_position.lng.toFixed(6)}`,
+                    { sticky: true }
+                )
 
-                mlPolyline.bindTooltip('🔮 ML-korrigerat spår', { sticky: true })
+                // Linje från original till manuell korrigering (grön, solid)
+                const manualLine = L.polyline([originalPos, manualPos], {
+                    color: '#22c55e', // Grön
+                    weight: 2,
+                    opacity: 0.6,
+                }).addTo(mlPredictionLayerRef.current)
+                manualLine.bindTooltip(
+                    `✅ Manuell: ${manualDistance.toFixed(2)}m`,
+                    { sticky: true }
+                )
             }
 
-            // Rita linjer från original till ML-korrigerad (för stora korrigeringar)
-            mlPredictions.predictions.forEach((pred) => {
-                if (pred.predicted_correction_distance_meters > 1.0 && pred.predicted_corrected_position) {
-                    const from = [pred.original_position.lat, pred.original_position.lng]
-                    const to = [pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng]
+            // Linje från original till ML-korrigering (blå, streckad)
+            const mlLine = L.polyline([originalPos, mlPos], {
+                color: '#3b82f6', // Blå
+                weight: 2,
+                opacity: 0.6,
+                dashArray: '5, 5',
+            }).addTo(mlPredictionLayerRef.current)
+            mlLine.bindTooltip(
+                `🔮 ML: ${mlDistance.toFixed(2)}m`,
+                { sticky: true }
+            )
 
-                    const correctionLine = L.polyline([from, to], {
-                        color: '#3b82f6',
-                        weight: 2,
-                        opacity: 0.5,
-                        dashArray: '5, 5',
-                    }).addTo(mlPredictionLayerRef.current)
-
-                    correctionLine.bindTooltip(
-                        `ML: ${pred.predicted_correction_distance_meters.toFixed(2)}m`,
+            // Om både manuell och ML finns: rita linje mellan dem för att visa skillnaden
+            if (hasManualCorrection && manualPos) {
+                const comparisonLine = L.polyline([manualPos, mlPos], {
+                    color: difference !== null && difference < 1.0 ? '#f59e0b' : '#ef4444', // Gul om nära, röd om långt ifrån
+                    weight: 1.5,
+                    opacity: 0.4,
+                    dashArray: '3, 3',
+                }).addTo(mlPredictionLayerRef.current)
+                
+                if (difference !== null) {
+                    const quality = difference < 0.5 ? '✅ Mycket bra matchning' : difference < 1.0 ? '⚠️ Bra matchning' : '❌ Stor skillnad'
+                    comparisonLine.bindTooltip(
+                        `Jämförelse: ${difference.toFixed(2)}m\n${quality}`,
                         { sticky: true }
                     )
                 }
-            })
-        }
-    }, [mlPredictions, mlComparisonMode])
+            }
+        })
+    }, [mlPredictions, mlComparisonMode, humanPositions, dogPositions])
 
     // Rita spår på kartan när de laddas
     useEffect(() => {
@@ -732,15 +854,18 @@ const TestLab = () => {
                 handleSelectPosition(pos.id, 'human')
             })
 
-            // Enhanced tooltip with icon (använd relativt nummer)
+            // Enhanced tooltip with icon (använd relativt nummer) + FAS 1 truth level
+            const tl = pos.truth_level || 'T3'
             const tooltipText = pos.corrected_position
                 ? `<div style="text-align: center; font-weight: bold;">
                     🚶 ${icon} #${positionNumber} (Korrigerad)<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                    <span style="font-size: 10px; margin-left: 4px; color: ${TRUTH_LEVEL_COLORS[tl]};">${tl}</span>
                 </div>`
                 : `<div style="text-align: center; font-weight: bold;">
                     🚶 ${icon} #${positionNumber}<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                    <span style="font-size: 10px; margin-left: 4px; color: ${TRUTH_LEVEL_COLORS[tl]};">${tl}</span>
                 </div>`
             marker.bindTooltip(tooltipText, {
                 direction: 'top',
@@ -840,14 +965,18 @@ const TestLab = () => {
             })
 
             // Enhanced tooltip with icon (använd relativt nummer)
+            // FAS 1: truth level i tooltip
+            const tl = pos.truth_level || 'T3'
             const tooltipText = pos.corrected_position
                 ? `<div style="text-align: center; font-weight: bold;">
                     🐕 ${icon} #${positionNumber} (Korrigerad)<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                    <span style="font-size: 10px; margin-left: 4px; color: ${TRUTH_LEVEL_COLORS[tl]};">${tl}</span>
                 </div>`
                 : `<div style="text-align: center; font-weight: bold;">
                     🐕 ${icon} #${positionNumber}<br/>
                     <span style="font-size: 11px; font-weight: normal;">${STATUS_LABELS[status]}</span>
+                    <span style="font-size: 10px; margin-left: 4px; color: ${TRUTH_LEVEL_COLORS[tl]};">${tl}</span>
                 </div>`
             marker.bindTooltip(tooltipText, {
                 direction: 'top',
@@ -1622,6 +1751,36 @@ const TestLab = () => {
                                 </div>
                             </div>
 
+                            {/* Truth levels (FAS 1) */}
+                            <div className="bg-white rounded p-2 border border-slate-200">
+                                <div className="text-[10px] font-semibold text-slate-700 mb-1.5">Truth levels</div>
+                                <div className="grid grid-cols-4 gap-1 text-[9px]">
+                                    <div className="flex items-center gap-1" title={TRUTH_LEVEL_LABELS.T0}>
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: TRUTH_LEVEL_COLORS.T0 }}></span>
+                                        <span className="text-slate-600 truncate">T0</span>
+                                        <span className="font-bold text-slate-800">{statistics.truthLevelCounts.T0}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1" title={TRUTH_LEVEL_LABELS.T1}>
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: TRUTH_LEVEL_COLORS.T1 }}></span>
+                                        <span className="text-slate-600 truncate">T1</span>
+                                        <span className="font-bold text-slate-800">{statistics.truthLevelCounts.T1}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1" title={TRUTH_LEVEL_LABELS.T2}>
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: TRUTH_LEVEL_COLORS.T2 }}></span>
+                                        <span className="text-slate-600 truncate">T2</span>
+                                        <span className="font-bold text-slate-800">{statistics.truthLevelCounts.T2}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1" title={TRUTH_LEVEL_LABELS.T3}>
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: TRUTH_LEVEL_COLORS.T3 }}></span>
+                                        <span className="text-slate-600 truncate">T3</span>
+                                        <span className="font-bold text-slate-800">{statistics.truthLevelCounts.T3}</span>
+                                    </div>
+                                </div>
+                                <div className="text-[8px] text-slate-500 mt-1">
+                                    T0=flyttad · T1=verifierad · T2=ML · T3=rå
+                                </div>
+                            </div>
+
                             {/* Korrigeringsstatistik */}
                             {statistics.correctedCount > 0 && (
                                 <div className="bg-white rounded p-2 border border-blue-200">
@@ -2177,10 +2336,15 @@ const TestLab = () => {
                                 {mlPredictions && (
                                     <>
                                         <div className="flex items-center justify-between pt-2 border-t border-blue-200">
-                                            <label className="text-blue-600">Jämför med ML på karta</label>
+                                            <div className="flex-1">
+                                                <label className="text-blue-600 font-semibold block mb-1">🔍 Jämför med ML på karta</label>
+                                                <div className="text-[9px] text-blue-500">
+                                                    Visuell jämförelse - INGA ändringar sparas
+                                                </div>
+                                            </div>
                                             <button
                                                 onClick={() => setMlComparisonMode(!mlComparisonMode)}
-                                                className={`px-3 py-1 rounded text-[10px] font-semibold transition ${mlComparisonMode
+                                                className={`px-3 py-1 rounded text-[10px] font-semibold transition ml-2 ${mlComparisonMode
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-blue-100 text-blue-600'
                                                     }`}
@@ -2189,15 +2353,34 @@ const TestLab = () => {
                                             </button>
                                         </div>
 
-                                        <button
-                                            onClick={handleBatchAcceptMLPredictions}
-                                            disabled={loading}
-                                            className="w-full px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition mt-2"
-                                        >
-                                            ⚡ Batch-acceptera ML-förutsägelser
-                                        </button>
-                                        <div className="text-[9px] text-blue-500">
-                                            Accepterar automatiskt ML-förutsägelser som är "bra nog" (&lt; 1m fel)
+                                        {mlComparisonMode && (
+                                            <div className="bg-blue-50 border border-blue-300 rounded p-2 mt-2">
+                                                <div className="text-[10px] text-blue-800 font-semibold mb-1">📊 Visuell jämförelse:</div>
+                                                <div className="text-[9px] text-blue-700 space-y-0.5">
+                                                    <div>📍 <span className="font-semibold">Grå</span> = Original GPS-position</div>
+                                                    <div>✅ <span className="font-semibold">Grön</span> = Manuell korrigering</div>
+                                                    <div>🔮 <span className="font-semibold">Blå</span> = ML-korrigering</div>
+                                                    <div className="text-[8px] text-blue-600 mt-1 italic">
+                                                        Linjer visar korrigeringsavstånd. Ingen data ändras!
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="pt-2 border-t border-blue-200 mt-2">
+                                            <button
+                                                onClick={handleBatchAcceptMLPredictions}
+                                                disabled={loading}
+                                                className="w-full px-3 py-2 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition"
+                                            >
+                                                ⚡ Batch-acceptera ML-förutsägelser
+                                            </button>
+                                            <div className="text-[9px] text-green-600 mt-1">
+                                                ⚠️ Detta SPARAR ändringar i databasen
+                                            </div>
+                                            <div className="text-[9px] text-blue-500 mt-1">
+                                                Accepterar automatiskt ML-förutsägelser som är "bra nog" (&lt; 1m fel)
+                                            </div>
                                         </div>
                                     </>
                                 )}
@@ -2271,9 +2454,10 @@ const TestLab = () => {
                                     {humanPositions.map((pos, index) => {
                                         const status = pos.verified_status || 'pending'
                                         const positionNumber = index + 1
+                                        const tl = pos.truth_level || 'T3'
                                         return (
                                             <option key={pos.id} value={pos.id}>
-                                                #{positionNumber} - {STATUS_ICONS[status]} {STATUS_LABELS[status]} ({new Date(pos.timestamp).toLocaleString()})
+                                                #{positionNumber} - {STATUS_ICONS[status]} {STATUS_LABELS[status]} {tl} ({new Date(pos.timestamp).toLocaleString()})
                                             </option>
                                         )
                                     })}
@@ -2297,9 +2481,10 @@ const TestLab = () => {
                                     {dogPositions.map((pos, index) => {
                                         const status = pos.verified_status || 'pending'
                                         const positionNumber = index + 1
+                                        const tl = pos.truth_level || 'T3'
                                         return (
                                             <option key={pos.id} value={pos.id}>
-                                                #{positionNumber} - {STATUS_ICONS[status]} {STATUS_LABELS[status]} ({new Date(pos.timestamp).toLocaleString()})
+                                                #{positionNumber} - {STATUS_ICONS[status]} {STATUS_LABELS[status]} {tl} ({new Date(pos.timestamp).toLocaleString()})
                                             </option>
                                         )
                                     })}
@@ -2416,9 +2601,9 @@ const TestLab = () => {
                                             ({selectedPositionTrackType === 'human' ? 'Människaspår' : 'Hundspår'})
                                         </span>
                                     </div>
-                                    <div className="mt-2 space-y-1">
-                                        <div className="text-slate-600 text-[11px]">
-                                            <span className="font-medium">Status:</span>{' '}
+                                        <div className="mt-2 space-y-1">
+                                        <div className="text-slate-600 text-[11px] flex flex-wrap items-center gap-2">
+                                            <span><span className="font-medium">Status:</span>{' '}
                                             <span
                                                 className="px-2 py-0.5 rounded text-[10px] font-semibold"
                                                 style={{
@@ -2427,8 +2612,29 @@ const TestLab = () => {
                                                 }}
                                             >
                                                 {STATUS_LABELS[selectedPosition.verified_status || 'pending']}
-                                            </span>
+                                            </span></span>
+                                            <span><span className="font-medium">Truth:</span>{' '}
+                                            <span
+                                                className="px-2 py-0.5 rounded text-[10px] font-semibold"
+                                                style={{
+                                                    backgroundColor: TRUTH_LEVEL_BG_COLORS[selectedPosition.truth_level || 'T3'],
+                                                    color: TRUTH_LEVEL_COLORS[selectedPosition.truth_level || 'T3'],
+                                                }}
+                                                title={TRUTH_LEVEL_LABELS[selectedPosition.truth_level || 'T3']}
+                                            >
+                                                {selectedPosition.truth_level || 'T3'}
+                                            </span></span>
                                         </div>
+                                        {(selectedPosition.truth_level === 'T2' && (selectedPosition.ml_confidence != null || selectedPosition.ml_model_version)) && (
+                                            <div className="text-slate-500 text-[10px] flex flex-wrap gap-2">
+                                                {selectedPosition.ml_confidence != null && (
+                                                    <span>Confidence: {(selectedPosition.ml_confidence * 100).toFixed(0)}%</span>
+                                                )}
+                                                {selectedPosition.ml_model_version && (
+                                                    <span>Modell: {selectedPosition.ml_model_version}</span>
+                                                )}
+                                            </div>
+                                        )}
                                         <div className="text-slate-500 text-[11px]">
                                             <span className="font-medium">Rå:</span> {selectedPosition.position.lat.toFixed(6)}, {selectedPosition.position.lng.toFixed(6)}
                                         </div>
@@ -2440,39 +2646,86 @@ const TestLab = () => {
                                     </div>
                                 </div>
 
-                                {/* ML-förutsägelse för denna position */}
+                                {/* ML-förutsägelse för denna position - Jämförelse */}
                                 {(() => {
                                     const mlPred = getMLPredictionForPosition(selectedPosition.id)
                                     if (mlPred && mlPred.predicted_corrected_position) {
                                         const correctionDistance = mlPred.predicted_correction_distance_meters || 0
-                                        const hasActualCorrection = selectedPosition.corrected_position !== null
+                                        const hasActualCorrection = selectedPosition.corrected_position !== null && selectedPosition.corrected_position !== undefined
                                         const actualDistance = hasActualCorrection ? haversineDistance(
                                             selectedPosition.position,
                                             selectedPosition.corrected_position
                                         ) : null
                                         const difference = actualDistance !== null ? Math.abs(correctionDistance - actualDistance) : null
+                                        const quality = difference !== null 
+                                            ? (difference < 0.5 ? '✅ Mycket bra matchning' : difference < 1.0 ? '⚠️ Bra matchning' : '❌ Stor skillnad')
+                                            : null
 
                                         return (
                                             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-                                                <div className="text-[10px] font-semibold text-blue-800 mb-1">🔮 ML-förutsägelse</div>
-                                                <div className="text-[10px] text-blue-600 space-y-1">
-                                                    <div>Förutsagd korrigering: <span className="font-medium">{correctionDistance.toFixed(2)}m</span></div>
-                                                    {hasActualCorrection && actualDistance !== null && (
-                                                        <div>Faktisk korrigering: <span className="font-medium">{actualDistance.toFixed(2)}m</span></div>
+                                                <div className="text-[10px] font-semibold text-blue-800 mb-2 flex items-center gap-1">
+                                                    🔮 ML-förutsägelse
+                                                    {mlComparisonMode && (
+                                                        <span className="text-[8px] text-blue-500 font-normal">(visas på karta)</span>
                                                     )}
-                                                    {difference !== null && (
-                                                        <div className={difference < 0.5 ? 'text-green-600' : difference < 1.0 ? 'text-amber-600' : 'text-red-600'}>
-                                                            Skillnad: <span className="font-medium">{difference.toFixed(2)}m</span>
+                                                </div>
+                                                
+                                                <div className="text-[10px] space-y-1.5">
+                                                    {/* Original position */}
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-3 h-3 rounded-full bg-gray-500 border border-gray-700"></span>
+                                                        <span className="text-slate-600">
+                                                            <span className="font-medium">Original:</span> {correctionDistance.toFixed(2)}m från ML
+                                                        </span>
+                                                    </div>
+
+                                                    {/* ML-korrigering */}
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-3 h-3 rounded-full bg-blue-500 border border-blue-700"></span>
+                                                        <span className="text-blue-600">
+                                                            <span className="font-medium">ML-korrigering:</span> {correctionDistance.toFixed(2)}m
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Manuell korrigering (om finns) */}
+                                                    {hasActualCorrection && actualDistance !== null && (
+                                                        <>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="w-3 h-3 rounded-full bg-green-500 border border-green-700"></span>
+                                                                <span className="text-green-600">
+                                                                    <span className="font-medium">Manuell korrigering:</span> {actualDistance.toFixed(2)}m
+                                                                </span>
+                                                            </div>
+                                                            {difference !== null && (
+                                                                <div className={`pt-1 border-t border-blue-200 ${difference < 0.5 ? 'text-green-600' : difference < 1.0 ? 'text-amber-600' : 'text-red-600'}`}>
+                                                                    <div className="font-semibold">{quality}</div>
+                                                                    <div className="text-[9px]">
+                                                                        Skillnad mellan ML och manuell: <span className="font-medium">{difference.toFixed(2)}m</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
+
+                                                    {!hasActualCorrection && (
+                                                        <div className="text-[9px] text-slate-500 italic pt-1 border-t border-blue-200">
+                                                            Ingen manuell korrigering ännu. ML-förutsäger {correctionDistance.toFixed(2)}m korrigering.
                                                         </div>
                                                     )}
                                                 </div>
-                                                <button
-                                                    onClick={handleAcceptMLPrediction}
-                                                    disabled={loading}
-                                                    className="w-full mt-2 px-2 py-1 rounded bg-blue-600 text-white text-[10px] font-semibold hover:bg-blue-700 disabled:bg-blue-300 transition"
-                                                >
-                                                    ✅ Acceptera ML-förutsägelse
-                                                </button>
+
+                                                <div className="mt-2 pt-2 border-t border-blue-200">
+                                                    <button
+                                                        onClick={handleAcceptMLPrediction}
+                                                        disabled={loading}
+                                                        className="w-full px-2 py-1 rounded bg-blue-600 text-white text-[10px] font-semibold hover:bg-blue-700 disabled:bg-blue-300 transition"
+                                                    >
+                                                        ✅ Acceptera ML-förutsägelse (SPARAR)
+                                                    </button>
+                                                    <div className="text-[8px] text-blue-500 mt-1 text-center">
+                                                        Detta sparar ML-korrigeringen i databasen
+                                                    </div>
+                                                </div>
                                             </div>
                                         )
                                     }

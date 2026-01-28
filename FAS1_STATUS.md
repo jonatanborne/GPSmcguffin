@@ -120,10 +120,8 @@ Enligt `FAS1_HANDOFF.md`:
 4. ✅ **Backend Integration** - KLART!
 
 **NÄSTA STEG:**
-5. **Frontend Integration** - Visa truth levels i UI
-   - Uppdatera TestLab-komponenten
-   - Uppdatera ML Dashboard
-   - Visa confidence scores och truth levels
+5. ~~**Frontend Integration**~~ ✅ Klart – truth levels i TestLab + ML Dashboard
+6. **Confidence Scores** – Förbättra confidence-beräkning i ML-modellen
 
 ---
 

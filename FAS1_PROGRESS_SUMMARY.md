@@ -81,11 +81,11 @@
 
 ## 🔄 Pågående / Nästa Steg
 
-### 1. Frontend Integration (NÄSTA!)
-- [ ] Uppdatera TestLab-komponenten för att visa truth levels
-- [ ] Uppdatera ML Dashboard för att visa confidence scores
-- [ ] Visa truth level i track-visualiseringar
-- [ ] Färgkodning baserat på truth level
+### 1. Frontend Integration ✅ KLART
+- [x] Uppdatera TestLab-komponenten för att visa truth levels
+- [x] Uppdatera ML Dashboard för att visa confidence scores (T2) + truth summary
+- [x] Visa truth level i track-visualiseringar (badge, listruta, tooltips)
+- [x] Färgkodning baserat på truth level (T0=grön, T1=blå, T2=lila, T3=grå)
 
 ### 2. Confidence Scores
 - [ ] Förbättra confidence-beräkning i ML-modellen
