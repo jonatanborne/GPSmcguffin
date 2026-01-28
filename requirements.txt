@@ -4,3 +4,9 @@ pydantic==2.5.0
 psycopg2-binary==2.9.9
 pillow==10.1.0
 requests==2.31.0
+# ML (för /ml/analyze, /ml/predict, apply-correction)
+numpy>=1.24.0
+scikit-learn>=1.3.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
