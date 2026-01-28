@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Body, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -4906,7 +4906,9 @@ def update_prediction_feedback(
 
 @app.get("/ml/export-feedback")
 @app.get("/api/ml/export-feedback")  # Stöd för frontend
-def export_feedback_data():
+def export_feedback_data(
+    download: bool = Query(False, description="Returnera fil för nedladdning"),
+):
     """
     Exportera all data med feedback för ML-träning.
     Inkluderar både manuellt korrigerade spår och ML-förutsägelser med feedback.
@@ -5044,6 +5046,18 @@ def export_feedback_data():
 
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False)
+
+        if download:
+            body = json.dumps(export_data, indent=2, ensure_ascii=False).encode("utf-8")
+            return Response(
+                content=body,
+                media_type="application/json",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                    "X-Export-Filename": filename,
+                    "X-Export-Count": str(len(export_data)),
+                },
+            )
 
         return {
             "status": "success",

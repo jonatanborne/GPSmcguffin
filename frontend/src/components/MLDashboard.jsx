@@ -1038,10 +1038,18 @@ const MLDashboard = () => {
                         <button
                             onClick={async () => {
                                 try {
-                                    const response = await fetch(`${API_BASE}/ml/export-feedback`)
+                                    const response = await fetch(`${API_BASE}/ml/export-feedback?download=1`)
                                     if (!response.ok) throw new Error('Export misslyckades')
-                                    const data = await response.json()
-                                    alert(`✅ Feedback exporterad!\n\nFil: ${data.filename}\nPositioner: ${data.total_positions}\n\nFilen finns i: ml/data/${data.filename}\n\nNu kan du träna om modellen med:\ncd ml\npython analysis.py`)
+                                    const filename = response.headers.get('X-Export-Filename') || `ml_feedback_export_${Date.now()}.json`
+                                    const count = response.headers.get('X-Export-Count') || '?'
+                                    const blob = await response.blob()
+                                    const url = URL.createObjectURL(blob)
+                                    const a = document.createElement('a')
+                                    a.href = url
+                                    a.download = filename
+                                    a.click()
+                                    URL.revokeObjectURL(url)
+                                    alert(`✅ Feedback exporterad!\n\nFil: ${filename}\nPositioner: ${count}\n\nSpara filen i ml/data/ (i projektmappen) och kör sedan:\n  cd ml\n  python analysis.py`)
                                 } catch (error) {
                                     console.error('Export error:', error)
                                     alert(`❌ Fel vid export: ${error.message}`)
@@ -1054,9 +1062,9 @@ const MLDashboard = () => {
                         <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
                             <strong>💡 Nästa steg efter export:</strong>
                             <ol className="list-decimal list-inside mt-2 space-y-1">
-                                <li>Exportera feedback-data (klicka knappen ovan)</li>
+                                <li>Exportera feedback-data (knappen ovan) – filen laddas ner</li>
+                                <li>Spara filen i <code className="bg-blue-100 px-1 rounded">ml/data/</code> i projektmappen</li>
                                 <li>Träna om modellen: <code className="bg-blue-100 px-1 rounded">cd ml && python analysis.py</code></li>
-                                <li>Modellen kommer nu använda din feedback för att bli bättre!</li>
                             </ol>
                         </div>
                     </div>
@@ -1326,9 +1334,9 @@ const MLDashboard = () => {
                                         💡 Batch-läge: Markera flera positioner med checkboxarna, sedan klicka "Korrekt" eller "Felaktig" för alla valda.
                                     </div>
                                 )}
-                                <div className="max-h-96 overflow-y-auto border rounded">
+                                <div className="max-h-[32rem] overflow-y-auto border rounded overscroll-contain">
                                     <table className="w-full text-sm">
-                                        <thead className="bg-gray-100 sticky top-0">
+                                        <thead className="sticky top-0 z-10 bg-gray-100 shadow-sm">
                                             <tr>
                                                 {batchFeedbackMode && (
                                                     <th className="px-3 py-2 text-left">
@@ -1356,7 +1364,7 @@ const MLDashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {predictionDetails.predictions.slice(0, 50).map((pred, idx) => (
+                                            {predictionDetails.predictions.map((pred, idx) => (
                                                 <tr
                                                     key={idx}
                                                     className={`border-t hover:bg-gray-50 ${batchFeedbackMode && selectedPredictionsForFeedback.has(pred.position_id) ? 'bg-blue-50' : ''}`}
@@ -1431,12 +1439,6 @@ const MLDashboard = () => {
                                             ))}
                                         </tbody>
                                     </table>
-                                    {predictionDetails.predictions.length > 50 && (
-                                        <div className="p-3 bg-gray-50 text-sm text-gray-600 text-center">
-                                            Visar första 50 av {predictionDetails.predictions.length} positioner.
-                                            Öppna JSON-filen för att se alla.
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         )}
