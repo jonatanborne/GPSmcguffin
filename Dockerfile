@@ -14,8 +14,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code (backend + ml for model, analysis, data)
 COPY backend/ ./backend/
+COPY ml/ ./ml/
 
 # Expose port (Railway will set PORT env var)
 EXPOSE 8000

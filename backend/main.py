@@ -2764,6 +2764,26 @@ def convert_tiles(payload: TileConvertRequest):
 # ============================================================================
 
 
+@app.get("/ml/debug")
+@app.get("/api/ml/debug")
+def ml_debug():
+    """Debug: visa om ml/ och modellfiler finns (för Railway-felsökning)."""
+    base = Path(__file__).resolve().parent.parent
+    ml_root = base / "ml"
+    ml_output = base / "ml" / "output"
+    model_info = ml_output / "gps_correction_model_info.json"
+    analysis_py = ml_root / "analysis.py"
+    return {
+        "base": str(base),
+        "ml_root": str(ml_root),
+        "ml_root_exists": ml_root.exists(),
+        "ml_output_exists": ml_output.exists(),
+        "model_info_exists": model_info.exists(),
+        "analysis_py_exists": analysis_py.exists(),
+        "ml_list": [p.name for p in ml_root.iterdir()] if ml_root.exists() else [],
+    }
+
+
 @app.get("/ml/model-info")
 @app.get("/api/ml/model-info")  # Stöd för frontend som använder /api prefix
 def get_model_info():
