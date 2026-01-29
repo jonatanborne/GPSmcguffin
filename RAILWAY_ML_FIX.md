@@ -76,7 +76,12 @@ Då deployas `backend/` **och** `ml/` → backend hittar modell + analysis.py.
 
 ## Om Railway använder Dockerfile
 
-Vi har uppdaterat `Dockerfile` så att den kopierar `ml/` in i imagen. Om du bygger med Dockerfile måste **Git LFS**-filerna vara tillgängliga vid build (t.ex. `git lfs pull` innan `docker build`). Om du bara använder Procfile + Nixpacks behöver du inte tänka på LFS vid build.
+Dockerfile använder en **multi-stage build** som hämtar LFS åt dig:
+
+1. **Stage 1 (lfs):** Alpine + git + git-lfs. `COPY . .` → `git lfs install && git lfs pull` så att `ml/output/*.pkl` blir riktiga filer.
+2. **Stage 2 (app):** `COPY --from=lfs /src/backend` och `COPY --from=lfs /src/ml` in i Python-imagen.
+
+Så länge Railway bygger med denna Dockerfile (och build-context inkluderar `.git`), hämtas LFS automatiskt och predict ska fungera. Om du fortfarande får 503 "LFS-pekare", kontrollera att Root Directory är tom eller `.` (repo root) så att hela repot inkl. `.git` finns i build-context.
 
 ---
 
@@ -87,10 +92,11 @@ Vi har uppdaterat `Dockerfile` så att den kopierar `ml/` in i imagen. Om du byg
 
 **Orsak:** Modellfilerna (`.pkl`) ligger i **Git LFS**. Vid deploy finns i repot bara **LFS-pekare** (små textfiler som börjar med `version https://git-lfs...`). Backend försöker läsa dessa som pickle → krasch. På Railway hämtas ofta inte LFS vid build.
 
-**Lösning:** Se till att LFS-filer **hämtas** innan build. Build-context (det som `COPY ml/` tar från) kommer från där `docker build` körs.
+**Lösning:** LFS-filer måste hämtas innan eller under build.
 
-1. **Före Docker-build:** Kör **`git lfs pull`** i repot (samma katalog som Dockerfile) innan du bygger. Då blir `ml/output/*.pkl` riktiga binärfiler istället för LFS-pekare, och `COPY ml/` i Dockerfile kopierar dem.
-2. **Railway / CI:** Om Railway eller annan CI kör `docker build`, måste steget som bygger imagen antingen köra `git lfs install` och `git lfs pull` innan build, eller använda en buildpack/image som gör det. Utan det får imagen bara pekare → 503 vid predict.
-3. **Snabb kontroll:** Öppna `GET /ml/debug`. Om `model_info_exists` är true men predict ger 503 med "LFS-pekare", är orsaken att `.pkl` inte hämtats vid deploy.
+1. **Dockerfile (rekommenderat):** Denna repo använder en multi-stage Dockerfile som kör `git lfs install && git lfs pull` i en tidig stage. Så länge Railway bygger med den Dockerfilen och root = repo root (så att `.git` finns i build-context), hämtas `.pkl` automatiskt.
+2. **Alternativ – före Docker-build:** Kör **`git lfs pull`** i repot innan build. Om du bygger lokalt eller med egen CI, gör det i samma katalog som Dockerfile.
+3. **Om du lägger till .dockerignore:** Exkludera inte `.git` eller `ml/` – LFS-steget behöver dem.
+4. **Snabb kontroll:** `GET /ml/debug`. Om `model_info_exists` är true men predict ger 503 "LFS-pekare", har `.pkl` inte hämtats vid deploy (t.ex. build-context saknar `.git` eller Dockerfile används inte).
 
 Backend returnerar nu **503** med ett tydligt meddelande när den upptäcker LFS-pekare istället för att krascha med UnpicklingError.
