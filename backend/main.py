@@ -12,6 +12,7 @@ import os
 import csv
 import random
 from io import StringIO
+import pickle
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -2764,6 +2765,24 @@ def convert_tiles(payload: TileConvertRequest):
 # ============================================================================
 
 
+def _load_ml_pkl(path: Path):
+    """Ladda en .pkl-fil. Ger tydligt 503 om filen är LFS-pekare eller text (t.ex. på Railway utan LFS-fetch)."""
+    with open(path, "rb") as f:
+        head = f.read(80)
+        f.seek(0)
+        if head.startswith(b"version https://git-lfs") or head.strip().startswith(b"version "):
+            raise HTTPException(
+                status_code=503,
+                detail="Modellfilen är en Git LFS-pekare, inte den riktiga filen. På Railway: lägg till 'git lfs install' och 'git lfs pull' i build-steget (t.ex. i en Dockerfile eller pre-deploy), så att .pkl-filerna hämtas. Se RAILWAY_ML_FIX.md.",
+            )
+        if head.lstrip().startswith(b"{"):
+            raise HTTPException(
+                status_code=503,
+                detail=f"Filen {path.name} verkar vara JSON/text, inte pickle. Kontrollera att rätt fil laddas.",
+            )
+        return pickle.load(f)
+
+
 @app.get("/ml/debug")
 @app.get("/api/ml/debug")
 def ml_debug():
@@ -2800,23 +2819,16 @@ def get_model_info():
 
         # Lägg till feature importance om det finns
         try:
-            import pickle
-
             try:
                 import numpy as np
             except ImportError:
-                np = None  # Numpy inte tillgängligt
-
+                np = None
             if np is not None:
                 model_path = ml_dir / "gps_correction_model_best.pkl"
                 feature_names_path = ml_dir / "gps_correction_feature_names.pkl"
-
                 if model_path.exists() and feature_names_path.exists():
-                    with open(model_path, "rb") as f:
-                        model = pickle.load(f)
-                    with open(feature_names_path, "rb") as f:
-                        feature_names = pickle.load(f)
-
+                    model = _load_ml_pkl(model_path)
+                    feature_names = _load_ml_pkl(feature_names_path)
                     if hasattr(model, "feature_importances_"):
                         importances = model.feature_importances_
                         feature_importance = [
@@ -2827,6 +2839,8 @@ def get_model_info():
                             key=lambda x: x["importance"], reverse=True
                         )
                         model_info["feature_importance"] = feature_importance
+        except HTTPException:
+            raise
         except Exception as e:
             print(f"Kunde inte ladda feature importance: {e}")
 
@@ -2949,7 +2963,6 @@ def run_ml_analysis(track_ids: Optional[str] = None):
 def apply_ml_correction(track_id: int):
     """Använd ML-modellen för att automatiskt korrigera GPS-positioner i ett spår"""
     try:
-        import pickle
         import numpy as np
         from datetime import datetime
         import math
@@ -2963,12 +2976,9 @@ def apply_ml_correction(track_id: int):
         if not model_path.exists():
             raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
 
-        with open(model_path, "rb") as f:
-            model = pickle.load(f)
-        with open(scaler_path, "rb") as f:
-            scaler = pickle.load(f)
-        with open(feature_names_path, "rb") as f:
-            _ = pickle.load(f)  # Feature names behövs inte här men måste laddas
+        model = _load_ml_pkl(model_path)
+        scaler = _load_ml_pkl(scaler_path)
+        _ = _load_ml_pkl(feature_names_path)
 
         # Hämta spåret och positioner
         conn = get_db()
@@ -3237,7 +3247,6 @@ def predict_ml_corrections(track_id: int):
     Fungerar på både redan korrigerade spår (jämför förutsägelse vs faktisk) och nya spår.
     """
     try:
-        import pickle
         import numpy as np
         from datetime import datetime
         import math
@@ -3251,12 +3260,9 @@ def predict_ml_corrections(track_id: int):
         if not model_path.exists():
             raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
 
-        with open(model_path, "rb") as f:
-            model = pickle.load(f)
-        with open(scaler_path, "rb") as f:
-            scaler = pickle.load(f)
-        with open(feature_names_path, "rb") as f:
-            feature_names = pickle.load(f)
+        model = _load_ml_pkl(model_path)
+        scaler = _load_ml_pkl(scaler_path)
+        _ = _load_ml_pkl(feature_names_path)
 
         # Hämta spåret och positioner
         conn = get_db()
@@ -3984,7 +3990,6 @@ def predict_ml_corrections_multiple(
     Fungerar på både redan korrigerade spår (jämför förutsägelse vs faktisk) och nya spår.
     """
     try:
-        import pickle
         import numpy as np
         from datetime import datetime
         import math
@@ -4005,12 +4010,9 @@ def predict_ml_corrections_multiple(
         if not model_path.exists():
             raise HTTPException(status_code=404, detail="Ingen tränad modell hittades")
 
-        with open(model_path, "rb") as f:
-            model = pickle.load(f)
-        with open(scaler_path, "rb") as f:
-            scaler = pickle.load(f)
-        with open(feature_names_path, "rb") as f:
-            feature_names = pickle.load(f)
+        model = _load_ml_pkl(model_path)
+        scaler = _load_ml_pkl(scaler_path)
+        _ = _load_ml_pkl(feature_names_path)
 
         # Hämta alla spår och positioner
         conn = get_db()

@@ -1334,7 +1334,7 @@ const MLDashboard = () => {
                                         💡 Batch-läge: Markera flera positioner med checkboxarna, sedan klicka "Korrekt" eller "Felaktig" för alla valda.
                                     </div>
                                 )}
-                                <div className="max-h-[32rem] overflow-y-auto border rounded overscroll-contain">
+                                <div className="max-h-[32rem] min-h-0 overflow-y-auto border rounded overscroll-contain">
                                     <table className="w-full text-sm">
                                         <thead className="sticky top-0 z-10 bg-gray-100 shadow-sm">
                                             <tr>
@@ -1366,7 +1366,7 @@ const MLDashboard = () => {
                                         <tbody>
                                             {predictionDetails.predictions.map((pred, idx) => (
                                                 <tr
-                                                    key={idx}
+                                                    key={pred.position_id ?? idx}
                                                     className={`border-t hover:bg-gray-50 ${batchFeedbackMode && selectedPredictionsForFeedback.has(pred.position_id) ? 'bg-blue-50' : ''}`}
                                                 >
                                                     {batchFeedbackMode && (
@@ -1440,6 +1440,9 @@ const MLDashboard = () => {
                                         </tbody>
                                     </table>
                                 </div>
+                                <p className="mt-2 text-sm text-gray-500">
+                                    Visar alla {predictionDetails.predictions.length} positioner. Scrolla i tabellen ovan för att se alla.
+                                </p>
                             </div>
                         )}
                     </div>
