@@ -2770,7 +2770,9 @@ def _load_ml_pkl(path: Path):
     with open(path, "rb") as f:
         head = f.read(80)
         f.seek(0)
-        if head.startswith(b"version https://git-lfs") or head.strip().startswith(b"version "):
+        if head.startswith(b"version https://git-lfs") or head.strip().startswith(
+            b"version "
+        ):
             raise HTTPException(
                 status_code=503,
                 detail="Modellfilen är en Git LFS-pekare, inte den riktiga filen. På Railway: lägg till 'git lfs install' och 'git lfs pull' i build-steget (t.ex. i en Dockerfile eller pre-deploy), så att .pkl-filerna hämtas. Se RAILWAY_ML_FIX.md.",
@@ -4764,6 +4766,67 @@ def predict_ml_corrections_multiple(
         raise HTTPException(
             status_code=500,
             detail=f"Fel vid ML-förutsägelse: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.get("/ml/feedback-stats")
+@app.get("/api/ml/feedback-stats")  # Stöd för frontend
+def ml_feedback_stats(
+    track_id: Optional[int] = Query(None, description="Filtrera på track_id"),
+):
+    """
+    Räkna hur många positioner som har verified_status correct/incorrect/pending.
+    Använd för att kontrollera att din feedback (korrekt/felaktig) finns kvar i databasen.
+    """
+    try:
+        conn = get_db()
+        cursor = get_cursor(conn)
+        placeholder = "%s" if DATABASE_URL else "?"
+        if track_id is not None:
+            execute_query(
+                cursor,
+                f"""
+                SELECT verified_status, COUNT(*) as n
+                FROM track_positions
+                WHERE track_id = {placeholder}
+                GROUP BY verified_status
+                """,
+                (track_id,),
+            )
+        else:
+            execute_query(
+                cursor,
+                """
+                SELECT verified_status, COUNT(*) as n
+                FROM track_positions
+                GROUP BY verified_status
+                """,
+            )
+        rows = cursor.fetchall()
+        conn.close()
+
+        counts = {"correct": 0, "incorrect": 0, "pending": 0}
+        for r in rows:
+            status = (get_row_value(r, "verified_status") or "pending").strip().lower()
+            n = int(get_row_value(r, "n") or 0)
+            if status in counts:
+                counts[status] = n
+
+        total = sum(counts.values())
+        return {
+            "status": "success",
+            "track_id": track_id,
+            "correct": counts["correct"],
+            "incorrect": counts["incorrect"],
+            "pending": counts["pending"],
+            "total": total,
+        }
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Kunde inte hämta feedback-statistik: {str(e)}\n{traceback.format_exc()}",
         )
 
 
