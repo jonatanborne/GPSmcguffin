@@ -2819,7 +2819,7 @@ def get_model_info():
         with open(model_info_path, "r", encoding="utf-8") as f:
             model_info = json.load(f)
 
-        # Lägg till feature importance om det finns
+        # Lägg till feature importance om det finns (kräver .pkl; på Railway kan de vara LFS-pekare)
         try:
             try:
                 import numpy as np
@@ -2842,7 +2842,8 @@ def get_model_info():
                         )
                         model_info["feature_importance"] = feature_importance
         except HTTPException:
-            raise
+            # LFS-pekare eller annat .pkl-fel – skippa feature importance, returnera ändå JSON-info
+            pass
         except Exception as e:
             print(f"Kunde inte ladda feature importance: {e}")
 
