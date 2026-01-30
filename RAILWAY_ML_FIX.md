@@ -74,29 +74,45 @@ Då deployas `backend/` **och** `ml/` → backend hittar modell + analysis.py.
 
 ---
 
-## Om Railway använder Dockerfile
+## Git LFS och fel vid ML-förutsägelse (503 / UnpicklingError)
 
-Dockerfile använder en **multi-stage build** som hämtar LFS åt dig:
+**Symptom:** `/ml/predict`, `/ml/model-info` etc. ger **503** eller **500** med  
+`_pickle.UnpicklingError: invalid load key, 'v'` (eller meddelande om LFS-pekare).
 
-1. **Stage 1 (lfs):** Alpine + git + git-lfs. `COPY . .` → `git lfs install && git lfs pull` så att `ml/output/*.pkl` blir riktiga filer.
-2. **Stage 2 (app):** `COPY --from=lfs /src/backend` och `COPY --from=lfs /src/ml` in i Python-imagen.
-
-Så länge Railway bygger med denna Dockerfile (och build-context inkluderar `.git`), hämtas LFS automatiskt och predict ska fungera. Om du fortfarande får 503 "LFS-pekare", kontrollera att Root Directory är tom eller `.` (repo root) så att hela repot inkl. `.git` finns i build-context.
+**Orsak:** `.pkl`-filerna ligger i **Git LFS**. Railway **stödjer inte** att hämta LFS vid Docker-build. Vid build får containern bara LFS-pekare, inte riktiga modellfiler → 503 vid predict.
 
 ---
 
-## Git LFS och fel vid ML-förutsägelse (503 / UnpicklingError)
+### Lösning: Bygg i GitHub Actions, deploya från GHCR
 
-**Symptom:** `/ml/predict`, `/ml/predict/multiple` eller `/ml/apply-correction` ger **500** med  
-`_pickle.UnpicklingError: invalid load key, 'v'` (eller 503 med tydligt meddelande om LFS-pekare).
+Vi bygger Docker-imagen i **GitHub Actions** (där `git lfs pull` fungerar), pushar till **GitHub Container Registry (GHCR)**, och låter **Railway deploya från den imagen** istället för att bygga från repot.
 
-**Orsak:** Modellfilerna (`.pkl`) ligger i **Git LFS**. Vid deploy finns i repot bara **LFS-pekare** (små textfiler som börjar med `version https://git-lfs...`). Backend försöker läsa dessa som pickle → krasch. På Railway hämtas ofta inte LFS vid build.
+1. **Workflow:** `.github/workflows/build-push-ghcr.yml`  
+   - Triggas vid push till `main`.  
+   - Checkout med LFS → `git lfs pull` → `docker build` → push till `ghcr.io/<owner>/gpsmcguffin:latest`.
 
-**Lösning:** LFS-filer måste hämtas innan eller under build.
+2. **Railway – byt till "Deploy from Docker image":**
+   - Öppna din **web**-service → **Settings**.
+   - Under **Source**: koppla bort nuvarande GitHub-repo (eller behåll för triggers – se nedan).
+   - **Lägg till / byt till "Docker Image" som deploy-källa.**  
+     Image:  
+     `ghcr.io/jonatanborne/gpsmcguffin:latest`
+   - Spara. Railway deployar nu från GHCR-imagen istället för att bygga från repo.
 
-1. **Dockerfile (rekommenderat):** Denna repo använder en multi-stage Dockerfile som kör `git lfs install && git lfs pull` i en tidig stage. Så länge Railway bygger med den Dockerfilen och root = repo root (så att `.git` finns i build-context), hämtas `.pkl` automatiskt.
-2. **Alternativ – före Docker-build:** Kör **`git lfs pull`** i repot innan build. Om du bygger lokalt eller med egen CI, gör det i samma katalog som Dockerfile.
-3. **Om du lägger till .dockerignore:** Exkludera inte `.git` eller `ml/` – LFS-steget behöver dem.
-4. **Snabb kontroll:** `GET /ml/debug`. Om `model_info_exists` är true men predict ger 503 "LFS-pekare", har `.pkl` inte hämtats vid deploy (t.ex. build-context saknar `.git` eller Dockerfile används inte).
+3. **Variabler:** Behåll befintliga (t.ex. `DATABASE_URL`, `PORT`). De påverkar bara containern vid start, inte build.
 
-Backend returnerar nu **503** med ett tydligt meddelande när den upptäcker LFS-pekare istället för att krascha med UnpicklingError.
+4. **Uppdateringar:** Vid varje push till `main` körs Actions → ny image pushas till `:latest` → Railway kan redeploya (beroende på inställningar) för att ta den nya imagen.
+
+5. **GHCR-paket publikt (om Railway inte har auth):** Gå till GitHub → **Packages** → `gpsmcguffin` → **Package settings** → **Change visibility** → **Public**, så att Railway kan hämta imagen utan inloggning.
+
+**Viktigt:** Om du byggt **från repo** tidigare (Dockerfile) måste du explicit **ändra** servicen till att använda **Docker Image** `ghcr.io/jonatanborne/gpsmcguffin:latest`. Då körs ingen build på Railway och LFS-problemet försvinner.
+
+---
+
+### Alternativ: Volume + manuell upload
+
+Om du vill undvika GHCR kan du använda en **Railway Volume**: deploya t.ex. filebrowser-template, ladda upp `.pkl` till volumet, koppla volumet till web-servicen och läsa modellfilerna därifrån. Mer manuellt vid modelluppdateringar. Se Railways dokumentation om volumes.
+
+---
+
+Backend returnerar **503** med tydligt meddelande när den upptäcker LFS-pekare istället för att krascha med UnpicklingError.
