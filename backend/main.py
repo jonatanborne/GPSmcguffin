@@ -3841,7 +3841,12 @@ def predict_ml_corrections(track_id: int):
                     )
 
             # Beräkna faktiskt korrigeringsavstånd (om korrigering finns)
+            # Om positionen har corrected_lat/lng → beräkna avstånd
+            # Om positionen är verified='correct' men INTE flyttad → 0 m (stämde från början)
             actual_correction_distance = None
+            was_approved_as_is = False
+            actual_corr_position = None
+            
             if actual_corr_lat is not None and actual_corr_lng is not None:
                 positions_with_actual_corrections += 1
                 # Haversine distance mellan original och korrigerad
@@ -3856,6 +3861,13 @@ def predict_ml_corrections(track_id: int):
                 )
                 c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
                 actual_correction_distance = R * c
+                actual_corr_position = {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
+            elif verified_status == "correct":
+                # Position godkänd men INTE flyttad → original stämde, 0 m korrigering
+                positions_with_actual_corrections += 1
+                actual_correction_distance = 0.0
+                was_approved_as_is = True
+                actual_corr_position = {"lat": orig_lat, "lng": orig_lng}
 
             # Beräkna avstånd mellan förutsagd och faktisk korrigering (om båda finns)
             prediction_error = None
@@ -3881,11 +3893,8 @@ def predict_ml_corrections(track_id: int):
                         if actual_correction_distance is not None
                         else None
                     ),
-                    "actual_corrected_position": (
-                        {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
-                        if actual_corr_lat is not None and actual_corr_lng is not None
-                        else None
-                    ),
+                    "actual_corrected_position": actual_corr_position,
+                    "was_approved_as_is": was_approved_as_is,
                     "prediction_error_meters": (
                         float(prediction_error)
                         if prediction_error is not None
@@ -4614,8 +4623,14 @@ def predict_ml_corrections_multiple(
                     )
 
                 # Beräkna faktiskt korrigeringsavstånd
+                # Om positionen har corrected_lat/lng → beräkna avstånd
+                # Om positionen är verified='correct' men INTE flyttad → 0 m (stämde från början)
                 actual_correction_distance = None
+                was_approved_as_is = False  # True om godkänd utan flytt
+                actual_corr_position = None
+                
                 if actual_corr_lat is not None and actual_corr_lng is not None:
+                    # Position har flyttats manuellt
                     positions_with_actual_corrections += 1
                     R = 6371000
                     phi1 = math.radians(orig_lat)
@@ -4630,6 +4645,13 @@ def predict_ml_corrections_multiple(
                     )
                     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
                     actual_correction_distance = R * c
+                    actual_corr_position = {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
+                elif verified_status == "correct":
+                    # Position godkänd men INTE flyttad → original stämde, 0 m korrigering
+                    positions_with_actual_corrections += 1
+                    actual_correction_distance = 0.0
+                    was_approved_as_is = True
+                    actual_corr_position = {"lat": orig_lat, "lng": orig_lng}  # "Rätt" position = original
 
                 # Beräkna avstånd mellan förutsagd och faktisk korrigering
                 prediction_error = None
@@ -4658,15 +4680,8 @@ def predict_ml_corrections_multiple(
                             if actual_correction_distance is not None
                             else None
                         ),
-                        "actual_corrected_position": (
-                            {
-                                "lat": float(actual_corr_lat),
-                                "lng": float(actual_corr_lng),
-                            }
-                            if actual_corr_lat is not None
-                            and actual_corr_lng is not None
-                            else None
-                        ),
+                        "actual_corrected_position": actual_corr_position,
+                        "was_approved_as_is": was_approved_as_is,
                         "prediction_error_meters": (
                             float(prediction_error)
                             if prediction_error is not None

@@ -1357,7 +1357,7 @@ const MLDashboard = () => {
                                                 )}
                                                 <th className="px-3 py-2 text-left">ID</th>
                                                 <th className="px-3 py-2 text-left">Förutsägelse</th>
-                                                <th className="px-3 py-2 text-left">Faktisk</th>
+                                                <th className="px-3 py-2 text-left" title="Manuell korrigering. ✓ = stämde från början (0 m)">Faktisk</th>
                                                 <th className="px-3 py-2 text-left">Fel</th>
                                                 <th className="px-3 py-2 text-left">Status</th>
                                                 <th className="px-3 py-2 text-left">Feedback</th>
@@ -1384,7 +1384,12 @@ const MLDashboard = () => {
                                                         {pred.predicted_correction_distance_meters?.toFixed(2)} m
                                                     </td>
                                                     <td className="px-3 py-2">
-                                                        {pred.actual_correction_distance_meters?.toFixed(2) || '-'} m
+                                                        {pred.actual_correction_distance_meters != null ? (
+                                                            <span className={pred.was_approved_as_is ? 'text-blue-600' : ''}>
+                                                                {pred.actual_correction_distance_meters.toFixed(2)} m
+                                                                {pred.was_approved_as_is && <span title="Godkänd utan flytt - stämde från början"> ✓</span>}
+                                                            </span>
+                                                        ) : '-'}
                                                     </td>
                                                     <td className="px-3 py-2">
                                                         {pred.prediction_error_meters ? (
