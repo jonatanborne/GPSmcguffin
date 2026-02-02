@@ -86,6 +86,18 @@
 - [x] Uppdatera ML Dashboard för att visa confidence scores (T2) + truth summary
 - [x] Visa truth level i track-visualiseringar (badge, listruta, tooltips)
 - [x] Färgkodning baserat på truth level (T0=grön, T1=blå, T2=lila, T3=grå)
+- [x] **ML Dashboard förbättringar (Feb 2026):**
+  - Loading overlay under ML-operationer
+  - Downloadable feedback export
+  - Full scrollable prediction list (alla positioner)
+  - Robust error handling för timeout på Railway
+
+### 1b. "Approved as is" Logic ✅ KLART (Feb 2026)
+- [x] Backend: Positioner med `verified_status='correct'` utan `corrected_lat/lng` räknas som faktisk korrigering = 0 m
+- [x] Frontend: Visar `0.00 m ✓` i blå text för positioner som godkändes utan flytt
+- [x] Hjälper ML-modellen lära sig när GPS var korrekt från början
+- [x] Version endpoint (`/api/version`) för att verifiera deployad backend-version
+- [x] Case-insensitive `verified_status` check (robust för olika case i DB)
 
 ### 2. Confidence Scores
 - [ ] Förbättra confidence-beräkning i ML-modellen
@@ -227,5 +239,43 @@ correction_source = 'none'
 
 ---
 
-**Uppdaterad:** 2025-01-XX  
-**Status:** Backend-integration klar, redo för frontend-integration
+## 🚀 Deployment (Railway + GHCR)
+
+**Setup:** GitHub Actions bygger Docker-image med Git LFS → GHCR → Railway deployar från image
+
+**Viktiga filer:**
+- `.github/workflows/build-push-ghcr.yml` - Bygg och pusha till GHCR vid push till main
+- `Dockerfile` - Single-stage (LFS hanteras i Actions, inte Dockerfile)
+- `RAILWAY_ML_FIX.md` - Omfattande deployment-guide
+
+**Deployment-flöde:**
+1. Push till `main` → GitHub Actions triggas
+2. Actions: checkout med LFS → `git lfs pull` → `docker build` → push till `ghcr.io/jonatanborne/gpsmcguffin:latest`
+3. Railway: Deployar från GHCR-image (INTE från repo)
+4. Verifiera: `https://<railway-url>/api/version` ska returnera `{"version":"20260202-approved-as-is"}`
+
+**Viktigt:**
+- Railway stödjer INTE Git LFS i Docker builds → måste bygga i GitHub Actions
+- Railway redeployar inte alltid automatiskt när ny image pushas till `:latest` → manuell redeploy krävs
+- Scikit-learn pinnad till `>=1.6.0,<1.7` för att matcha pickle-version (eliminerar InconsistentVersionWarning)
+
+---
+
+## 🐛 Felsökning & Lärdomar
+
+### Problem: Tomma värden i ML Dashboard (Faktisk/Fel kolumner)
+**Orsak:** Positioner med `verified_status='correct'` men utan `corrected_lat/lng` hade `None` för `actual_correction_distance`  
+**Lösning:** Backend räknar nu dessa som 0 m korrigering ("stämde från början") så ML kan lära sig när GPS är korrekt
+
+### Problem: Railway deployment visar gamla koden
+**Orsak:** Railway deployar från cached image eller bygger från repo istället för GHCR  
+**Lösning:** Verifiera med `/api/version`, manuell redeploy, säkerställ "Deploy from Docker image" i Railway Settings
+
+### Problem: Git LFS pickle-filer → 503 UnpicklingError
+**Orsak:** Railway får LFS-pekare istället för .pkl-filer vid Docker build från repo  
+**Lösning:** Bygg i GitHub Actions (där `git lfs pull` fungerar) → pusha till GHCR → Railway deployar från GHCR
+
+---
+
+**Uppdaterad:** 2026-02-02  
+**Status:** Frontend-integration + approved-as-is klar. Nästa: Confidence Scores improvement.
