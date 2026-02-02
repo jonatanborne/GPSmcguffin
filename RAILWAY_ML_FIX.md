@@ -101,7 +101,9 @@ Vi bygger Docker-imagen i **GitHub Actions** (där `git lfs pull` fungerar), pus
 
 3. **Variabler:** Behåll befintliga (t.ex. `DATABASE_URL`, `PORT`). De påverkar bara containern vid start, inte build.
 
-4. **Uppdateringar:** Vid varje push till `main` körs Actions → ny image pushas till `:latest` → Railway kan redeploya (beroende på inställningar) för att ta den nya imagen.
+4. **Uppdateringar:** Vid varje push till `main` körs Actions → ny image pushas till `:latest`. Railway **redeployar inte alltid automatiskt** vid ny image. Om nya backend-ändringar inte syns:
+   - Öppna **Deployments** → klicka **Redeploy** på senaste deployment (eller trigga ny deploy).
+   - Verifiera version: öppna `https://<din-railway-url>/api/version` – ska visa `{"version":"20260202-approved-as-is"}` eller nyare.
 
 5. **GHCR-paket publikt (om Railway inte har auth):** Gå till GitHub → **Packages** → `gpsmcguffin` → **Package settings** → **Change visibility** → **Public**, så att Railway kan hämta imagen utan inloggning.
 

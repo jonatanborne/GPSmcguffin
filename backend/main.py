@@ -689,6 +689,9 @@ class HidingSpot(HidingSpotCreate):
 # SQLite databas används istället för in-memory storage
 
 
+# Version för att verifiera att ny kod är deployad (approved-as-is fix)
+API_VERSION = "20260202-approved-as-is"
+
 @app.get("/ping")
 @app.get("/api/ping")  # Stöd för frontend som använder /api prefix
 def ping():
@@ -698,6 +701,13 @@ def ping():
     except Exception:
         pass  # Ignorera fel vid init (tabeller kan redan finnas)
     return {"status": "ok"}
+
+
+@app.get("/version")
+@app.get("/api/version")
+def get_version():
+    """Returnerar API-version – använd för att verifiera att ny backend är deployad."""
+    return {"version": API_VERSION}
 
 
 @app.post("/geofences", response_model=Geofence)
@@ -3862,7 +3872,7 @@ def predict_ml_corrections(track_id: int):
                 c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
                 actual_correction_distance = R * c
                 actual_corr_position = {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
-            elif verified_status == "correct":
+            elif (verified_status or "").strip().lower() == "correct":
                 # Position godkänd men INTE flyttad → original stämde, 0 m korrigering
                 positions_with_actual_corrections += 1
                 actual_correction_distance = 0.0
@@ -4646,7 +4656,7 @@ def predict_ml_corrections_multiple(
                     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
                     actual_correction_distance = R * c
                     actual_corr_position = {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
-                elif verified_status == "correct":
+                elif (verified_status or "").strip().lower() == "correct":
                     # Position godkänd men INTE flyttad → original stämde, 0 m korrigering
                     positions_with_actual_corrections += 1
                     actual_correction_distance = 0.0
