@@ -91,6 +91,7 @@ const TestLab = () => {
     const [renamingTracks, setRenamingTracks] = useState(false) // Track renaming status
     const [localTilesAvailable, setLocalTilesAvailable] = useState(false) // Om lokala tiles finns
     const [tileSize, setTileSize] = useState(512) // Standard tile-storlek (förstoringsfaktor 2)
+    const [tileSource, setTileSource] = useState('esri_satellite') // Källa: esri_satellite (bäst upplösning), esri_street, cartodb_light
     const [statusFilter, setStatusFilter] = useState('all') // Filter för status: 'all', 'pending', 'correct', 'incorrect'
 
     // ML-integration state
@@ -1920,6 +1921,18 @@ const TestLab = () => {
                             <div className="text-[10px] text-blue-600">
                                 Ladda ner och förstora tiles för hela området som täcks av de valda spåren (inklusive alla positioner).
                             </div>
+                            <div>
+                                <label className="block text-[10px] text-blue-700 mb-1">Kartkälla (satellit har bäst upplösning):</label>
+                                <select
+                                    value={tileSource}
+                                    onChange={(e) => setTileSource(e.target.value)}
+                                    className="w-full border border-blue-300 rounded px-2 py-1.5 text-xs"
+                                >
+                                    <option value="esri_satellite">🛰️ Esri Satellit (bäst upplösning)</option>
+                                    <option value="esri_street">🛣️ Esri Gatukarta</option>
+                                    <option value="cartodb_light">🗺️ CartoDB Ljus</option>
+                                </select>
+                            </div>
                             <button
                                 onClick={async () => {
                                     if (!mapInstanceRef.current) return
@@ -2022,9 +2035,6 @@ const TestLab = () => {
                                             zoomLevels.push(z)
                                         }
 
-                                        // Bestäm vilken server som används
-                                        const activeServer = 'esri_street' // Default
-
                                         setMessage(`Laddar ner tiles för ${allPositions.length} positioner...`)
 
                                         const response = await axios.post(`${API_BASE}/tiles/convert`, {
@@ -2035,7 +2045,7 @@ const TestLab = () => {
                                                 bounds.east,
                                             ],
                                             zoom_levels: zoomLevels,
-                                            server: activeServer,
+                                            server: tileSource,
                                             scale_factor: 4, // Ökad från 2 till 4 för 4x bättre zoom (256x256 → 1024x1024)
                                         })
 

@@ -2457,7 +2457,9 @@ class TileConvertRequest(BaseModel):
         ..., min_length=4, max_length=4
     )  # [min_lat, min_lon, max_lat, max_lon]
     zoom_levels: List[int] = Field(..., min_items=1)
-    server: Literal["osm", "esri_street", "esri_satellite"] = "esri_street"
+    server: Literal["osm", "esri_street", "esri_satellite", "cartodb_light"] = (
+        "esri_street"
+    )
     scale_factor: int = Field(2, ge=1, le=4)
 
 
@@ -2602,11 +2604,12 @@ def convert_tiles(payload: TileConvertRequest):
                 detail=f"Cannot write to output directory {output_dir}: {str(write_error)}",
             )
 
-        # Tile server URLs
+        # Tile server URLs (esri_satellite har bäst upplösning för terräng/skog)
         TILE_SERVERS = {
             "osm": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             "esri_street": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
             "esri_satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            "cartodb_light": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
         }
 
         server_url = TILE_SERVERS.get(payload.server)

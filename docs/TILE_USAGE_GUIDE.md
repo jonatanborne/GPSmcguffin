@@ -26,7 +26,8 @@ Ladda ner och förstora kartbilder för ditt specifika spårområde.
 3. **Ladda ner högupplösta tiles**
 
    - Scrolla ner i sidebaren
-   - Klicka på knappen **"Ladda ner högupplösta tiles för detta spår"**
+   - **Välj kartkälla** i dropdown: **Esri Satellit** (bäst upplösning för terräng/skog), Esri Gatukarta, eller CartoDB Ljus
+   - Klicka på knappen **"Ladda ner högupplösta kartor (4x zoom)"**
    - Vänta medan systemet laddar ner och förstorar tiles (kan ta 1-5 minuter beroende på området)
    - Du kommer se meddelandet: "✅ Tiles sparade för hela spårområdet"
 
@@ -44,7 +45,7 @@ Ladda ner och förstora kartbilder för ditt specifika spårområde.
 ### Vad händer i bakgrunden:
 
 - Systemet identifierar området där spåret ligger (bounding box)
-- Laddar ner kartbilder (tiles) från Esri Street Map
+- Laddar ner kartbilder (tiles) från vald källa (Esri Satellit, Gatukarta eller CartoDB Ljus)
 - Förstorar varje tile 4x (256x256 → 1024x1024 pixlar)
 - Sparar dem lokalt på servern
 - Tiles serveras från `/static/tiles/` när du väljer "Lokal Högupplösning"
