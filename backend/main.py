@@ -5007,6 +5007,12 @@ def update_prediction_feedback(
     Sparas i ml_prediction_feedback – ändrar INTE track_positions (grunddata).
     """
     try:
+        # Säkerställ att ml_prediction_feedback finns (t.ex. efter ny deploy)
+        try:
+            init_db()
+        except Exception:
+            pass
+
         if verified_status not in ["correct", "incorrect", "pending"]:
             raise HTTPException(
                 status_code=400,
@@ -5089,6 +5095,12 @@ def auto_feedback_by_error(
     Uppdaterar databasen så modellen får bättre träningsdata över tid.
     """
     try:
+        # Säkerställ att ml_prediction_feedback finns (t.ex. efter ny deploy)
+        try:
+            init_db()
+        except Exception:
+            pass
+
         predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
         filepath = predictions_dir / filename
         if not filepath.exists() or not (
