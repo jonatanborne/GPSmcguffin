@@ -1,12 +1,12 @@
 {
   "best_model": "Extra Trees",
-  "test_mae": 0.07484098117642381,
-  "test_rmse": 0.18718671454541966,
-  "test_r2": 0.9771699476196188,
+  "test_mae": 0.055156891098894954,
+  "test_rmse": 0.1495408367068899,
+  "test_r2": 0.9846166205355186,
   "hyperparameters": {
-    "n_estimators": 200,
+    "n_estimators": 300,
     "min_samples_split": 2,
-    "max_depth": 20
+    "max_depth": null
   },
   "feature_names": [
     "gps_accuracy",
