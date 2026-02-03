@@ -576,6 +576,32 @@ def init_db():
         WHERE verified_status IS NULL
     """)
 
+    # ML-feedback separerad från grunddatabasen – ändrar INTE track_positions
+    if is_postgres:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ml_prediction_feedback (
+                id SERIAL PRIMARY KEY,
+                prediction_filename TEXT NOT NULL,
+                position_id INTEGER NOT NULL,
+                verified_status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(prediction_filename, position_id),
+                FOREIGN KEY (position_id) REFERENCES track_positions(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ml_prediction_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                prediction_filename TEXT NOT NULL,
+                position_id INTEGER NOT NULL,
+                verified_status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(prediction_filename, position_id),
+                FOREIGN KEY (position_id) REFERENCES track_positions(id) ON DELETE CASCADE
+            )
+        """)
+
     conn.commit()
     conn.close()
 
@@ -691,6 +717,7 @@ class HidingSpot(HidingSpotCreate):
 
 # Version för att verifiera att ny kod är deployad (approved-as-is fix)
 API_VERSION = "20260202-approved-as-is"
+
 
 @app.get("/ping")
 @app.get("/api/ping")  # Stöd för frontend som använder /api prefix
@@ -3856,7 +3883,7 @@ def predict_ml_corrections(track_id: int):
             actual_correction_distance = None
             was_approved_as_is = False
             actual_corr_position = None
-            
+
             if actual_corr_lat is not None and actual_corr_lng is not None:
                 positions_with_actual_corrections += 1
                 # Haversine distance mellan original och korrigerad
@@ -3871,7 +3898,10 @@ def predict_ml_corrections(track_id: int):
                 )
                 c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
                 actual_correction_distance = R * c
-                actual_corr_position = {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
+                actual_corr_position = {
+                    "lat": float(actual_corr_lat),
+                    "lng": float(actual_corr_lng),
+                }
             elif (verified_status or "").strip().lower() == "correct":
                 # Position godkänd men INTE flyttad → original stämde, 0 m korrigering
                 positions_with_actual_corrections += 1
@@ -4638,7 +4668,7 @@ def predict_ml_corrections_multiple(
                 actual_correction_distance = None
                 was_approved_as_is = False  # True om godkänd utan flytt
                 actual_corr_position = None
-                
+
                 if actual_corr_lat is not None and actual_corr_lng is not None:
                     # Position har flyttats manuellt
                     positions_with_actual_corrections += 1
@@ -4655,13 +4685,19 @@ def predict_ml_corrections_multiple(
                     )
                     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
                     actual_correction_distance = R * c
-                    actual_corr_position = {"lat": float(actual_corr_lat), "lng": float(actual_corr_lng)}
+                    actual_corr_position = {
+                        "lat": float(actual_corr_lat),
+                        "lng": float(actual_corr_lng),
+                    }
                 elif (verified_status or "").strip().lower() == "correct":
                     # Position godkänd men INTE flyttad → original stämde, 0 m korrigering
                     positions_with_actual_corrections += 1
                     actual_correction_distance = 0.0
                     was_approved_as_is = True
-                    actual_corr_position = {"lat": orig_lat, "lng": orig_lng}  # "Rätt" position = original
+                    actual_corr_position = {
+                        "lat": orig_lat,
+                        "lng": orig_lng,
+                    }  # "Rätt" position = original
 
                 # Beräkna avstånd mellan förutsagd och faktisk korrigering
                 prediction_error = None
@@ -4903,7 +4939,7 @@ def list_ml_predictions():
 @app.get("/ml/predictions/{filename}")
 @app.get("/api/ml/predictions/{filename}")  # Stöd för frontend som använder /api prefix
 def get_ml_prediction(filename: str):
-    """Hämta en specifik ML-förutsägelse från fil"""
+    """Hämta en specifik ML-förutsägelse från fil. Mergar in ML-feedback från ml_prediction_feedback."""
     try:
         predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
         filepath = predictions_dir / filename
@@ -4921,6 +4957,30 @@ def get_ml_prediction(filename: str):
 
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
+
+        # Merga in ML-feedback (ändrar INTE grunddata – bara vad som visas för denna förutsägelse)
+        try:
+            conn = get_db()
+            cursor = get_cursor(conn)
+            ph = "%s" if DATABASE_URL else "?"
+            execute_query(
+                cursor,
+                f"SELECT position_id, verified_status FROM ml_prediction_feedback WHERE prediction_filename = {ph}",
+                (filename,),
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            feedback_map = {
+                get_row_value(r, "position_id"): get_row_value(r, "verified_status")
+                for r in rows
+            }
+            if feedback_map and data.get("predictions"):
+                for p in data["predictions"]:
+                    pid = p.get("position_id")
+                    if pid in feedback_map:
+                        p["verified_status"] = feedback_map[pid]
+        except Exception:
+            pass  # Om tabell saknas eller DB ej tillgänglig, använd filens data
 
         return {"status": "success", "data": data}
 
@@ -4943,8 +5003,8 @@ def update_prediction_feedback(
     verified_status: str = Body(..., embed=True),
 ):
     """
-    Uppdatera feedback för en ML-förutsägelse.
-    Sätter verified_status för positionen i databasen.
+    Uppdatera ML-feedback för en förutsägelse.
+    Sparas i ml_prediction_feedback – ändrar INTE track_positions (grunddata).
     """
     try:
         if verified_status not in ["correct", "incorrect", "pending"]:
@@ -4955,23 +5015,40 @@ def update_prediction_feedback(
 
         conn = get_db()
         cursor = get_cursor(conn)
+        ph = "%s" if DATABASE_URL else "?"
+        now = datetime.now().isoformat()
 
-        # Uppdatera verified_status för positionen
-        placeholder = "%s" if DATABASE_URL else "?"
+        # Verifiera att positionen finns (referensintegritet)
         execute_query(
             cursor,
-            f"""
-            UPDATE track_positions
-            SET verified_status = {placeholder}
-            WHERE id = {placeholder}
-            """,
-            (verified_status, position_id),
+            f"SELECT 1 FROM track_positions WHERE id = {ph}",
+            (position_id,),
         )
-
-        if cursor.rowcount == 0:
+        if cursor.fetchone() is None:
             conn.close()
             raise HTTPException(
                 status_code=404, detail=f"Position {position_id} hittades inte"
+            )
+
+        if DATABASE_URL:
+            cursor.execute(
+                """
+                INSERT INTO ml_prediction_feedback (prediction_filename, position_id, verified_status, created_at)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (prediction_filename, position_id)
+                DO UPDATE SET verified_status = EXCLUDED.verified_status, created_at = EXCLUDED.created_at
+                """,
+                (filename, position_id, verified_status, now),
+            )
+        else:
+            # SQLite: delete + insert för upsert (saknar ON CONFLICT)
+            cursor.execute(
+                "DELETE FROM ml_prediction_feedback WHERE prediction_filename = ? AND position_id = ?",
+                (filename, position_id),
+            )
+            cursor.execute(
+                "INSERT INTO ml_prediction_feedback (prediction_filename, position_id, verified_status, created_at) VALUES (?, ?, ?, ?)",
+                (filename, position_id, verified_status, now),
             )
 
         conn.commit()
@@ -4979,7 +5056,7 @@ def update_prediction_feedback(
 
         return {
             "status": "success",
-            "message": f"Feedback uppdaterad för position {position_id}",
+            "message": f"ML-feedback uppdaterad för position {position_id}",
             "position_id": position_id,
             "verified_status": verified_status,
         }
@@ -4992,6 +5069,113 @@ def update_prediction_feedback(
         raise HTTPException(
             status_code=500,
             detail=f"Fel vid uppdatering av feedback: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
+@app.post("/ml/predictions/{filename}/auto-feedback")
+@app.post("/api/ml/predictions/{filename}/auto-feedback")
+def auto_feedback_by_error(
+    filename: str,
+    threshold: float = Query(
+        0.8,
+        ge=0.1,
+        le=5.0,
+        description="Felmarginal i meter – under = korrekt, över = felaktig",
+    ),
+):
+    """
+    Auto-godkänn baserat på prediction error.
+    För positioner med faktisk korrigering: fel < threshold → correct, annars → incorrect.
+    Uppdaterar databasen så modellen får bättre träningsdata över tid.
+    """
+    try:
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        filepath = predictions_dir / filename
+        if not filepath.exists() or not (
+            filename.startswith("predictions_") and filename.endswith(".json")
+        ):
+            raise HTTPException(
+                status_code=404, detail=f"Förutsägelse '{filename}' hittades inte"
+            )
+
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        predictions = data.get("predictions") or []
+        marked_correct = 0
+        marked_incorrect = 0
+        skipped = 0
+        updates = []  # [(position_id, verified_status), ...]
+
+        for p in predictions:
+            pos_id = p.get("position_id")
+            actual = p.get("actual_correction_distance_meters")
+            predicted = p.get("predicted_correction_distance_meters")
+
+            if actual is None or pos_id is None:
+                skipped += 1
+                continue
+
+            err = abs((predicted or 0) - actual)
+            new_status = "correct" if err < threshold else "incorrect"
+            updates.append((pos_id, new_status))
+            if new_status == "correct":
+                marked_correct += 1
+            else:
+                marked_incorrect += 1
+
+        if not updates:
+            return {
+                "status": "success",
+                "message": "Inga positioner med faktisk korrigering att uppdatera. Verifiera först i TestLab.",
+                "marked_correct": 0,
+                "marked_incorrect": 0,
+                "skipped": skipped,
+                "total_with_actual": 0,
+            }
+
+        conn = get_db()
+        cursor = get_cursor(conn)
+        now = datetime.now().isoformat()
+        if DATABASE_URL:
+            for pos_id, status in updates:
+                cursor.execute(
+                    """
+                    INSERT INTO ml_prediction_feedback (prediction_filename, position_id, verified_status, created_at)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (prediction_filename, position_id)
+                    DO UPDATE SET verified_status = EXCLUDED.verified_status, created_at = EXCLUDED.created_at
+                    """,
+                    (filename, pos_id, status, now),
+                )
+        else:
+            for pos_id, status in updates:
+                cursor.execute(
+                    "DELETE FROM ml_prediction_feedback WHERE prediction_filename = ? AND position_id = ?",
+                    (filename, pos_id),
+                )
+                cursor.execute(
+                    "INSERT INTO ml_prediction_feedback (prediction_filename, position_id, verified_status, created_at) VALUES (?, ?, ?, ?)",
+                    (filename, pos_id, status, now),
+                )
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Uppdaterade {len(updates)} positioner i ML-feedback (tröskel {threshold}m). Grunddata oförändrad.",
+            "marked_correct": marked_correct,
+            "marked_incorrect": marked_incorrect,
+            "skipped": skipped,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500, detail=str(e) + "\n" + traceback.format_exc()
         )
 
 
@@ -5086,8 +5270,31 @@ def export_feedback_data(
             )
 
         # Lägg till ML-förutsägelser markerade som "correct" från predictions-filer
+        # Använder ml_prediction_feedback (ändrar INTE track_positions – grunddata oförändrad)
         predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
         if predictions_dir.exists():
+            # Hämta all ML-feedback för att merga in
+            feedback_map = {}  # filename -> {position_id -> verified_status}
+            try:
+                conn2 = get_db()
+                cur2 = get_cursor(conn2)
+                ph = "%s" if DATABASE_URL else "?"
+                execute_query(
+                    cur2,
+                    "SELECT prediction_filename, position_id, verified_status FROM ml_prediction_feedback",
+                    None,
+                )
+                for r in cur2.fetchall():
+                    fn = get_row_value(r, "prediction_filename")
+                    pid = get_row_value(r, "position_id")
+                    vs = get_row_value(r, "verified_status")
+                    if fn not in feedback_map:
+                        feedback_map[fn] = {}
+                    feedback_map[fn][pid] = vs
+                conn2.close()
+            except Exception:
+                pass
+
             for pred_file in predictions_dir.glob("predictions_*.json"):
                 try:
                     with open(pred_file, "r", encoding="utf-8") as f:
@@ -5095,13 +5302,20 @@ def export_feedback_data(
 
                     if pred_data.get("predictions"):
                         for pred in pred_data["predictions"]:
-                            # Bara inkludera positioner markerade som "correct" som saknar corrected_position
+                            # Merga in ML-feedback (överstyr filens verified_status)
+                            verified_status = pred.get("verified_status")
+                            if pred_file.name in feedback_map:
+                                pid = pred.get("position_id")
+                                if pid in feedback_map[pred_file.name]:
+                                    verified_status = feedback_map[pred_file.name][pid]
+
+                            # Bara inkludera positioner markerade som "correct" som saknar human corrected_position
+                            # Då används ML-förutsägelsen som träningsdata – modellen lär sig av sina bra gissningar
                             if (
-                                pred.get("verified_status") == "correct"
+                                verified_status == "correct"
                                 and pred.get("predicted_corrected_position")
                                 and not pred.get("actual_corrected_position")
                             ):
-                                # Använd ML-förutsägelsen som träningsdata
                                 export_data.append(
                                     {
                                         "id": pred.get("position_id"),
@@ -5120,7 +5334,7 @@ def export_feedback_data(
                                             "predicted_correction_distance_meters"
                                         ),
                                         "accuracy": pred.get("gps_accuracy"),
-                                        "annotation_notes": "ML-förutsägelse markerad som korrekt",
+                                        "annotation_notes": "ML-förutsägelse markerad som korrekt (ej i grunddata)",
                                         "environment": None,
                                     }
                                 )

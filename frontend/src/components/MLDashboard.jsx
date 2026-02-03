@@ -52,6 +52,66 @@ const MLDashboard = () => {
     const [batchFeedbackMode, setBatchFeedbackMode] = useState(false)
     const [selectedPredictionsForFeedback, setSelectedPredictionsForFeedback] = useState(new Set())
 
+    // Auto-feedback: tröskel i meter – fel under = korrekt, över = felaktig
+    const [autoFeedbackThreshold, setAutoFeedbackThreshold] = useState(0.8)
+    const [isAutoFeedbackLoading, setIsAutoFeedbackLoading] = useState(false)
+
+    const [batchFeedbackLoading, setBatchFeedbackLoading] = useState(false)
+
+    const togglePredictionSelection = (positionId) => {
+        setSelectedPredictionsForFeedback(prev => {
+            const next = new Set(prev)
+            if (next.has(positionId)) next.delete(positionId)
+            else next.add(positionId)
+            return next
+        })
+    }
+
+    const handleBatchFeedback = async (verifiedStatus) => {
+        if (!selectedPrediction || selectedPredictionsForFeedback.size === 0) return
+        const ids = new Set(selectedPredictionsForFeedback)
+        setBatchFeedbackLoading(true)
+        setError(null)
+        try {
+            for (const posId of ids) {
+                await axios.put(`${API_BASE}/ml/predictions/${selectedPrediction}/feedback/${posId}`, {
+                    verified_status: verifiedStatus
+                })
+            }
+            setSelectedPredictionsForFeedback(new Set())
+            // Uppdatera lokal state för alla påverkade positioner
+            setPredictionDetails(prev => {
+                if (!prev?.predictions) return prev
+                return {
+                    ...prev,
+                    predictions: prev.predictions.map(p => {
+                        if (!ids.has(p.position_id)) return p
+                        const u = { ...p, verified_status: verifiedStatus }
+                        if (verifiedStatus === 'correct') {
+                            const hasActual = p.actual_correction_distance_meters != null && p.actual_correction_distance_meters > 0
+                            if (!hasActual) {
+                                u.actual_correction_distance_meters = 0
+                                u.was_approved_as_is = true
+                                u.actual_corrected_position = p.original_position
+                                u.prediction_error_meters = p.predicted_correction_distance_meters
+                            }
+                        } else if (verifiedStatus === 'pending') {
+                            u.actual_correction_distance_meters = null
+                            u.was_approved_as_is = false
+                            u.actual_corrected_position = null
+                            u.prediction_error_meters = null
+                        }
+                        return u
+                    })
+                }
+            })
+        } catch (err) {
+            setError(err.response?.data?.detail || err.message || 'Fel vid batch-feedback')
+        } finally {
+            setBatchFeedbackLoading(false)
+        }
+    }
+
     // Ladda spår
     useEffect(() => {
         loadTracks()
@@ -185,6 +245,39 @@ const MLDashboard = () => {
         } catch (err) {
             setError(err.response?.data?.detail || err.message || 'Fel vid uppdatering av feedback')
             console.error('Fel vid uppdatering av feedback:', err)
+        }
+    }
+
+    const runAutoFeedback = async () => {
+        if (!selectedPrediction || !predictionDetails?.predictions) return
+        setIsAutoFeedbackLoading(true)
+        setError(null)
+        try {
+            const res = await axios.post(
+                `${API_BASE}/ml/predictions/${selectedPrediction}/auto-feedback?threshold=${autoFeedbackThreshold}`
+            )
+            // Uppdatera lokal state för positioner som har actual_correction
+            const updated = predictionDetails.predictions.map(p => {
+                const actual = p.actual_correction_distance_meters
+                if (actual == null) return p
+                const err = Math.abs((p.predicted_correction_distance_meters || 0) - actual)
+                const newStatus = err < autoFeedbackThreshold ? 'correct' : 'incorrect'
+                const u = { ...p, verified_status: newStatus, prediction_error_meters: err }
+                if (newStatus === 'correct' && (actual === 0 || !p.actual_corrected_position)) {
+                    u.actual_correction_distance_meters = 0
+                    u.was_approved_as_is = true
+                    u.actual_corrected_position = p.original_position
+                }
+                return u
+            })
+            setPredictionDetails({ ...predictionDetails, predictions: updated })
+            const msg = res.data.message || `Uppdaterade ${res.data.marked_correct + res.data.marked_incorrect} positioner`
+            setError(null)
+            alert(`${msg}\n✅ Korrekt: ${res.data.marked_correct}\n❌ Felaktig: ${res.data.marked_incorrect}\n⏭ Hoppade över: ${res.data.skipped || 0}`)
+        } catch (err) {
+            setError(err.response?.data?.detail || err.message || 'Fel vid auto-feedback')
+        } finally {
+            setIsAutoFeedbackLoading(false)
         }
     }
 
@@ -1314,7 +1407,28 @@ const MLDashboard = () => {
                                     <h4 className="font-semibold text-gray-700">
                                         Förutsägelser per position ({predictionDetails.predictions.length} positioner)
                                     </h4>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <div className="flex items-center gap-1">
+                                            <label className="text-xs text-gray-600">Auto-tröskel:</label>
+                                            <select
+                                                value={autoFeedbackThreshold}
+                                                onChange={(e) => setAutoFeedbackThreshold(parseFloat(e.target.value))}
+                                                className="text-xs border rounded px-1.5 py-0.5"
+                                            >
+                                                <option value={0.5}>0.5 m</option>
+                                                <option value={0.8}>0.8 m</option>
+                                                <option value={1.0}>1.0 m</option>
+                                                <option value={1.5}>1.5 m</option>
+                                            </select>
+                                            <button
+                                                onClick={runAutoFeedback}
+                                                disabled={isAutoFeedbackLoading}
+                                                className="px-2 py-1 rounded text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:bg-amber-300"
+                                                title="Markera positioner med faktisk korrigering: fel &lt; tröskel = korrekt, fel ≥ tröskel = felaktig. Ger bättre träningsdata till modellen."
+                                            >
+                                                {isAutoFeedbackLoading ? '⏳' : '🤖'} Auto-godkänn
+                                            </button>
+                                        </div>
                                         <button
                                             onClick={() => setBatchFeedbackMode(!batchFeedbackMode)}
                                             className={`px-3 py-1 rounded text-xs font-semibold transition ${batchFeedbackMode
@@ -1328,14 +1442,14 @@ const MLDashboard = () => {
                                             <div className="flex gap-1">
                                                 <button
                                                     onClick={() => handleBatchFeedback('correct')}
-                                                    disabled={loading}
+                                                    disabled={batchFeedbackLoading}
                                                     className="px-2 py-1 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:bg-green-300"
                                                 >
                                                     ✅ Korrekt ({selectedPredictionsForFeedback.size})
                                                 </button>
                                                 <button
                                                     onClick={() => handleBatchFeedback('incorrect')}
-                                                    disabled={loading}
+                                                    disabled={batchFeedbackLoading}
                                                     className="px-2 py-1 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:bg-red-300"
                                                 >
                                                     ❌ Felaktig ({selectedPredictionsForFeedback.size})
@@ -1343,6 +1457,9 @@ const MLDashboard = () => {
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                                <div className="mb-2 p-2 bg-amber-50 rounded text-xs text-amber-800">
+                                    🤖 <strong>Auto-godkänn:</strong> Kräver att positioner redan har faktisk korrigering (verifiera i TestLab först). Fel &lt; tröskel → korrekt, fel ≥ tröskel → felaktig. Sänk tröskeln när modellen blivit bättre.
                                 </div>
                                 {batchFeedbackMode && (
                                     <div className="mb-2 p-2 bg-blue-50 rounded text-xs text-blue-700">
