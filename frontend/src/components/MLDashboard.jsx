@@ -152,13 +152,28 @@ const MLDashboard = () => {
                 verified_status: verifiedStatus
             })
 
-            // Uppdatera lokal state
+            // Uppdatera lokal state – för "correct" utan korrigering: visa 0.00 m ✓ i Faktisk-kolumnen
             if (predictionDetails && predictionDetails.predictions) {
-                const updatedPredictions = predictionDetails.predictions.map(p =>
-                    p.position_id === positionId
-                        ? { ...p, verified_status: verifiedStatus }
-                        : p
-                )
+                const updatedPredictions = predictionDetails.predictions.map(p => {
+                    if (p.position_id !== positionId) return p
+                    const updates = { ...p, verified_status: verifiedStatus }
+                    if (verifiedStatus === 'correct') {
+                        // Godkänd utan flytt (approved as is): visa 0.00 m ✓ om ingen faktisk korrigering finns
+                        const hasActualCorrection = p.actual_correction_distance_meters != null && p.actual_correction_distance_meters > 0
+                        if (!hasActualCorrection) {
+                            updates.actual_correction_distance_meters = 0
+                            updates.was_approved_as_is = true
+                            updates.actual_corrected_position = p.original_position
+                            updates.prediction_error_meters = p.predicted_correction_distance_meters
+                        }
+                    } else if (verifiedStatus === 'pending') {
+                        updates.actual_correction_distance_meters = null
+                        updates.was_approved_as_is = false
+                        updates.actual_corrected_position = null
+                        updates.prediction_error_meters = null
+                    }
+                    return updates
+                })
                 setPredictionDetails({
                     ...predictionDetails,
                     predictions: updatedPredictions
