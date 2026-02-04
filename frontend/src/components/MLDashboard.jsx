@@ -630,41 +630,39 @@ const MLDashboard = () => {
 
                         const map = L.map(mapRef.current, {
                             preferCanvas: false,
-                            maxZoom: 23, // Tillåt mycket närmare zoom (samma som TestLab)
+                            maxZoom: 26, // Tillåt extrem zoom – vid 24–26 skalas tiles upp
                             minZoom: 3,
                             zoomControl: true,
                         }).setView([59.334, 18.066], 14)
 
-                        // Skapa olika tile layers med olika zoom-stöd (samma som TestLab)
+                        // Skapa olika tile layers (samma zoom-stöd som TestLab)
                         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '© OpenStreetMap contributors',
-                            maxZoom: 23,
-                            maxNativeZoom: 19, // OSM har tiles till zoom 19, men Leaflet kan zooma vidare
+                            maxZoom: 26,
+                            maxNativeZoom: 19,
                         })
 
-                        // Esri World Imagery - stöder zoom upp till 23 med hög upplösning
                         const esriImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                             attribution: '© Esri',
-                            maxZoom: 23,
+                            maxZoom: 26,
+                            maxNativeZoom: 23,
                         })
 
-                        // Esri World Street Map - stöder zoom upp till 23
                         const esriStreetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
                             attribution: '© Esri',
-                            maxZoom: 23,
+                            maxZoom: 26,
+                            maxNativeZoom: 23,
                         })
 
-                        // CartoDB Positron - stöder zoom upp till 20 officiellt, men 23 fungerar ofta
                         const cartoPositronLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                             attribution: '© OpenStreetMap contributors © CARTO',
-                            maxZoom: 23,
-                            maxNativeZoom: 20, // Server har tiles till zoom 20, men Leaflet kan zooma vidare
+                            maxZoom: 26,
+                            maxNativeZoom: 20,
                         })
 
-                        // Lokal högupplösning tile layer (om tiles finns)
                         const localHighResLayer = L.tileLayer(`${API_BASE}/static/tiles/{z}/{x}/{y}.png`, {
                             attribution: '© Lokal högupplösning',
-                            maxZoom: 23,
+                            maxZoom: 26,
                             minZoom: 10,
                             tileSize: 1024,
                             zoomOffset: 0,

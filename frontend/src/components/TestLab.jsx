@@ -495,7 +495,7 @@ const TestLab = () => {
 
         console.log('Initializing map...', mapRef.current)
         const map = L.map(mapRef.current, {
-            maxZoom: 23, // Tillåt mycket närmare zoom (för detaljerad positionering)
+            maxZoom: 26, // Tillåt extrem zoom – vid 24–26 skalas tiles upp (upplösning blir sämre)
             minZoom: 3,
             zoomControl: true,
         }).setView([59.334, 18.066], 14)
@@ -505,35 +505,35 @@ const TestLab = () => {
         // Skapa olika tile layers med olika zoom-stöd
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 23, // Ökat från 19 för bättre zoom vid annotering
-            maxNativeZoom: 19, // OSM har tiles till zoom 19, men Leaflet kan zooma vidare
+            maxZoom: 26,
+            maxNativeZoom: 19, // OSM har tiles till zoom 19 – Leaflet skalar upp vid zoom 20–26
         })
 
-        // Esri World Imagery - stöder zoom upp till 23 med hög upplösning
+        // Esri World Imagery – satellit. Officiellt till zoom 23, skalar upp till 26
         const esriImageryLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: '© Esri',
-            maxZoom: 23,
+            maxZoom: 26,
+            maxNativeZoom: 23, // Esri max – vid zoom 24–26 skalas bilden upp (lite pixeligare)
         })
 
-        // Esri World Street Map - stöder zoom upp till 23
+        // Esri World Street Map
         const esriStreetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
             attribution: '© Esri',
-            maxZoom: 23,
+            maxZoom: 26,
+            maxNativeZoom: 23,
         })
 
-        // CartoDB Positron - stöder zoom upp till 20 officiellt, men 23 fungerar ofta
+        // CartoDB Positron
         const cartoPositronLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap contributors © CARTO',
-            maxZoom: 23, // Ökat från 20 för bättre zoom vid annotering
-            maxNativeZoom: 20, // Server har tiles till zoom 20, men Leaflet kan zooma vidare
+            maxZoom: 26,
+            maxNativeZoom: 20, // CartoDB till 20 – Leaflet skalar upp vid 21–26
         })
 
         // Lokal högupplösning tile layer (om tiles finns)
-        // tileSize kommer uppdateras dynamiskt när tiles kontrolleras
-        // Ladda tiles från backend API (serveras som statiska filer på /static/tiles)
         const localHighResLayer = L.tileLayer(`${API_BASE}/static/tiles/{z}/{x}/{y}.png`, {
             attribution: '© Lokal högupplösning',
-            maxZoom: 23, // Tillåt zoom upp till 23 för maximal detaljnivå
+            maxZoom: 26,
             minZoom: 10, // Minsta zoom för lokala tiles
             tileSize: 1024, // 4x förstoring (256x256 → 1024x1024), uppdateras när tiles kontrolleras
             zoomOffset: 0,
@@ -645,7 +645,7 @@ const TestLab = () => {
                             if (layer.options && layer.options.attribution === '© Lokal högupplösning') {
                                 const zoomLevels = response.data.zoom_levels || []
                                 const minZoom = zoomLevels.length > 0 ? Math.min(...zoomLevels) : 10
-                                const maxZoom = zoomLevels.length > 0 ? Math.max(...zoomLevels) : 23
+                                const maxZoom = zoomLevels.length > 0 ? Math.max(...zoomLevels) : 26
                                 layer.setOptions({
                                     tileSize: response.data.tile_size,
                                     minZoom: minZoom,
@@ -2027,7 +2027,7 @@ const TestLab = () => {
                                         } else {
                                             // Litet område (<1km)
                                             minZoom = 14
-                                            maxZoom = 23  // Max zoom för maximal detaljnivå
+                                            maxZoom = 26  // Max zoom – satellit skalar upp vid 24–26
                                         }
 
                                         const zoomLevels = []

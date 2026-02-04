@@ -203,6 +203,6 @@ Efter att du har laddat ner tiles och kan zooma in ordentligt:
 
 ---
 
-**Status**: Uppdaterad 2024-11-25  
+**Status**: Uppdaterad 2026-02  
 **Scale factor**: 4x (ger 4x bättre zoom)  
-**Max zoom**: 23 (extremt nära detalj)
+**Max zoom**: 26 (extrem zoom – satellit/layer skalar upp vid 24–26, lite pixeligare)
