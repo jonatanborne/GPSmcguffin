@@ -1124,9 +1124,32 @@ const MLDashboard = () => {
                                             Storlek: {(pred.size_bytes / 1024).toFixed(1)} KB
                                         </div>
                                     </div>
-                                    <button className="ml-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                                        Visa
-                                    </button>
+                                    <div className="flex gap-2 ml-2" onClick={e => e.stopPropagation()}>
+                                        <button
+                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                            onClick={() => loadPredictionDetails(pred.filename)}
+                                        >
+                                            Visa
+                                        </button>
+                                        <button
+                                            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                            onClick={async () => {
+                                                if (!confirm(`Radera förutsägelse "${pred.filename}"?\n\nAll feedback för detta spår tas bort och ingår inte i export.`)) return
+                                                try {
+                                                    await axios.delete(`${API_BASE}/ml/predictions/${encodeURIComponent(pred.filename)}`)
+                                                    await loadSavedPredictions()
+                                                    if (selectedPrediction === pred.filename) {
+                                                        setSelectedPrediction(null)
+                                                        setPredictionDetails(null)
+                                                    }
+                                                } catch (err) {
+                                                    alert('Kunde inte radera: ' + (err.response?.data?.detail || err.message))
+                                                }
+                                            }}
+                                        >
+                                            Radera
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

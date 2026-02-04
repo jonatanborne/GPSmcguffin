@@ -4998,6 +4998,66 @@ def get_ml_prediction(filename: str):
         )
 
 
+@app.delete("/ml/predictions/{filename}")
+@app.delete("/api/ml/predictions/{filename}")  # Stöd för frontend
+def delete_ml_prediction(filename: str):
+    """
+    Radera en sparad förutsägelse och all feedback för den.
+    Använd för att exkludera dåliga spår innan export – de ingår inte längre i exporten.
+    """
+    try:
+        if not filename.startswith("predictions_") or not filename.endswith(".json"):
+            raise HTTPException(
+                status_code=400,
+                detail="Ogiltigt filnamn – måste vara predictions_*.json",
+            )
+
+        predictions_dir = Path(__file__).parent.parent / "ml" / "predictions"
+        filepath = predictions_dir / filename
+
+        if not filepath.exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Förutsägelse '{filename}' hittades inte",
+            )
+
+        # Radera ml_prediction_feedback för denna fil
+        try:
+            init_db()
+        except Exception:
+            pass
+
+        conn = get_db()
+        cursor = get_cursor(conn)
+        ph = "%s" if DATABASE_URL else "?"
+        try:
+            execute_query(
+                cursor,
+                f"DELETE FROM ml_prediction_feedback WHERE prediction_filename = {ph}",
+                (filename,),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+        finally:
+            conn.close()
+
+        # Radera JSON-filen
+        filepath.unlink(missing_ok=True)
+
+        return {"status": "success", "message": f"Raderade förutsägelse: {filename}"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid radering: {str(e)}\n\n{traceback.format_exc()}",
+        )
+
+
 @app.put("/ml/predictions/{filename}/feedback/{position_id}")
 @app.put("/api/ml/predictions/{filename}/feedback/{position_id}")  # Stöd för frontend
 def update_prediction_feedback(
