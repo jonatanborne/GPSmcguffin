@@ -26,18 +26,18 @@
 
 ---
 
-### 2. Confidence score förbättras
+### 2. Confidence score förbättras ✅ KLART (Feb 2026)
 
 **Varför:** Nu används en enkel heuristik. Bättre confidence gör T2 mer användbart.
 
 **Uppgifter:**
-- [ ] Beräkna confidence från modellen (t.ex. prediction variance, quantile regression eller ensemble)
-- [ ] Spara `ml_confidence` konsekvent i `apply_ml_correction`
+- [x] Beräkna confidence från modellen (ensemble tree std → osäkerhet; `_predict_with_confidence`)
+- [x] Spara `ml_confidence` konsekvent i `apply_ml_correction`
 - [ ] (Senare) Förklaring när confidence är låg (vilka features påverkar)
 
-**Filer att ändra:**
-- `backend/main.py` (apply_ml_correction)
-- Eventuellt `ml/analysis.py` om vi ändrar tränings-/exportflöde
+**Filer ändrade:**
+- `backend/main.py`: `_predict_with_confidence()`, apply_ml_correction, predict endpoints (ml_confidence i output)
+- `ml/analysis.py`: `model_version` i model_info vid träning
 
 **Estimat:** 1–2 dagar
 
@@ -59,15 +59,15 @@
 
 ---
 
-### 4. TestLab: ML vs manuell + audit
+### 4. TestLab: ML vs manuell + audit ✅ KLART (Feb 2026)
 
 **Varför:** TestLab ska vara “domarverktyg” – jämföra ML med manuell och spåra ändringar.
 
 **Uppgifter:**
-- [ ] Läge “Jämför ML vs manuell” – visa båda samtidigt (t.ex. två markörer/färger)
-- [ ] Knappar “Godkänn ML” / “Underkänn ML” som sätter `correction_source` resp. återställer
-- [ ] Logga ändringar i `audit_log` vid korrigering / godkännande / underkännande
-- [ ] (Valfritt) Enkel vy av audit trail i TestLab
+- [x] Läge “Jämför ML vs manuell” – visa båda samtidigt (t.ex. två markörer/färger)
+- [x] Knappar “Godkänn ML” / “Underkänn ML” som sätter `correction_source` resp. återställer
+- [x] Logga ändringar i `audit_log` vid korrigering / godkännande / underkännande
+- [x] Enkel vy av audit trail i TestLab
 
 **Estimat:** 2–3 dagar
 

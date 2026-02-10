@@ -1430,10 +1430,12 @@ def train_ml_model(data: List[Dict]):
         pickle.dump(feature_names, f)
     print(f"  Feature names sparad till: {feature_names_path}")
 
-    # Spara modellinfo
+    # Spara modellinfo (model_version används av backend för ml_model_version vid T2-korrigeringar)
     model_info_path = output_dir / "gps_correction_model_info.json"
+    model_version = datetime.now().strftime("%Y%m%d") + "-" + best_name.replace(" ", "").lower()[:12]
     model_info = {
         "best_model": best_name,
+        "model_version": model_version,
         "test_mae": float(best_model_info["test_mae"]),
         "test_rmse": float(best_model_info["test_rmse"]),
         "test_r2": float(best_model_info["test_r2"]),
@@ -1442,7 +1444,7 @@ def train_ml_model(data: List[Dict]):
     }
     with open(model_info_path, "w", encoding="utf-8") as f:
         json.dump(model_info, f, indent=2, ensure_ascii=False)
-    print(f"  Modellinfo sparad till: {model_info_path}")
+    print(f"  Modellinfo sparad till: {model_info_path} (model_version={model_version})")
 
 
 def visualize_predictions(y_true: np.ndarray, y_pred: np.ndarray, mae: float):

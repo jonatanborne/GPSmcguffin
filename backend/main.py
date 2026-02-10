@@ -602,8 +602,107 @@ def init_db():
             )
         """)
 
+    # FAS 1: audit_log för spårning av korrigeringar och godkännanden
+    if is_postgres:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id SERIAL PRIMARY KEY,
+                position_id INTEGER,
+                track_id INTEGER,
+                action TEXT NOT NULL,
+                old_value JSONB,
+                new_value JSONB,
+                user_id TEXT,
+                timestamp TEXT NOT NULL,
+                FOREIGN KEY (position_id) REFERENCES track_positions(id) ON DELETE SET NULL,
+                FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE SET NULL
+            )
+        """)
+        try:
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_position_id ON audit_log(position_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_track_id ON audit_log(track_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp)")
+        except Exception:
+            pass
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                position_id INTEGER,
+                track_id INTEGER,
+                action TEXT NOT NULL,
+                old_value TEXT,
+                new_value TEXT,
+                user_id TEXT,
+                timestamp TEXT NOT NULL,
+                FOREIGN KEY (position_id) REFERENCES track_positions(id) ON DELETE SET NULL,
+                FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE SET NULL
+            )
+        """)
+        try:
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_position_id ON audit_log(position_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_track_id ON audit_log(track_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp)")
+        except Exception:
+            pass
+
     conn.commit()
     conn.close()
+
+
+def _audit_log(
+    cursor,
+    *,
+    position_id: Optional[int] = None,
+    track_id: Optional[int] = None,
+    action: str,
+    old_value: Optional[dict] = None,
+    new_value: Optional[dict] = None,
+    user_id: Optional[str] = None,
+):
+    """Skriv en rad till audit_log. old_value/new_value serialiseras som JSON."""
+    try:
+        import json
+        ts = datetime.now().isoformat()
+        ph = "%s" if DATABASE_URL else "?"
+        if DATABASE_URL:
+            # Postgres: JSONB
+            execute_query(
+                cursor,
+                """
+                INSERT INTO audit_log (position_id, track_id, action, old_value, new_value, user_id, timestamp)
+                VALUES (""" + ", ".join([ph] * 7) + """)
+                """,
+                (
+                    position_id,
+                    track_id,
+                    action,
+                    json.dumps(old_value) if old_value is not None else None,
+                    json.dumps(new_value) if new_value is not None else None,
+                    user_id,
+                    ts,
+                ),
+            )
+        else:
+            # SQLite: TEXT för JSON
+            execute_query(
+                cursor,
+                """
+                INSERT INTO audit_log (position_id, track_id, action, old_value, new_value, user_id, timestamp)
+                VALUES (""" + ", ".join([ph] * 7) + """)
+                """,
+                (
+                    position_id,
+                    track_id,
+                    action,
+                    json.dumps(old_value) if old_value is not None else None,
+                    json.dumps(new_value) if new_value is not None else None,
+                    user_id,
+                    ts,
+                ),
+            )
+    except Exception as e:
+        print(f"audit_log insert failed: {e}")  # Log but don't fail the request
 
 
 # Initiera databas vid startup (lazy init - försök bara om Postgres är tillgänglig)
@@ -694,6 +793,14 @@ class TrackPositionUpdate(BaseModel):
     clear_correction: bool = False
     annotation_notes: Optional[str] = None
     environment: Optional[str] = None  # Miljö-kategorisering
+
+
+class ApproveMlPayload(BaseModel):
+    """Body för att godkänna ML-korrigering på en position (TestLab: Godkänn ML)."""
+    predicted_lat: float = Field(..., ge=-90, le=90)
+    predicted_lng: float = Field(..., ge=-180, le=180)
+    ml_confidence: Optional[float] = Field(None, ge=0, le=1)
+    ml_model_version: Optional[str] = None
 
 
 class HidingSpotCreate(BaseModel):
@@ -1872,6 +1979,7 @@ def add_position_to_track(track_id: int, payload: TrackPositionAdd):
 
 @app.put("/track-positions/{position_id}", response_model=TrackPosition)
 def update_track_position(position_id: int, payload: TrackPositionUpdate):
+    init_db()
     conn = get_db()
     cursor = get_cursor(conn)
     placeholder = "%s" if DATABASE_URL else "?"
@@ -1946,22 +2054,226 @@ def update_track_position(position_id: int, payload: TrackPositionUpdate):
         return row_to_track_position(row)
 
     params.append(position_id)
+    # Snapshot för audit (före uppdatering)
+    old_snapshot = {
+        "corrected_lat": get_row_value(row, "corrected_lat"),
+        "corrected_lng": get_row_value(row, "corrected_lng"),
+        "truth_level": get_row_value(row, "truth_level"),
+        "correction_source": get_row_value(row, "correction_source"),
+        "verified_status": get_row_value(row, "verified_status"),
+    }
+    track_id_val = get_row_value(row, "track_id")
+
     execute_query(
         cursor,
         f"UPDATE track_positions SET {', '.join(update_fields)} WHERE id = {placeholder}",
         params,
     )
 
-    conn.commit()
     execute_query(
         cursor,
         f"SELECT * FROM track_positions WHERE id = {placeholder}",
         (position_id,),
     )
     updated_row = cursor.fetchone()
+    new_snapshot = {
+        "corrected_lat": get_row_value(updated_row, "corrected_lat"),
+        "corrected_lng": get_row_value(updated_row, "corrected_lng"),
+        "truth_level": get_row_value(updated_row, "truth_level"),
+        "correction_source": get_row_value(updated_row, "correction_source"),
+        "verified_status": get_row_value(updated_row, "verified_status"),
+    }
+    action_name = "clear_correction" if payload.clear_correction else "manual_correction" if payload.corrected_position else "position_update"
+    _audit_log(
+        cursor,
+        position_id=position_id,
+        track_id=track_id_val,
+        action=action_name,
+        old_value=old_snapshot,
+        new_value=new_snapshot,
+    )
+    conn.commit()
     conn.close()
 
     return row_to_track_position(updated_row)
+
+
+@app.post("/track-positions/{position_id}/approve-ml", response_model=TrackPosition)
+@app.post("/api/track-positions/{position_id}/approve-ml", response_model=TrackPosition)
+def approve_ml_correction(position_id: int, payload: ApproveMlPayload):
+    """
+    Godkänn ML-korrigering för en position (sätt corrected_lat/lng från ML-förutsägelse, T2, correction_source='ml').
+    Anropas från TestLab när användaren klickar "Godkänn ML".
+    """
+    init_db()
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(
+        cursor,
+        f"SELECT * FROM track_positions WHERE id = {placeholder}",
+        (position_id,),
+    )
+    row = cursor.fetchone()
+    if row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Position not found")
+    track_id_val = get_row_value(row, "track_id")
+    old_snapshot = {
+        "corrected_lat": get_row_value(row, "corrected_lat"),
+        "corrected_lng": get_row_value(row, "corrected_lng"),
+        "truth_level": get_row_value(row, "truth_level"),
+        "correction_source": get_row_value(row, "correction_source"),
+    }
+    execute_query(
+        cursor,
+        f"""
+        UPDATE track_positions
+        SET corrected_lat = {placeholder}, corrected_lng = {placeholder}, corrected_at = {placeholder},
+            truth_level = 'T2', correction_source = 'ml',
+            ml_confidence = {placeholder}, ml_model_version = {placeholder}
+        WHERE id = {placeholder}
+        """,
+        (
+            payload.predicted_lat,
+            payload.predicted_lng,
+            datetime.now().isoformat(),
+            payload.ml_confidence,
+            payload.ml_model_version,
+            position_id,
+        ),
+    )
+    _audit_log(
+        cursor,
+        position_id=position_id,
+        track_id=track_id_val,
+        action="approve_ml",
+        old_value=old_snapshot,
+        new_value={
+            "corrected_lat": payload.predicted_lat,
+            "corrected_lng": payload.predicted_lng,
+            "truth_level": "T2",
+            "correction_source": "ml",
+            "ml_confidence": payload.ml_confidence,
+            "ml_model_version": payload.ml_model_version,
+        },
+    )
+    conn.commit()
+    execute_query(cursor, f"SELECT * FROM track_positions WHERE id = {placeholder}", (position_id,))
+    updated_row = cursor.fetchone()
+    conn.close()
+    return row_to_track_position(updated_row)
+
+
+@app.post("/track-positions/{position_id}/reject-ml", response_model=TrackPosition)
+@app.post("/api/track-positions/{position_id}/reject-ml", response_model=TrackPosition)
+def reject_ml_correction(position_id: int):
+    """
+    Underkänn/återställ ML-korrigering för en position (rensa corrected_lat/lng, T3, correction_source='none').
+    Anropas från TestLab när användaren klickar "Underkänn ML". Endast meningsfullt om positionen har ML-korrigering.
+    """
+    init_db()
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(
+        cursor,
+        f"SELECT * FROM track_positions WHERE id = {placeholder}",
+        (position_id,),
+    )
+    row = cursor.fetchone()
+    if row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Position not found")
+    track_id_val = get_row_value(row, "track_id")
+    old_snapshot = {
+        "corrected_lat": get_row_value(row, "corrected_lat"),
+        "corrected_lng": get_row_value(row, "corrected_lng"),
+        "truth_level": get_row_value(row, "truth_level"),
+        "correction_source": get_row_value(row, "correction_source"),
+    }
+    execute_query(
+        cursor,
+        f"""
+        UPDATE track_positions
+        SET corrected_lat = NULL, corrected_lng = NULL, corrected_at = NULL,
+            truth_level = 'T3', correction_source = 'none',
+            ml_confidence = NULL, ml_model_version = NULL
+        WHERE id = {placeholder}
+        """,
+        (position_id,),
+    )
+    _audit_log(
+        cursor,
+        position_id=position_id,
+        track_id=track_id_val,
+        action="reject_ml",
+        old_value=old_snapshot,
+        new_value={
+            "corrected_lat": None,
+            "corrected_lng": None,
+            "truth_level": "T3",
+            "correction_source": "none",
+        },
+    )
+    conn.commit()
+    execute_query(cursor, f"SELECT * FROM track_positions WHERE id = {placeholder}", (position_id,))
+    updated_row = cursor.fetchone()
+    conn.close()
+    return row_to_track_position(updated_row)
+
+
+@app.get("/tracks/{track_id}/audit-log")
+@app.get("/api/tracks/{track_id}/audit-log")
+def get_audit_log(track_id: int, limit: int = 100):
+    """Hämta audit trail för ett spår (senaste ändringar först)."""
+    init_db()
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
+    if cursor.fetchone() is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Track not found")
+    execute_query(
+        cursor,
+        f"""
+        SELECT id, position_id, track_id, action, old_value, new_value, user_id, timestamp
+        FROM audit_log
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp DESC
+        LIMIT {min(limit, 500)}
+        """,
+        (track_id,),
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    # Normalisera old_value/new_value (Postgres JSONB kommer som dict, SQLite som str)
+    out = []
+    for r in rows:
+        old_v = get_row_value(r, "old_value")
+        new_v = get_row_value(r, "new_value")
+        if isinstance(old_v, str):
+            try:
+                old_v = json.loads(old_v) if old_v else None
+            except Exception:
+                pass
+        if isinstance(new_v, str):
+            try:
+                new_v = json.loads(new_v) if new_v else None
+            except Exception:
+                pass
+        out.append({
+            "id": get_row_value(r, "id"),
+            "position_id": get_row_value(r, "position_id"),
+            "track_id": get_row_value(r, "track_id"),
+            "action": get_row_value(r, "action"),
+            "old_value": old_v,
+            "new_value": new_v,
+            "user_id": get_row_value(r, "user_id"),
+            "timestamp": get_row_value(r, "timestamp"),
+        })
+    return out
 
 
 def fetch_track_positions(
@@ -2825,6 +3137,38 @@ def _load_ml_pkl(path: Path):
         return pickle.load(f)
 
 
+def _predict_with_confidence(model, X_scaled, *, use_tree_std=True):
+    """
+    Förutsäg korrigeringsavstånd och confidence (0–1) från modellen.
+    X_scaled: shape (1, n_features). Returnerar (prediction_meters, confidence).
+    För ensemble-modeller (RandomForest, ExtraTrees, GradientBoosting) används
+    standardavvikelsen över trädens förutsägelser som osäkerhet: lägre std → högre confidence.
+    """
+    import numpy as np
+
+    pred = float(model.predict(X_scaled)[0])
+    confidence = 0.5  # fallback om vi inte kan beräkna från modellen
+
+    if use_tree_std and hasattr(model, "estimators_") and getattr(model, "estimators_", None) is not None:
+        try:
+            ests = model.estimators_
+            if len(ests) > 0:
+                # RandomForest / ExtraTrees: estimators_ är lista av träd
+                first = ests[0]
+                if hasattr(first, "predict"):
+                    tree_preds = np.array([float(t.predict(X_scaled)[0]) for t in ests])
+                else:
+                    # GradientBoosting: estimators_ är array av [träd] per steg
+                    tree_preds = np.array([float(e[0].predict(X_scaled)[0]) for e in ests])
+                std_meters = float(np.std(tree_preds))
+                # confidence: hög std → låg confidence. 1/(1+2*std) ger std=0→1, std≈0.5→0.5
+                confidence = min(1.0, max(0.0, 1.0 / (1.0 + 2.0 * std_meters)))
+        except Exception:
+            pass
+
+    return pred, confidence
+
+
 @app.get("/ml/debug")
 @app.get("/api/ml/debug")
 def ml_debug():
@@ -3057,6 +3401,17 @@ def apply_ml_correction(track_id: int):
                 status_code=404, detail="Inga positioner hittades för spåret"
             )
 
+        # Modellversion (en gång per anrop)
+        model_version = "unknown"
+        try:
+            model_info_path = ml_dir / "gps_correction_model_info.json"
+            if model_info_path.exists():
+                with open(model_info_path, "r", encoding="utf-8") as f:
+                    model_info = json.load(f)
+                    model_version = model_info.get("model_version") or model_info.get("best_model") or "unknown"
+        except Exception:
+            pass
+
         # Förbered features för varje position
         corrected_count = 0
 
@@ -3190,31 +3545,12 @@ def apply_ml_correction(track_id: int):
                 [accuracy * speed, accuracy * distance_prev_1, speed * distance_prev_1]
             )
 
-            # Förutsäg korrigeringsavstånd
+            # Förutsäg korrigeringsavstånd och confidence (ensemble tree std → osäkerhet)
             X = np.array([features])
             X_scaled = scaler.transform(X)
-            predicted_correction = model.predict(X_scaled)[0]
-
-            # FAS 1: Beräkna confidence score (förenklad - använd prediction variance)
-            # För nu använder vi en enkel heuristik baserad på predicted_correction
-            # Högre predicted_correction = högre confidence (tills vidare)
-            # TODO: Implementera riktig confidence-beräkning med ensemble eller prediction intervals
-            confidence = min(
-                1.0, max(0.0, predicted_correction / 10.0)
-            )  # Normalisera till 0-1
-
-            # Hämta modellversion (försök läsa från model_info)
-            model_version = "unknown"
-            try:
-                model_info_path = ml_dir / "gps_correction_model_info.json"
-                if model_info_path.exists():
-                    import json
-
-                    with open(model_info_path, "r", encoding="utf-8") as f:
-                        model_info = json.load(f)
-                        model_version = model_info.get("model_version", "unknown")
-            except Exception:
-                pass
+            predicted_correction, confidence = _predict_with_confidence(
+                model, X_scaled, use_tree_std=True
+            )
 
             # Beräkna korrigerad position (förenklad - använd riktning från bearing)
             # I verkligheten skulle vi behöva mer sofistikerad logik
@@ -3257,6 +3593,20 @@ def apply_ml_correction(track_id: int):
                             model_version,
                             pos_id,
                         ),
+                    )
+                    _audit_log(
+                        cursor,
+                        position_id=pos_id,
+                        track_id=track_id,
+                        action="ml_correction",
+                        new_value={
+                            "corrected_lat": corrected_lat,
+                            "corrected_lng": corrected_lng,
+                            "truth_level": "T2",
+                            "correction_source": "ml",
+                            "ml_confidence": confidence,
+                            "ml_model_version": model_version,
+                        },
                     )
                     corrected_count += 1
 
@@ -3860,7 +4210,9 @@ def predict_ml_corrections(track_id: int):
             # Förutsäg korrigeringsavstånd
             X = np.array([features])
             X_scaled = scaler.transform(X)
-            predicted_correction_distance = model.predict(X_scaled)[0]
+            predicted_correction_distance, ml_confidence = _predict_with_confidence(
+                model, X_scaled, use_tree_std=True
+            )
 
             # Spara förutsägelsen för rolling statistics i nästa iteration
             predicted_corrections_history.append(predicted_correction_distance)
@@ -3927,6 +4279,7 @@ def predict_ml_corrections(track_id: int):
                     "predicted_correction_distance_meters": float(
                         predicted_correction_distance
                     ),
+                    "ml_confidence": float(ml_confidence),
                     "predicted_corrected_position": {
                         "lat": float(predicted_corr_lat),
                         "lng": float(predicted_corr_lng),
@@ -4648,7 +5001,9 @@ def predict_ml_corrections_multiple(
                 # Förutsäg korrigeringsavstånd
                 X = np.array([features])
                 X_scaled = scaler.transform(X)
-                predicted_correction_distance = model.predict(X_scaled)[0]
+                predicted_correction_distance, ml_confidence = _predict_with_confidence(
+                    model, X_scaled, use_tree_std=True
+                )
 
                 # Spara förutsägelsen för rolling statistics
                 predicted_corrections_history.append(predicted_correction_distance)
@@ -4720,6 +5075,7 @@ def predict_ml_corrections_multiple(
                         "predicted_correction_distance_meters": float(
                             predicted_correction_distance
                         ),
+                        "ml_confidence": float(ml_confidence),
                         "predicted_corrected_position": {
                             "lat": float(predicted_corr_lat),
                             "lng": float(predicted_corr_lng),

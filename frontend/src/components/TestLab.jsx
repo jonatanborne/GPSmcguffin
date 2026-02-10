@@ -100,6 +100,11 @@ const TestLab = () => {
     const [mlComparisonMode, setMlComparisonMode] = useState(false) // Visa både manuell och ML-korrigering
     const mlPredictionLayerRef = useRef(null) // Layer för ML-förutsägelser på kartan
 
+    // Audit trail (FAS 1: TestLab ML vs manuell + audit)
+    const [auditLogOpen, setAuditLogOpen] = useState(false)
+    const [auditLogEntries, setAuditLogEntries] = useState([])
+    const [loadingAudit, setLoadingAudit] = useState(false)
+
     const selectedPosition = useMemo(
         () => {
             if (!selectedPositionId || !selectedPositionTrackType) return null
@@ -1379,7 +1384,7 @@ const TestLab = () => {
         return mlPredictions.predictions.find(p => p.position_id === positionId)
     }
 
-    // ML-integration: Acceptera ML-förutsägelse för vald position
+    // ML-integration: Godkänn ML (approve-ml endpoint – sätter correction_source='ml', T2)
     const handleAcceptMLPrediction = async () => {
         if (!selectedPositionId || !selectedPosition) return
 
@@ -1390,19 +1395,73 @@ const TestLab = () => {
             return
         }
 
-        await saveAnnotation(selectedPositionId, {
-            verified_status: 'correct',
-            corrected_position: mlPred.predicted_corrected_position,
-            annotation_notes: notes,
-            environment: environment || null,
-        }, 'ML-förutsägelse accepterad och sparad.')
+        setLoading(true)
+        setError(null)
+        try {
+            const { lat: predicted_lat, lng: predicted_lng } = mlPred.predicted_corrected_position
+            await axios.post(`${API_BASE}/track-positions/${selectedPositionId}/approve-ml`, {
+                predicted_lat,
+                predicted_lng,
+                ml_confidence: mlPred.ml_confidence ?? null,
+                ml_model_version: null,
+            })
+            setMessage('Godkänd ML-korrigering sparad (T2).')
+            setTimeout(() => setMessage(null), 3000)
+            if (humanTrackId) await fetchTrack(humanTrackId, 'human')
+            if (dogTrackId) await fetchTrack(dogTrackId, 'dog')
+            const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+            const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
+            if (currentIndex < positions.length - 1) {
+                const nextPosition = positions[currentIndex + 1]
+                handleSelectPosition(nextPosition.id, selectedPositionTrackType, batchAdjustMode)
+            }
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Kunde inte godkänna ML-korrigering.')
+            setTimeout(() => setError(null), 5000)
+        } finally {
+            setLoading(false)
+        }
+    }
 
-        // Gå till nästa position
-        const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
-        const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
-        if (currentIndex < positions.length - 1) {
-            const nextPosition = positions[currentIndex + 1]
-            handleSelectPosition(nextPosition.id, selectedPositionTrackType, batchAdjustMode)
+    // ML-integration: Underkänn ML (reject-ml – återställ till rå GPS, T3)
+    const handleRejectMLCorrection = async () => {
+        if (!selectedPositionId) return
+        setLoading(true)
+        setError(null)
+        try {
+            await axios.post(`${API_BASE}/track-positions/${selectedPositionId}/reject-ml`)
+            setMessage('ML-korrigering borttagen (position återställd till rå GPS).')
+            setTimeout(() => setMessage(null), 3000)
+            if (humanTrackId) await fetchTrack(humanTrackId, 'human')
+            if (dogTrackId) await fetchTrack(dogTrackId, 'dog')
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Kunde inte underkänna ML-korrigering.')
+            setTimeout(() => setError(null), 5000)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Hämta audit trail för valda spår (körs när användaren öppnar panelen)
+    const fetchAuditLog = async () => {
+        const ids = [humanTrackId, dogTrackId].filter(Boolean).map(Number)
+        if (ids.length === 0) {
+            setAuditLogEntries([])
+            return
+        }
+        setLoadingAudit(true)
+        try {
+            const results = await Promise.all(
+                ids.map(id => axios.get(`${API_BASE}/tracks/${id}/audit-log`, { params: { limit: 100 } }).then(r => r.data))
+            )
+            const merged = results.flat()
+            merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            setAuditLogEntries(merged)
+        } catch (err) {
+            console.error('Audit log fetch failed:', err)
+            setAuditLogEntries([])
+        } finally {
+            setLoadingAudit(false)
         }
     }
 
@@ -2398,6 +2457,52 @@ const TestLab = () => {
                         </div>
                     )}
 
+                    {/* Audit trail (FAS 1) */}
+                    {(humanTrackId || dogTrackId) && (
+                        <div className="bg-white border border-slate-200 rounded p-3 text-xs">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const willOpen = !auditLogOpen
+                                    setAuditLogOpen(willOpen)
+                                    if (willOpen) fetchAuditLog()
+                                }}
+                                className="w-full flex items-center justify-between font-semibold text-slate-700 hover:bg-slate-50 rounded py-1"
+                            >
+                                📋 Audit trail
+                                <span className="text-slate-400">{auditLogOpen ? '▼' : '▶'}</span>
+                            </button>
+                            {auditLogOpen && (
+                                <div className="mt-2 pt-2 border-t border-slate-200">
+                                    {loadingAudit ? (
+                                        <div className="text-slate-500 text-[10px]">Laddar...</div>
+                                    ) : auditLogEntries.length === 0 ? (
+                                        <div className="text-slate-500 text-[10px]">Inga loggade ändringar för valda spår.</div>
+                                    ) : (
+                                        <ul className="space-y-1.5 max-h-48 overflow-y-auto text-[10px]">
+                                            {auditLogEntries.map((entry) => (
+                                                <li key={entry.id} className="bg-slate-50 rounded px-2 py-1.5 border border-slate-100">
+                                                    <span className="font-semibold text-slate-700">{entry.action}</span>
+                                                    {entry.position_id != null && <span className="text-slate-500"> pos {entry.position_id}</span>}
+                                                    <div className="text-slate-500">{new Date(entry.timestamp).toLocaleString()}</div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                    {auditLogOpen && auditLogEntries.length > 0 && !loadingAudit && (
+                                        <button
+                                            type="button"
+                                            onClick={fetchAuditLog}
+                                            className="mt-2 text-[10px] text-blue-600 hover:underline"
+                                        >
+                                            Uppdatera
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Snapping-inställningar - endast när båda spår är valda */}
                     {humanTrack && dogTrack && (
                         <div className="bg-white border border-slate-200 rounded p-3 space-y-2 text-xs">
@@ -2724,16 +2829,25 @@ const TestLab = () => {
                                                     )}
                                                 </div>
 
-                                                <div className="mt-2 pt-2 border-t border-blue-200">
+                                                <div className="mt-2 pt-2 border-t border-blue-200 flex flex-col gap-1.5">
                                                     <button
                                                         onClick={handleAcceptMLPrediction}
                                                         disabled={loading}
                                                         className="w-full px-2 py-1 rounded bg-blue-600 text-white text-[10px] font-semibold hover:bg-blue-700 disabled:bg-blue-300 transition"
                                                     >
-                                                        ✅ Acceptera ML-förutsägelse (SPARAR)
+                                                        ✅ Godkänn ML
                                                     </button>
-                                                    <div className="text-[8px] text-blue-500 mt-1 text-center">
-                                                        Detta sparar ML-korrigeringen i databasen
+                                                    {selectedPosition?.correction_source === 'ml' && (
+                                                        <button
+                                                            onClick={handleRejectMLCorrection}
+                                                            disabled={loading}
+                                                            className="w-full px-2 py-1 rounded bg-slate-500 text-white text-[10px] font-semibold hover:bg-slate-600 disabled:bg-slate-300 transition"
+                                                        >
+                                                            ❌ Underkänn ML
+                                                        </button>
+                                                    )}
+                                                    <div className="text-[8px] text-blue-500 text-center">
+                                                        Godkänn ML sparar som T2; Underkänn återställer till rå GPS.
                                                     </div>
                                                 </div>
                                             </div>
