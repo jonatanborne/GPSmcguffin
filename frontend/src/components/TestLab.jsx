@@ -91,7 +91,20 @@ const TestLab = () => {
     const [renamingTracks, setRenamingTracks] = useState(false) // Track renaming status
     const [localTilesAvailable, setLocalTilesAvailable] = useState(false) // Om lokala tiles finns
     const [tileSize, setTileSize] = useState(512) // Standard tile-storlek (förstoringsfaktor 2)
-    const [tileSource, setTileSource] = useState('esri_satellite') // Källa: esri_satellite (bäst upplösning), esri_street, cartodb_light
+    const [tileSource, setTileSource] = useState(() => {
+        try {
+            return localStorage.getItem('testlab_tile_source') || 'esri_satellite'
+        } catch {
+            return 'esri_satellite'
+        }
+    })
+
+    // Spara tileSource till localStorage när den ändras
+    useEffect(() => {
+        try {
+            localStorage.setItem('testlab_tile_source', tileSource)
+        } catch { /* ignorerar */ }
+    }, [tileSource])
     const [statusFilter, setStatusFilter] = useState('all') // Filter för status: 'all', 'pending', 'correct', 'incorrect'
 
     // ML-integration state
@@ -222,10 +235,13 @@ const TestLab = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // Piltangents-navigering i separat useEffect
+    // Piltangenter + snabbkommandon C/F för annotering
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (!selectedPositionId || !selectedPositionTrackType) return
+            // Ignorera om användaren skriver i input/textarea
+            const tag = (e.target?.tagName || '').toUpperCase()
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
 
             const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
             const currentIndex = positions.findIndex(p => p.id === selectedPositionId)
@@ -238,6 +254,31 @@ const TestLab = () => {
                 e.preventDefault()
                 const nextPosition = positions[currentIndex + 1]
                 handleSelectPosition(nextPosition.id, selectedPositionTrackType, batchAdjustMode)
+            } else if ((e.key === 'c' || e.key === 'C' || e.key === '1') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault()
+                handleMarkCorrect()
+            } else if ((e.key === 'f' || e.key === 'F' || e.key === '2') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault()
+                handleMarkIncorrect(true)
+            } else if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault()
+                // Hoppa till nästa ej märkt
+                const nextPendingIndex = positions.findIndex((p, idx) =>
+                    idx > currentIndex && (p.verified_status || 'pending') === 'pending'
+                )
+                if (nextPendingIndex !== -1) {
+                    const nextPendingPosition = positions[nextPendingIndex]
+                    handleSelectPosition(nextPendingPosition.id, selectedPositionTrackType, batchAdjustMode)
+                } else {
+                    const firstPendingIndex = positions.findIndex(p => (p.verified_status || 'pending') === 'pending')
+                    if (firstPendingIndex !== -1 && firstPendingIndex !== currentIndex) {
+                        const firstPendingPosition = positions[firstPendingIndex]
+                        handleSelectPosition(firstPendingPosition.id, selectedPositionTrackType, batchAdjustMode)
+                    } else {
+                        setMessage('Inga fler ej märkta positioner.')
+                        setTimeout(() => setMessage(null), 2000)
+                    }
+                }
             }
         }
 
@@ -1313,13 +1354,25 @@ const TestLab = () => {
         }
     }
 
-    const handleMarkIncorrect = () => {
-        if (!selectedPositionId) return
-        saveAnnotation(selectedPositionId, {
+    const handleMarkIncorrect = async (goToNext = false) => {
+        if (!selectedPositionId || !selectedPosition || !selectedPositionTrackType) return
+        await saveAnnotation(selectedPositionId, {
             verified_status: 'incorrect',
             annotation_notes: notes,
             environment: environment || null,
         }, 'Markerad som fel.')
+
+        if (goToNext) {
+            const positions = selectedPositionTrackType === 'human' ? humanPositions : dogPositions
+            const currentIndex = positions.findIndex(p => p.id === selectedPosition.id)
+            const hasNext = currentIndex < positions.length - 1
+            if (hasNext) {
+                const nextPosition = positions[currentIndex + 1]
+                handleSelectPosition(nextPosition.id, selectedPositionTrackType, true)
+            } else {
+                setIsAdjusting(false)
+            }
+        }
     }
 
     const handleResetCorrection = () => {
@@ -2716,7 +2769,10 @@ const TestLab = () => {
                                             ({selectedPositionTrackType === 'human' ? 'Människaspår' : 'Hundspår'})
                                         </span>
                                     </div>
-                                        <div className="mt-2 space-y-1">
+                                    <div className="text-[10px] text-slate-500 mt-1">
+                                        ⌨️ C=Korrekt · F=Fel · N=nästa ej märkt · ←→ navigera
+                                    </div>
+                                    <div className="mt-2 space-y-1">
                                         <div className="text-slate-600 text-[11px] flex flex-wrap items-center gap-2">
                                             <span><span className="font-medium">Status:</span>{' '}
                                             <span
