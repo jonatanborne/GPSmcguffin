@@ -1625,9 +1625,75 @@ def delete_track(track_id: int):
     return {"deleted": track_id}
 
 
+def _db_rows_to_pipeline_format(rows, lat_key="position_lat", lng_key="position_lng"):
+    """Konvertera DB-rader (position_lat, position_lng, timestamp, accuracy) till format för gps_filter."""
+    out = []
+    for r in rows:
+        lat = r.get(lat_key) or r.get("position_lat")
+        lng = r.get(lng_key) or r.get("position_lng")
+        if lat is None or lng is None:
+            continue
+        out.append({
+            "position": {"lat": float(lat), "lng": float(lng)},
+            "timestamp": r.get("timestamp"),
+            "accuracy": r.get("accuracy"),
+        })
+    return out
+
+
+def _smoothed_positions_to_compare_points(smoothed_positions):
+    """Extrahera lat/lng från pipeline-utdata (använd smoothed_position om finns)."""
+    points = []
+    for p in smoothed_positions:
+        coords = p.get("smoothed_position") or p.get("position")
+        if not coords:
+            continue
+        points.append({
+            "lat": coords["lat"],
+            "lng": coords["lng"],
+            "timestamp": p.get("timestamp"),
+        })
+    return points
+
+
+def _compute_compare_stats_from_points(human_points, dog_points, max_match_m=200.0):
+    """Beräkna avståndsstatistik och match_percentage från två listor med {lat, lng}."""
+    distances = []
+    for hp in human_points:
+        human_pos = LatLng(lat=hp["lat"], lng=hp["lng"])
+        min_distance = float("inf")
+        for dp in dog_points:
+            dog_pos = LatLng(lat=dp["lat"], lng=dp["lng"])
+            dist = haversine_meters(human_pos, dog_pos)
+            if dist < min_distance:
+                min_distance = dist
+        if min_distance <= max_match_m:
+            distances.append(min_distance)
+        else:
+            distances.append(max_match_m)
+    if not distances:
+        return {"average_meters": 0.0, "max_meters": 0.0, "match_percentage": 0.0}
+    avg_distance = sum(distances) / len(distances)
+    max_distance = max(distances)
+    if avg_distance <= 10:
+        match_percentage = 100 - (avg_distance * 2)
+    elif avg_distance <= 50:
+        match_percentage = 80 - ((avg_distance - 10) * 1.5)
+    elif avg_distance <= 100:
+        match_percentage = 20 - ((avg_distance - 50) * 0.4)
+    else:
+        match_percentage = 0
+    match_percentage = max(0, min(100, match_percentage))
+    return {
+        "average_meters": round(avg_distance, 2),
+        "max_meters": round(max_distance, 2),
+        "match_percentage": round(match_percentage, 1),
+    }
+
+
 @app.get("/tracks/{track_id}/compare")
 def compare_tracks(track_id: int):
-    """Jämför ett hundspår med sitt människaspår och returnera statistik"""
+    """Jämför ett hundspår med sitt människaspår. Använder GPS-smoothing/filtering för renare data."""
     conn = get_db()
     cursor = get_cursor(conn)
 
@@ -1639,12 +1705,10 @@ def compare_tracks(track_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Track not found")
 
-    # Kontrollera att det är ett hundspår
     if dog_track_row["track_type"] != "dog":
         conn.close()
         raise HTTPException(status_code=400, detail="Track must be a dog track")
 
-    # Hämta människans track
     human_track_id = (
         dog_track_row["human_track_id"]
         if "human_track_id" in dog_track_row.keys()
@@ -1664,11 +1728,11 @@ def compare_tracks(track_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Human track not found")
 
-    # Hämta hundens positioner
+    # Hämta positioner inkl. accuracy för GPS-filter
     execute_query(
         cursor,
         f"""
-        SELECT position_lat, position_lng, timestamp
+        SELECT position_lat, position_lng, timestamp, accuracy
         FROM track_positions
         WHERE track_id = {placeholder}
         ORDER BY timestamp
@@ -1677,11 +1741,10 @@ def compare_tracks(track_id: int):
     )
     dog_positions = cursor.fetchall()
 
-    # Hämta människans positioner
     execute_query(
         cursor,
         f"""
-        SELECT position_lat, position_lng, timestamp
+        SELECT position_lat, position_lng, timestamp, accuracy
         FROM track_positions
         WHERE track_id = {placeholder}
         ORDER BY timestamp
@@ -1690,7 +1753,6 @@ def compare_tracks(track_id: int):
     )
     human_positions = cursor.fetchall()
 
-    # Hämta hiding spots och deras status
     execute_query(
         cursor,
         f"""
@@ -1704,52 +1766,35 @@ def compare_tracks(track_id: int):
 
     conn.close()
 
-    # Beräkna avståndsstatistik
-    # Förbättrad algoritm: matcha varje människposition med närmaste hundposition
-    # baserat på geografiskt avstånd (inte bara tidsstämplar)
-    # Detta hanterar bättre när hundens spår är förskjutet i tid eller har annan hastighet
+    # Rå punkter för jämförelse (behåll för raw_stats)
+    human_raw = [{"lat": hp["position_lat"], "lng": hp["position_lng"]} for hp in human_positions]
+    dog_raw = [{"lat": dp["position_lat"], "lng": dp["position_lng"]} for dp in dog_positions]
 
-    distances = []
-    unmatched_human_positions = 0
+    # GPS-smoothing & filtering – använd för huvudsaklig jämförelse
+    from utils.gps_filter import apply_full_filter_pipeline
 
-    for hp in human_positions:
-        human_pos = LatLng(lat=hp["position_lat"], lng=hp["position_lng"])
+    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
+    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
 
-        # Hitta närmaste hundposition baserat på geografiskt avstånd
-        min_distance = float("inf")
-        for dp in dog_positions:
-            dog_pos = LatLng(lat=dp["position_lat"], lng=dp["position_lng"])
-            dist = haversine_meters(human_pos, dog_pos)
-            if dist < min_distance:
-                min_distance = dist
+    filter_stats = {"human": None, "dog": None}
+    human_smoothed = human_raw
+    dog_smoothed = dog_raw
 
-        # Om närmaste hundposition är för långt bort (>200m), räkna som omatchad
-        # Annars lägg till avståndet
-        if min_distance <= 200:
-            distances.append(min_distance)
-        else:
-            unmatched_human_positions += 1
-            # Räkna stora avvikelser som 200m för att straffa omatchade positioner
-            distances.append(200.0)
+    if human_pipeline_input and dog_pipeline_input:
+        res_h = apply_full_filter_pipeline(
+            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
+        )
+        res_d = apply_full_filter_pipeline(
+            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
+        )
+        filter_stats["human"] = res_h.get("improvement_stats")
+        filter_stats["dog"] = res_d.get("improvement_stats")
+        human_smoothed = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
+        dog_smoothed = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
 
-    # Beräkna statistik
-    avg_distance = sum(distances) / len(distances) if distances else 0
-    max_distance = max(distances) if distances else 0
+    distance_stats_smoothed = _compute_compare_stats_from_points(human_smoothed, dog_smoothed)
+    distance_stats_raw = _compute_compare_stats_from_points(human_raw, dog_raw)
 
-    # Beräkna procentuell matchning
-    # 0-10m = 100%, 10-50m = 90-50%, 50-100m = 50-0%, >100m = 0%
-    if avg_distance <= 10:
-        match_percentage = 100 - (avg_distance * 2)  # 0-10m: 100-80%
-    elif avg_distance <= 50:
-        match_percentage = 80 - ((avg_distance - 10) * 1.5)  # 10-50m: 80-20%
-    elif avg_distance <= 100:
-        match_percentage = 20 - ((avg_distance - 50) * 0.4)  # 50-100m: 20-0%
-    else:
-        match_percentage = 0
-
-    match_percentage = max(0, min(100, match_percentage))
-
-    # Räkna hiding spots statistik
     total_spots = len(hiding_spots)
     found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
     missed_spots = sum(1 for spot in hiding_spots if spot["found"] is False)
@@ -1768,11 +1813,11 @@ def compare_tracks(track_id: int):
             "created_at": dog_track_row["created_at"],
             "position_count": len(dog_positions),
         },
-        "distance_stats": {
-            "average_meters": round(avg_distance, 2),
-            "max_meters": round(max_distance, 2),
-        },
-        "match_percentage": round(match_percentage, 1),
+        "distance_stats": distance_stats_smoothed,
+        "distance_stats_raw": distance_stats_raw,
+        "match_percentage": distance_stats_smoothed["match_percentage"],
+        "match_percentage_raw": distance_stats_raw["match_percentage"],
+        "gps_filter": filter_stats,
         "hiding_spots": {
             "total": total_spots,
             "found": found_spots,
@@ -1817,11 +1862,11 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
         conn.close()
         raise HTTPException(status_code=400, detail="Second track must be a dog track")
 
-    # Hämta människans positioner
+    # Hämta människans positioner (inkl. accuracy för GPS-filter)
     execute_query(
         cursor,
         f"""
-        SELECT position_lat, position_lng, timestamp
+        SELECT position_lat, position_lng, timestamp, accuracy
         FROM track_positions
         WHERE track_id = {placeholder}
         ORDER BY timestamp
@@ -1830,11 +1875,11 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
     )
     human_positions = cursor.fetchall()
 
-    # Hämta hundens positioner
+    # Hämta hundens positioner (inkl. accuracy för GPS-filter)
     execute_query(
         cursor,
         f"""
-        SELECT position_lat, position_lng, timestamp
+        SELECT position_lat, position_lng, timestamp, accuracy
         FROM track_positions
         WHERE track_id = {placeholder}
         ORDER BY timestamp
@@ -1857,52 +1902,33 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
 
     conn.close()
 
-    # Beräkna avståndsstatistik
-    # Förbättrad algoritm: matcha varje människposition med närmaste hundposition
-    # baserat på geografiskt avstånd (inte bara tidsstämplar)
-    # Detta hanterar bättre när hundens spår är förskjutet i tid eller har annan hastighet
+    human_raw = [{"lat": hp["position_lat"], "lng": hp["position_lng"]} for hp in human_positions]
+    dog_raw = [{"lat": dp["position_lat"], "lng": dp["position_lng"]} for dp in dog_positions]
 
-    distances = []
-    unmatched_human_positions = 0
+    from utils.gps_filter import apply_full_filter_pipeline
 
-    for hp in human_positions:
-        human_pos = LatLng(lat=hp["position_lat"], lng=hp["position_lng"])
+    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
+    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
 
-        # Hitta närmaste hundposition baserat på geografiskt avstånd
-        min_distance = float("inf")
-        for dp in dog_positions:
-            dog_pos = LatLng(lat=dp["position_lat"], lng=dp["position_lng"])
-            dist = haversine_meters(human_pos, dog_pos)
-            if dist < min_distance:
-                min_distance = dist
+    filter_stats = {"human": None, "dog": None}
+    human_smoothed = human_raw
+    dog_smoothed = dog_raw
 
-        # Om närmaste hundposition är för långt bort (>200m), räkna som omatchad
-        # Annars lägg till avståndet
-        if min_distance <= 200:
-            distances.append(min_distance)
-        else:
-            unmatched_human_positions += 1
-            # Räkna stora avvikelser som 200m för att straffa omatchade positioner
-            distances.append(200.0)
+    if human_pipeline_input and dog_pipeline_input:
+        res_h = apply_full_filter_pipeline(
+            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
+        )
+        res_d = apply_full_filter_pipeline(
+            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
+        )
+        filter_stats["human"] = res_h.get("improvement_stats")
+        filter_stats["dog"] = res_d.get("improvement_stats")
+        human_smoothed = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
+        dog_smoothed = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
 
-    # Beräkna statistik
-    avg_distance = sum(distances) / len(distances) if distances else 0
-    max_distance = max(distances) if distances else 0
+    distance_stats_smoothed = _compute_compare_stats_from_points(human_smoothed, dog_smoothed)
+    distance_stats_raw = _compute_compare_stats_from_points(human_raw, dog_raw)
 
-    # Beräkna procentuell matchning
-    # 0-10m = 100%, 10-50m = 90-50%, 50-100m = 50-0%, >100m = 0%
-    if avg_distance <= 10:
-        match_percentage = 100 - (avg_distance * 2)  # 0-10m: 100-80%
-    elif avg_distance <= 50:
-        match_percentage = 80 - ((avg_distance - 10) * 1.5)  # 10-50m: 80-20%
-    elif avg_distance <= 100:
-        match_percentage = 20 - ((avg_distance - 50) * 0.4)  # 50-100m: 20-0%
-    else:
-        match_percentage = 0
-
-    match_percentage = max(0, min(100, match_percentage))
-
-    # Räkna hiding spots statistik
     total_spots = len(hiding_spots)
     found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
     missed_spots = sum(1 for spot in hiding_spots if spot["found"] is False)
@@ -1921,11 +1947,11 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
             "created_at": dog_track_row["created_at"],
             "position_count": len(dog_positions),
         },
-        "distance_stats": {
-            "average_meters": round(avg_distance, 2),
-            "max_meters": round(max_distance, 2),
-        },
-        "match_percentage": round(match_percentage, 1),
+        "distance_stats": distance_stats_smoothed,
+        "distance_stats_raw": distance_stats_raw,
+        "match_percentage": distance_stats_smoothed["match_percentage"],
+        "match_percentage_raw": distance_stats_raw["match_percentage"],
+        "gps_filter": filter_stats,
         "hiding_spots": {
             "total": total_spots,
             "found": found_spots,
@@ -1979,11 +2005,11 @@ def compare_tracks_segments(track_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Human track not found")
 
-    # Hämta positioner
+    # Hämta positioner (inkl. accuracy för GPS-filter)
     execute_query(
         cursor,
         f"""
-        SELECT position_lat, position_lng, timestamp
+        SELECT position_lat, position_lng, timestamp, accuracy
         FROM track_positions
         WHERE track_id = {placeholder}
         ORDER BY timestamp
@@ -1995,7 +2021,7 @@ def compare_tracks_segments(track_id: int):
     execute_query(
         cursor,
         f"""
-        SELECT position_lat, position_lng, timestamp
+        SELECT position_lat, position_lng, timestamp, accuracy
         FROM track_positions
         WHERE track_id = {placeholder}
         ORDER BY timestamp
@@ -2004,7 +2030,6 @@ def compare_tracks_segments(track_id: int):
     )
     human_positions = cursor.fetchall()
 
-    # Hämta hiding spots och deras status (samma som i punkt-baserad jämförelse)
     execute_query(
         cursor,
         f"""
@@ -2018,25 +2043,35 @@ def compare_tracks_segments(track_id: int):
 
     conn.close()
 
-    # Förbered data för segmentbaserad jämförelse
+    # Rå punkter som fallback
     human_points = [
-        {
-            "lat": hp["position_lat"],
-            "lng": hp["position_lng"],
-            "timestamp": hp["timestamp"],
-        }
+        {"lat": hp["position_lat"], "lng": hp["position_lng"], "timestamp": hp["timestamp"]}
         for hp in human_positions
     ]
     dog_points = [
-        {
-            "lat": dp["position_lat"],
-            "lng": dp["position_lng"],
-            "timestamp": dp["timestamp"],
-        }
+        {"lat": dp["position_lat"], "lng": dp["position_lng"], "timestamp": dp["timestamp"]}
         for dp in dog_positions
     ]
 
+    # GPS-smoothing & filtering innan segmentjämförelse
+    from utils.gps_filter import apply_full_filter_pipeline
     from utils.track_comparison import compare_tracks_by_segments
+
+    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
+    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
+    filter_stats = {"human": None, "dog": None}
+
+    if human_pipeline_input and dog_pipeline_input:
+        res_h = apply_full_filter_pipeline(
+            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
+        )
+        res_d = apply_full_filter_pipeline(
+            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
+        )
+        filter_stats["human"] = res_h.get("improvement_stats")
+        filter_stats["dog"] = res_d.get("improvement_stats")
+        human_points = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
+        dog_points = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
 
     segment_result = compare_tracks_by_segments(human_points, dog_points)
 
@@ -2059,6 +2094,7 @@ def compare_tracks_segments(track_id: int):
             "position_count": len(dog_positions),
         },
         "segment_comparison": segment_result,
+        "gps_filter": filter_stats,
         "hiding_spots": {
             "total": total_spots,
             "found": found_spots,
