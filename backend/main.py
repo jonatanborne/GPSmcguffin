@@ -1935,6 +1935,139 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
     }
 
 
+@app.get("/tracks/{track_id}/compare-segments")
+def compare_tracks_segments(track_id: int):
+    """
+    Segmentbaserad jämförelse mellan ett hundspår och dess människaspår.
+
+    Returnerar per-segment-statistik och en övergripande similarity-score
+    som är mer robust mot olika hastigheter och timing.
+    """
+    conn = get_db()
+    cursor = get_cursor(conn)
+
+    # Hämta hundens track
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
+    dog_track_row = cursor.fetchone()
+    if dog_track_row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    # Kontrollera att det är ett hundspår
+    if dog_track_row["track_type"] != "dog":
+        conn.close()
+        raise HTTPException(status_code=400, detail="Track must be a dog track")
+
+    # Hämta människans track
+    human_track_id = (
+        dog_track_row["human_track_id"]
+        if "human_track_id" in dog_track_row.keys()
+        else None
+    )
+    if not human_track_id:
+        conn.close()
+        raise HTTPException(
+            status_code=400, detail="Dog track has no associated human track"
+        )
+
+    execute_query(
+        cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (human_track_id,)
+    )
+    human_track_row = cursor.fetchone()
+    if human_track_row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Human track not found")
+
+    # Hämta positioner
+    execute_query(
+        cursor,
+        f"""
+        SELECT position_lat, position_lng, timestamp
+        FROM track_positions
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp
+    """,
+        (track_id,),
+    )
+    dog_positions = cursor.fetchall()
+
+    execute_query(
+        cursor,
+        f"""
+        SELECT position_lat, position_lng, timestamp
+        FROM track_positions
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp
+    """,
+        (human_track_id,),
+    )
+    human_positions = cursor.fetchall()
+
+    # Hämta hiding spots och deras status (samma som i punkt-baserad jämförelse)
+    execute_query(
+        cursor,
+        f"""
+        SELECT id, position_lat, position_lng, found
+        FROM hiding_spots
+        WHERE track_id = {placeholder}
+    """,
+        (human_track_id,),
+    )
+    hiding_spots = cursor.fetchall()
+
+    conn.close()
+
+    # Förbered data för segmentbaserad jämförelse
+    human_points = [
+        {
+            "lat": hp["position_lat"],
+            "lng": hp["position_lng"],
+            "timestamp": hp["timestamp"],
+        }
+        for hp in human_positions
+    ]
+    dog_points = [
+        {
+            "lat": dp["position_lat"],
+            "lng": dp["position_lng"],
+            "timestamp": dp["timestamp"],
+        }
+        for dp in dog_positions
+    ]
+
+    from utils.track_comparison import compare_tracks_by_segments
+
+    segment_result = compare_tracks_by_segments(human_points, dog_points)
+
+    total_spots = len(hiding_spots)
+    found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
+    missed_spots = sum(1 for spot in hiding_spots if spot["found"] is False)
+    unchecked_spots = total_spots - found_spots - missed_spots
+
+    return {
+        "human_track": {
+            "id": human_track_row["id"],
+            "name": human_track_row["name"],
+            "created_at": human_track_row["created_at"],
+            "position_count": len(human_positions),
+        },
+        "dog_track": {
+            "id": dog_track_row["id"],
+            "name": dog_track_row["name"],
+            "created_at": dog_track_row["created_at"],
+            "position_count": len(dog_positions),
+        },
+        "segment_comparison": segment_result,
+        "hiding_spots": {
+            "total": total_spots,
+            "found": found_spots,
+            "missed": missed_spots,
+            "unchecked": unchecked_spots,
+        },
+    }
+
+
 @app.post("/tracks/{track_id}/positions", response_model=Track)
 def add_position_to_track(track_id: int, payload: TrackPositionAdd):
     conn = get_db()
