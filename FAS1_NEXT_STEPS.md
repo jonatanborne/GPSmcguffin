@@ -128,3 +128,13 @@
 4. Säg till Cursor: *”Vi ska jobba på [valt steg]. Läs FAS1_NEXT_STEPS.md och FAS1_PROGRESS_SUMMARY.md.”*
 
 Då har både du och Cursor samma bild av vad som är nästa förbättring.
+
+---
+
+## Samarbete med Cursor/AI
+
+Så att vi är på samma sida vid kodändringar:
+
+- **Innan ändringar:** Cursor beskriver kort *vad* som ska göras, *var* (filer/endpoints) och *varför*.
+- **Efter ändringar:** Kort sammanfattning av vad som ändrats, vilka API:er som påverkats och om frontend behöver uppdateras.
+- Vid behov uppdateras denna fil (eller FAS1_PROGRESS_SUMMARY.md) med genomförda steg och beslut.
