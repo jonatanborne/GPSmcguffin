@@ -2104,6 +2104,140 @@ def compare_tracks_segments(track_id: int):
     }
 
 
+@app.get("/tracks/{track_id}/compare-dtw")
+def compare_tracks_dtw(track_id: int):
+    """
+    DTW-jämförelse mellan ett hundspår och dess människaspår.
+
+    Dynamic Time Warping tillåter olika hastighet/timing mellan spåren.
+    Returnerar dtw_distance, normalized_avg_m, similarity_score.
+    Använder samma GPS-smoothing som övriga compare-endpoints.
+    """
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
+    dog_track_row = cursor.fetchone()
+    if dog_track_row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Track not found")
+    if dog_track_row["track_type"] != "dog":
+        conn.close()
+        raise HTTPException(status_code=400, detail="Track must be a dog track")
+
+    human_track_id = (
+        dog_track_row.get("human_track_id")
+        if "human_track_id" in dog_track_row.keys()
+        else None
+    )
+    if not human_track_id:
+        conn.close()
+        raise HTTPException(
+            status_code=400, detail="Dog track has no associated human track"
+        )
+
+    execute_query(
+        cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (human_track_id,)
+    )
+    human_track_row = cursor.fetchone()
+    if human_track_row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Human track not found")
+
+    execute_query(
+        cursor,
+        f"""
+        SELECT position_lat, position_lng, timestamp, accuracy
+        FROM track_positions
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp
+    """,
+        (track_id,),
+    )
+    dog_positions = cursor.fetchall()
+    execute_query(
+        cursor,
+        f"""
+        SELECT position_lat, position_lng, timestamp, accuracy
+        FROM track_positions
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp
+    """,
+        (human_track_id,),
+    )
+    human_positions = cursor.fetchall()
+
+    execute_query(
+        cursor,
+        f"""
+        SELECT id, position_lat, position_lng, found
+        FROM hiding_spots
+        WHERE track_id = {placeholder}
+    """,
+        (human_track_id,),
+    )
+    hiding_spots = cursor.fetchall()
+    conn.close()
+
+    human_points = [
+        {"lat": hp["position_lat"], "lng": hp["position_lng"], "timestamp": hp["timestamp"]}
+        for hp in human_positions
+    ]
+    dog_points = [
+        {"lat": dp["position_lat"], "lng": dp["position_lng"], "timestamp": dp["timestamp"]}
+        for dp in dog_positions
+    ]
+
+    from utils.gps_filter import apply_full_filter_pipeline
+    from utils.track_comparison import dtw_distance
+
+    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
+    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
+    filter_stats = {"human": None, "dog": None}
+    if human_pipeline_input and dog_pipeline_input:
+        res_h = apply_full_filter_pipeline(
+            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
+        )
+        res_d = apply_full_filter_pipeline(
+            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
+        )
+        filter_stats["human"] = res_h.get("improvement_stats")
+        filter_stats["dog"] = res_d.get("improvement_stats")
+        human_points = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
+        dog_points = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
+
+    dtw_result = dtw_distance(human_points, dog_points)
+
+    total_spots = len(hiding_spots)
+    found_spots = sum(1 for s in hiding_spots if s["found"] is True)
+    missed_spots = sum(1 for s in hiding_spots if s["found"] is False)
+    unchecked_spots = total_spots - found_spots - missed_spots
+
+    return {
+        "human_track": {
+            "id": human_track_row["id"],
+            "name": human_track_row["name"],
+            "created_at": human_track_row["created_at"],
+            "position_count": len(human_positions),
+        },
+        "dog_track": {
+            "id": dog_track_row["id"],
+            "name": dog_track_row["name"],
+            "created_at": dog_track_row["created_at"],
+            "position_count": len(dog_positions),
+        },
+        "dtw": dtw_result,
+        "gps_filter": filter_stats,
+        "hiding_spots": {
+            "total": total_spots,
+            "found": found_spots,
+            "missed": missed_spots,
+            "unchecked": unchecked_spots,
+        },
+    }
+
+
 @app.post("/tracks/{track_id}/positions", response_model=Track)
 def add_position_to_track(track_id: int, payload: TrackPositionAdd):
     conn = get_db()

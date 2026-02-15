@@ -73,17 +73,17 @@
 
 ---
 
-### 5. Segmentbaserad jämförelse
+### 5. Segmentbaserad jämförelse ✅ KLART
 
 **Varför:** FAS 1 vill ha beteende-baserad jämförelse (riktning, kurvighet), inte bara punkt-till-punkt.
 
 **Uppgifter:**
-- [ ] Dela spår i segment (t.ex. efter riktningsändring eller fast längd)
-- [ ] Beräkna riktning och kurvighet per segment
-- [ ] Ny eller utökad `GET /tracks/.../compare` som returnerar segmentbaserad statistik
-- [ ] DTW som komplement, inte ensam grund
+- [x] Dela spår i segment (efter riktningsändring; `split_track_into_segments` i `utils/track_comparison.py`)
+- [x] Beräkna riktning och kurvighet per segment (`avg_bearing_deg`, `curvature_deg_per_m`; exponeras i `segment_matches`)
+- [x] `GET /tracks/{track_id}/compare-segments` returnerar segmentbaserad statistik (inkl. GPS-smoothing)
+- [x] DTW som komplement: `GET /tracks/{track_id}/compare-dtw` (Dynamic Time Warping, samma smoothing)
 
-**Estimat:** 3–4 dagar
+**Filer:** `backend/utils/track_comparison.py`, `backend/main.py`
 
 ---
 

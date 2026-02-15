@@ -63,21 +63,25 @@ def _build_segment(points: List[Point], start_idx: int, end_idx: int) -> Dict[st
         p2 = points[i + 1]
         length_m += haversine_distance(p1["lat"], p1["lng"], p2["lat"], p2["lng"])
 
-    # Average bearing across the segment
+    # Average bearing and curvature across the segment
     bearings: List[float] = []
     for i in range(start_idx + 1, end_idx + 1):
         p1 = points[i - 1]
         p2 = points[i]
         bearings.append(_bearing_degrees(p1["lat"], p1["lng"], p2["lat"], p2["lng"]))
 
-    avg_bearing: Optional[float]
+    avg_bearing: Optional[float] = None
+    curvature_deg_per_m: float = 0.0
     if bearings:
-        # Simple circular mean approximation
+        # Circular mean for average bearing
         sin_sum = sum(math.sin(math.radians(b)) for b in bearings)
         cos_sum = sum(math.cos(math.radians(b)) for b in bearings)
         avg_bearing = (math.degrees(math.atan2(sin_sum, cos_sum)) + 360.0) % 360.0
-    else:
-        avg_bearing = None
+        # Curvature: total absolute bearing change per meter (how much the path turns per m)
+        total_turn_deg = 0.0
+        for i in range(1, len(bearings)):
+            total_turn_deg += _angle_difference_deg(bearings[i], bearings[i - 1])
+        curvature_deg_per_m = total_turn_deg / length_m if length_m > 0 else 0.0
 
     return {
         "start_index": start_idx,
@@ -88,6 +92,7 @@ def _build_segment(points: List[Point], start_idx: int, end_idx: int) -> Dict[st
         "centroid_lat": centroid_lat,
         "centroid_lng": centroid_lng,
         "avg_bearing_deg": avg_bearing,
+        "curvature_deg_per_m": curvature_deg_per_m,
     }
 
 
@@ -245,6 +250,7 @@ def compare_tracks_by_segments(
                     matched_dog_index = d_index
             centroid_distance_m = min_centroid_dist
 
+        d_seg = dog_segments[matched_dog_index] if matched_dog_index is not None else None
         segment_matches.append(
             {
                 "human_segment_index": h_index,
@@ -254,6 +260,10 @@ def compare_tracks_by_segments(
                 "similarity": similarity,
                 "point_count": len(idxs),
                 "human_segment_length_m": h_seg["length_m"],
+                "human_avg_bearing_deg": h_seg.get("avg_bearing_deg"),
+                "human_curvature_deg_per_m": h_seg.get("curvature_deg_per_m", 0.0),
+                "dog_avg_bearing_deg": d_seg.get("avg_bearing_deg") if d_seg else None,
+                "dog_curvature_deg_per_m": d_seg.get("curvature_deg_per_m", 0.0) if d_seg else None,
                 "centroid_distance_m": centroid_distance_m,
             }
         )
@@ -272,5 +282,71 @@ def compare_tracks_by_segments(
             "dog_segments": len(dog_segments),
         },
         "segment_matches": segment_matches,
+    }
+
+
+def dtw_distance(
+    human_points: List[Point],
+    dog_points: List[Point],
+    max_pair_distance_m: float = 200.0,
+) -> Dict[str, Any]:
+    """
+    Dynamic Time Warping between two tracks (human = reference, dog = query).
+
+    Aligns the dog track to the human track so that timing/speed differences
+    are allowed. Returns the optimal alignment distance and a similarity score.
+
+    Uses haversine distance as local cost; pairs with distance > max_pair_distance_m
+    are capped to avoid outliers dominating.
+    """
+    if not human_points or not dog_points:
+        return {
+            "dtw_distance": 0.0,
+            "dtw_normalized_avg_m": 0.0,
+            "similarity_score": 0.0,
+            "path_length": 0,
+            "human_length": len(human_points),
+            "dog_length": len(dog_points),
+        }
+
+    n, m = len(human_points), len(dog_points)
+
+    # Cost matrix: (n+1) x (m+1), index 0 is sentinel
+    # D[i][j] = min total cost to align human[0:i] with dog[0:j]
+    INF = 1e9
+    D: List[List[float]] = [[INF] * (m + 1) for _ in range(n + 1)]
+    D[0][0] = 0.0
+
+    def cost(i: int, j: int) -> float:
+        d = haversine_distance(
+            human_points[i]["lat"], human_points[i]["lng"],
+            dog_points[j]["lat"], dog_points[j]["lng"],
+        )
+        return min(d, max_pair_distance_m)
+
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            c = cost(i - 1, j - 1)
+            D[i][j] = c + min(
+                D[i - 1][j],
+                D[i - 1][j - 1],
+                D[i][j - 1],
+            )
+
+    dtw_total = D[n][m]
+
+    # Normalize by path length: average distance per step (max(n,m) is typical path length)
+    path_steps = max(n, m)
+    normalized_avg_m = dtw_total / path_steps if path_steps > 0 else 0.0
+
+    similarity_score = _distance_to_similarity_score(normalized_avg_m)
+
+    return {
+        "dtw_distance": round(dtw_total, 2),
+        "dtw_normalized_avg_m": round(normalized_avg_m, 2),
+        "similarity_score": round(similarity_score, 1),
+        "path_length": path_steps,
+        "human_length": n,
+        "dog_length": m,
     }
 
