@@ -1625,72 +1625,6 @@ def delete_track(track_id: int):
     return {"deleted": track_id}
 
 
-def _db_rows_to_pipeline_format(rows, lat_key="position_lat", lng_key="position_lng"):
-    """Konvertera DB-rader (position_lat, position_lng, timestamp, accuracy) till format för gps_filter."""
-    out = []
-    for r in rows:
-        lat = r.get(lat_key) or r.get("position_lat")
-        lng = r.get(lng_key) or r.get("position_lng")
-        if lat is None or lng is None:
-            continue
-        out.append({
-            "position": {"lat": float(lat), "lng": float(lng)},
-            "timestamp": r.get("timestamp"),
-            "accuracy": r.get("accuracy"),
-        })
-    return out
-
-
-def _smoothed_positions_to_compare_points(smoothed_positions):
-    """Extrahera lat/lng från pipeline-utdata (använd smoothed_position om finns)."""
-    points = []
-    for p in smoothed_positions:
-        coords = p.get("smoothed_position") or p.get("position")
-        if not coords:
-            continue
-        points.append({
-            "lat": coords["lat"],
-            "lng": coords["lng"],
-            "timestamp": p.get("timestamp"),
-        })
-    return points
-
-
-def _compute_compare_stats_from_points(human_points, dog_points, max_match_m=200.0):
-    """Beräkna avståndsstatistik och match_percentage från två listor med {lat, lng}."""
-    distances = []
-    for hp in human_points:
-        human_pos = LatLng(lat=hp["lat"], lng=hp["lng"])
-        min_distance = float("inf")
-        for dp in dog_points:
-            dog_pos = LatLng(lat=dp["lat"], lng=dp["lng"])
-            dist = haversine_meters(human_pos, dog_pos)
-            if dist < min_distance:
-                min_distance = dist
-        if min_distance <= max_match_m:
-            distances.append(min_distance)
-        else:
-            distances.append(max_match_m)
-    if not distances:
-        return {"average_meters": 0.0, "max_meters": 0.0, "match_percentage": 0.0}
-    avg_distance = sum(distances) / len(distances)
-    max_distance = max(distances)
-    if avg_distance <= 10:
-        match_percentage = 100 - (avg_distance * 2)
-    elif avg_distance <= 50:
-        match_percentage = 80 - ((avg_distance - 10) * 1.5)
-    elif avg_distance <= 100:
-        match_percentage = 20 - ((avg_distance - 50) * 0.4)
-    else:
-        match_percentage = 0
-    match_percentage = max(0, min(100, match_percentage))
-    return {
-        "average_meters": round(avg_distance, 2),
-        "max_meters": round(max_distance, 2),
-        "match_percentage": round(match_percentage, 1),
-    }
-
-
 @app.get("/tracks/{track_id}/compare")
 def compare_tracks(track_id: int):
     """Jämför ett hundspår med sitt människaspår. Använder GPS-smoothing/filtering för renare data."""
@@ -1766,34 +1700,20 @@ def compare_tracks(track_id: int):
 
     conn.close()
 
-    # Rå punkter för jämförelse (behåll för raw_stats)
+    from pipelines.data_pipeline import run as run_data_pipeline
+    from pipelines.assessment_pipeline import run_point_assessment
+
     human_raw = [{"lat": hp["position_lat"], "lng": hp["position_lng"]} for hp in human_positions]
     dog_raw = [{"lat": dp["position_lat"], "lng": dp["position_lng"]} for dp in dog_positions]
 
-    # GPS-smoothing & filtering – använd för huvudsaklig jämförelse
-    from utils.gps_filter import apply_full_filter_pipeline
+    data_h = run_data_pipeline(human_positions, track_type="human", smooth_window=3, max_accuracy_m=50.0)
+    data_d = run_data_pipeline(dog_positions, track_type="dog", smooth_window=3, max_accuracy_m=50.0)
+    filter_stats = {"human": data_h["filter_stats"], "dog": data_d["filter_stats"]}
+    human_smoothed = data_h["points"] if data_h["points"] else human_raw
+    dog_smoothed = data_d["points"] if data_d["points"] else dog_raw
 
-    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
-    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
-
-    filter_stats = {"human": None, "dog": None}
-    human_smoothed = human_raw
-    dog_smoothed = dog_raw
-
-    if human_pipeline_input and dog_pipeline_input:
-        res_h = apply_full_filter_pipeline(
-            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
-        )
-        res_d = apply_full_filter_pipeline(
-            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
-        )
-        filter_stats["human"] = res_h.get("improvement_stats")
-        filter_stats["dog"] = res_d.get("improvement_stats")
-        human_smoothed = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
-        dog_smoothed = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
-
-    distance_stats_smoothed = _compute_compare_stats_from_points(human_smoothed, dog_smoothed)
-    distance_stats_raw = _compute_compare_stats_from_points(human_raw, dog_raw)
+    distance_stats_smoothed = run_point_assessment(human_smoothed, dog_smoothed)
+    distance_stats_raw = run_point_assessment(human_raw, dog_raw)
 
     total_spots = len(hiding_spots)
     found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
@@ -1902,32 +1822,19 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
 
     conn.close()
 
+    from pipelines.data_pipeline import run as run_data_pipeline
+    from pipelines.assessment_pipeline import run_point_assessment
+
     human_raw = [{"lat": hp["position_lat"], "lng": hp["position_lng"]} for hp in human_positions]
     dog_raw = [{"lat": dp["position_lat"], "lng": dp["position_lng"]} for dp in dog_positions]
+    data_h = run_data_pipeline(human_positions, track_type="human", smooth_window=3, max_accuracy_m=50.0)
+    data_d = run_data_pipeline(dog_positions, track_type="dog", smooth_window=3, max_accuracy_m=50.0)
+    filter_stats = {"human": data_h["filter_stats"], "dog": data_d["filter_stats"]}
+    human_smoothed = data_h["points"] if data_h["points"] else human_raw
+    dog_smoothed = data_d["points"] if data_d["points"] else dog_raw
 
-    from utils.gps_filter import apply_full_filter_pipeline
-
-    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
-    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
-
-    filter_stats = {"human": None, "dog": None}
-    human_smoothed = human_raw
-    dog_smoothed = dog_raw
-
-    if human_pipeline_input and dog_pipeline_input:
-        res_h = apply_full_filter_pipeline(
-            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
-        )
-        res_d = apply_full_filter_pipeline(
-            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
-        )
-        filter_stats["human"] = res_h.get("improvement_stats")
-        filter_stats["dog"] = res_d.get("improvement_stats")
-        human_smoothed = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
-        dog_smoothed = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
-
-    distance_stats_smoothed = _compute_compare_stats_from_points(human_smoothed, dog_smoothed)
-    distance_stats_raw = _compute_compare_stats_from_points(human_raw, dog_raw)
+    distance_stats_smoothed = run_point_assessment(human_smoothed, dog_smoothed)
+    distance_stats_raw = run_point_assessment(human_raw, dog_raw)
 
     total_spots = len(hiding_spots)
     found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
@@ -2043,7 +1950,9 @@ def compare_tracks_segments(track_id: int):
 
     conn.close()
 
-    # Rå punkter som fallback
+    from pipelines.data_pipeline import run as run_data_pipeline
+    from pipelines.assessment_pipeline import run_segment_assessment
+
     human_points = [
         {"lat": hp["position_lat"], "lng": hp["position_lng"], "timestamp": hp["timestamp"]}
         for hp in human_positions
@@ -2052,28 +1961,14 @@ def compare_tracks_segments(track_id: int):
         {"lat": dp["position_lat"], "lng": dp["position_lng"], "timestamp": dp["timestamp"]}
         for dp in dog_positions
     ]
+    data_h = run_data_pipeline(human_positions, track_type="human", smooth_window=3, max_accuracy_m=50.0)
+    data_d = run_data_pipeline(dog_positions, track_type="dog", smooth_window=3, max_accuracy_m=50.0)
+    filter_stats = {"human": data_h["filter_stats"], "dog": data_d["filter_stats"]}
+    if data_h["points"] and data_d["points"]:
+        human_points = data_h["points"]
+        dog_points = data_d["points"]
 
-    # GPS-smoothing & filtering innan segmentjämförelse
-    from utils.gps_filter import apply_full_filter_pipeline
-    from utils.track_comparison import compare_tracks_by_segments
-
-    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
-    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
-    filter_stats = {"human": None, "dog": None}
-
-    if human_pipeline_input and dog_pipeline_input:
-        res_h = apply_full_filter_pipeline(
-            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
-        )
-        res_d = apply_full_filter_pipeline(
-            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
-        )
-        filter_stats["human"] = res_h.get("improvement_stats")
-        filter_stats["dog"] = res_d.get("improvement_stats")
-        human_points = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
-        dog_points = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
-
-    segment_result = compare_tracks_by_segments(human_points, dog_points)
+    segment_result = run_segment_assessment(human_points, dog_points)
 
     total_spots = len(hiding_spots)
     found_spots = sum(1 for spot in hiding_spots if spot["found"] is True)
@@ -2180,6 +2075,9 @@ def compare_tracks_dtw(track_id: int):
     hiding_spots = cursor.fetchall()
     conn.close()
 
+    from pipelines.data_pipeline import run as run_data_pipeline
+    from pipelines.assessment_pipeline import run_dtw_assessment
+
     human_points = [
         {"lat": hp["position_lat"], "lng": hp["position_lng"], "timestamp": hp["timestamp"]}
         for hp in human_positions
@@ -2188,26 +2086,14 @@ def compare_tracks_dtw(track_id: int):
         {"lat": dp["position_lat"], "lng": dp["position_lng"], "timestamp": dp["timestamp"]}
         for dp in dog_positions
     ]
+    data_h = run_data_pipeline(human_positions, track_type="human", smooth_window=3, max_accuracy_m=50.0)
+    data_d = run_data_pipeline(dog_positions, track_type="dog", smooth_window=3, max_accuracy_m=50.0)
+    filter_stats = {"human": data_h["filter_stats"], "dog": data_d["filter_stats"]}
+    if data_h["points"] and data_d["points"]:
+        human_points = data_h["points"]
+        dog_points = data_d["points"]
 
-    from utils.gps_filter import apply_full_filter_pipeline
-    from utils.track_comparison import dtw_distance
-
-    human_pipeline_input = _db_rows_to_pipeline_format(human_positions)
-    dog_pipeline_input = _db_rows_to_pipeline_format(dog_positions)
-    filter_stats = {"human": None, "dog": None}
-    if human_pipeline_input and dog_pipeline_input:
-        res_h = apply_full_filter_pipeline(
-            human_pipeline_input, track_type="human", smooth_window=3, max_accuracy_m=50.0
-        )
-        res_d = apply_full_filter_pipeline(
-            dog_pipeline_input, track_type="dog", smooth_window=3, max_accuracy_m=50.0
-        )
-        filter_stats["human"] = res_h.get("improvement_stats")
-        filter_stats["dog"] = res_d.get("improvement_stats")
-        human_points = _smoothed_positions_to_compare_points(res_h["smoothed_positions"])
-        dog_points = _smoothed_positions_to_compare_points(res_d["smoothed_positions"])
-
-    dtw_result = dtw_distance(human_points, dog_points)
+    dtw_result = run_dtw_assessment(human_points, dog_points)
 
     total_spots = len(hiding_spots)
     found_spots = sum(1 for s in hiding_spots if s["found"] is True)

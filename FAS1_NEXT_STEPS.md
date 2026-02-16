@@ -43,19 +43,19 @@
 
 ---
 
-### 3. Pipeline-separation
+### 3. Pipeline-separation ✅ KLART
 
 **Varför:** Tydlig separation data → ML → bedömning, enligt FAS 1.
 
 **Uppgifter:**
-- [ ] Skapa `backend/pipelines/`:
-  - `data_pipeline.py` – filtering, smoothing (refaktorera från `gps_filter.py`)
-  - `ml_pipeline.py` – ML-korrigering + confidence
-  - `assessment_pipeline.py` – bedömning: följer spår / avvikelse / osäker
-- [ ] Använd pipelines i API:t istället för att köra allt i `main.py`
-- [ ] Kort dokumentation av flödet (t.ex. i `docs/` eller `FAS1_`)
+- [x] Skapa `backend/pipelines/`:
+  - `data_pipeline.py` – filtering, smoothing (anropar `utils.gps_filter`)
+  - `ml_pipeline.py` – stub; ML-logik ligger kvar i `main.py` (kan flyttas senare)
+  - `assessment_pipeline.py` – bedömning: punkt-, segment- och DTW-jämförelse
+- [x] Använd pipelines i API:t: compare, compare-segments, compare-dtw anropar `data_pipeline.run` och `assessment_pipeline.run_*`
+- [x] Dokumentation: `docs/PIPELINES.md`
 
-**Estimat:** 2–3 dagar
+**Filer:** `backend/pipelines/`, `backend/main.py`, `docs/PIPELINES.md`
 
 ---
 
