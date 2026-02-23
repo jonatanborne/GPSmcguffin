@@ -116,7 +116,11 @@ const TestLab = () => {
     // Audit trail (FAS 1: TestLab ML vs manuell + audit)
     const [auditLogOpen, setAuditLogOpen] = useState(false)
     const [auditLogEntries, setAuditLogEntries] = useState([])
+    const [auditActionFilter, setAuditActionFilter] = useState('all') // 'all' | action-typer
     const [loadingAudit, setLoadingAudit] = useState(false)
+
+    // Tröskel för "liten korrigering" (meter) – batch godkänn som ML
+    const SMALL_CORRECTION_THRESHOLD_M = 5
 
     const selectedPosition = useMemo(
         () => {
@@ -1495,6 +1499,30 @@ const TestLab = () => {
         }
     }
 
+    // Filtrerade audit-loggar (klient-side)
+    const filteredAuditEntries = useMemo(() => {
+        if (auditActionFilter === 'all') return auditLogEntries
+        return auditLogEntries.filter(e => e.action === auditActionFilter)
+    }, [auditLogEntries, auditActionFilter])
+
+    // Exportera audit trail (JSON)
+    const handleExportAuditLog = () => {
+        if (filteredAuditEntries.length === 0) {
+            setMessage('Inga audit-poster att exportera.')
+            setTimeout(() => setMessage(null), 2500)
+            return
+        }
+        const blob = new Blob([JSON.stringify(filteredAuditEntries, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `audit-log-${humanTrackId || dogTrackId}-${new Date().toISOString().slice(0, 10)}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+        setMessage('Audit-log exportad.')
+        setTimeout(() => setMessage(null), 2000)
+    }
+
     // Hämta audit trail för valda spår (körs när användaren öppnar panelen)
     const fetchAuditLog = async () => {
         const ids = [humanTrackId, dogTrackId].filter(Boolean).map(Number)
@@ -1526,6 +1554,57 @@ const TestLab = () => {
             pos.corrected_position !== null &&
             pos.corrected_position !== undefined
         )
+    }
+
+    // Hitta positioner med liten korrigering (avstånd < tröskel) – för batch godkänn som ML
+    const getPendingAdjustedWithSmallCorrection = () => {
+        return getPendingAdjustedPositions().filter(pos => {
+            const dist = haversineDistance(
+                { lat: pos.position.lat, lng: pos.position.lng },
+                { lat: pos.corrected_position.lat, lng: pos.corrected_position.lng }
+            )
+            return dist < SMALL_CORRECTION_THRESHOLD_M && dist > 0
+        })
+    }
+
+    // Batch godkänn som ML: anropa approve-ml för positioner med liten korrigering (< 5m)
+    const handleBatchApproveSmallCorrectionsAsMl = async () => {
+        const toApprove = getPendingAdjustedWithSmallCorrection()
+        if (toApprove.length === 0) {
+            setMessage(`Inga justerade positioner med korrigering < ${SMALL_CORRECTION_THRESHOLD_M}m att godkänna som ML.`)
+            setTimeout(() => setMessage(null), 3000)
+            return
+        }
+        setLoading(true)
+        setError(null)
+        setMessage(null)
+        try {
+            let successCount = 0
+            let failCount = 0
+            for (const pos of toApprove) {
+                try {
+                    await axios.post(`${API_BASE}/track-positions/${pos.id}/approve-ml`, {
+                        predicted_lat: pos.corrected_position.lat,
+                        predicted_lng: pos.corrected_position.lng,
+                        ml_confidence: null,
+                        ml_model_version: null,
+                    })
+                    successCount++
+                } catch (err) {
+                    console.error(`Kunde inte godkänna position ${pos.id}:`, err)
+                    failCount++
+                }
+            }
+            if (humanTrackId) await fetchTrack(humanTrackId, 'human')
+            if (dogTrackId) await fetchTrack(dogTrackId, 'dog')
+            setMessage(`✅ ${successCount} positioner godkända som ML (T2)${failCount > 0 ? ` (${failCount} misslyckades)` : ''}`)
+            setTimeout(() => setMessage(null), 5000)
+        } catch (err) {
+            setError('Kunde inte godkänna positioner.')
+            setTimeout(() => setError(null), 3000)
+        } finally {
+            setLoading(false)
+        }
     }
 
     // ML-integration: Batch-acceptera ML-förutsägelser
@@ -2010,18 +2089,31 @@ const TestLab = () => {
                     {/* Godkänn alla justerade - synlig längst upp när batch-läge är aktivt */}
                     {batchAdjustMode && (() => {
                         const pendingCount = getPendingAdjustedPositions().length
+                        const smallCorrectionCount = getPendingAdjustedWithSmallCorrection().length
                         return pendingCount > 0 && (
-                            <div className="bg-green-50 border-2 border-green-500 rounded-lg p-3 shadow-md">
-                                <div className="text-xs text-green-800 mb-2 font-semibold">
+                            <div className="bg-green-50 border-2 border-green-500 rounded-lg p-3 shadow-md space-y-2">
+                                <div className="text-xs text-green-800 font-semibold">
                                     {pendingCount} position{pendingCount !== 1 ? 'er' : ''} väntar på godkännande
                                 </div>
-                                <button
-                                    onClick={handleApproveAllAdjusted}
-                                    disabled={loading}
-                                    className="w-full px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition shadow-md"
-                                >
-                                    ✅ Godkänn alla justerade ({pendingCount})
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleApproveAllAdjusted}
+                                        disabled={loading}
+                                        className="flex-1 px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition shadow-md"
+                                    >
+                                        ✅ Godkänn alla ({pendingCount})
+                                    </button>
+                                    {smallCorrectionCount > 0 && (
+                                        <button
+                                            onClick={handleBatchApproveSmallCorrectionsAsMl}
+                                            disabled={loading}
+                                            title={`Godkänn som ML (T2) de ${smallCorrectionCount} positioner med korrigering < ${SMALL_CORRECTION_THRESHOLD_M}m`}
+                                            className="flex-1 px-4 py-3 rounded-lg bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition shadow-md"
+                                        >
+                                            🤖 Godkänn små (&lt;5m) som ML ({smallCorrectionCount})
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         )
                     })()}
@@ -2526,27 +2618,55 @@ const TestLab = () => {
                                 <span className="text-slate-400">{auditLogOpen ? '▼' : '▶'}</span>
                             </button>
                             {auditLogOpen && (
-                                <div className="mt-2 pt-2 border-t border-slate-200">
+                                <div className="mt-2 pt-2 border-t border-slate-200 space-y-2">
                                     {loadingAudit ? (
                                         <div className="text-slate-500 text-[10px]">Laddar...</div>
                                     ) : auditLogEntries.length === 0 ? (
                                         <div className="text-slate-500 text-[10px]">Inga loggade ändringar för valda spår.</div>
                                     ) : (
-                                        <ul className="space-y-1.5 max-h-48 overflow-y-auto text-[10px]">
-                                            {auditLogEntries.map((entry) => (
-                                                <li key={entry.id} className="bg-slate-50 rounded px-2 py-1.5 border border-slate-100">
-                                                    <span className="font-semibold text-slate-700">{entry.action}</span>
-                                                    {entry.position_id != null && <span className="text-slate-500"> pos {entry.position_id}</span>}
-                                                    <div className="text-slate-500">{new Date(entry.timestamp).toLocaleString()}</div>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                        <>
+                                            <div className="flex flex-wrap gap-2 items-center">
+                                                <label className="text-[10px] text-slate-600">Filter:</label>
+                                                <select
+                                                    value={auditActionFilter}
+                                                    onChange={(e) => setAuditActionFilter(e.target.value)}
+                                                    className="border border-slate-300 rounded px-2 py-1 text-[10px]"
+                                                >
+                                                    <option value="all">Alla</option>
+                                                    <option value="manual_correction">Manuell korrigering</option>
+                                                    <option value="approve_ml">Godkänn ML</option>
+                                                    <option value="reject_ml">Underkänn ML</option>
+                                                    <option value="ml_correction">ML-korrigering</option>
+                                                    <option value="position_update">Uppdatering</option>
+                                                    <option value="clear_correction">Rensa korrigering</option>
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleExportAuditLog}
+                                                    className="text-[10px] text-blue-600 hover:underline font-medium"
+                                                >
+                                                    📥 Exportera
+                                                </button>
+                                            </div>
+                                            <ul className="space-y-1.5 max-h-48 overflow-y-auto text-[10px]">
+                                                {filteredAuditEntries.map((entry) => (
+                                                    <li key={entry.id} className="bg-slate-50 rounded px-2 py-1.5 border border-slate-100">
+                                                        <span className="font-semibold text-slate-700">{entry.action}</span>
+                                                        {entry.position_id != null && <span className="text-slate-500"> pos {entry.position_id}</span>}
+                                                        <div className="text-slate-500">{new Date(entry.timestamp).toLocaleString()}</div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {filteredAuditEntries.length === 0 && auditActionFilter !== 'all' && (
+                                                <div className="text-slate-500 text-[10px]">Inga poster med valt filter.</div>
+                                            )}
+                                        </>
                                     )}
                                     {auditLogOpen && auditLogEntries.length > 0 && !loadingAudit && (
                                         <button
                                             type="button"
                                             onClick={fetchAuditLog}
-                                            className="mt-2 text-[10px] text-blue-600 hover:underline"
+                                            className="text-[10px] text-blue-600 hover:underline"
                                         >
                                             Uppdatera
                                         </button>

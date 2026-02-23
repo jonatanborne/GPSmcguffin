@@ -46,6 +46,7 @@ const GeofenceEditor = () => {
     const [currentPosition, setCurrentPosition] = useState(null) // Nuvarande GPS-position
     const hasCenteredMapRef = useRef(false) // Om vi har centrerat kartan för första gången
     const [comparisonData, setComparisonData] = useState(null) // Jämförelsedata för ett hundspår
+    const [comparisonMode, setComparisonMode] = useState('point') // 'point' | 'segment' | 'dtw'
     const [showManualCompare, setShowManualCompare] = useState(false) // Visa manuell jämförelse-vy
     const [selectedHumanTrack, setSelectedHumanTrack] = useState(null) // Valt människaspår för jämförelse
     const [selectedDogTrack, setSelectedDogTrack] = useState(null) // Valt hundspår för jämförelse
@@ -1152,14 +1153,32 @@ const GeofenceEditor = () => {
         }
     }
 
-    // Ladda jämförelsedata för ett hundspår
-    const loadComparisonData = async (dogTrackId) => {
+    // Ladda jämförelsedata för ett hundspår (punkt, segment eller DTW)
+    const loadComparisonData = async (dogTrackId, mode = 'point') => {
+        if (!dogTrackId) return
         try {
-            const response = await axios.get(`${API_BASE}/tracks/${dogTrackId}/compare`)
+            let url
+            if (mode === 'segment') {
+                url = `${API_BASE}/tracks/${dogTrackId}/compare-segments`
+            } else if (mode === 'dtw') {
+                url = `${API_BASE}/tracks/${dogTrackId}/compare-dtw`
+            } else {
+                url = `${API_BASE}/tracks/${dogTrackId}/compare`
+            }
+            const response = await axios.get(url)
             setComparisonData(response.data)
+            setComparisonMode(mode)
         } catch (error) {
             console.error('Fel vid laddning av jämförelsedata:', error)
             alert('Kunde inte ladda jämförelsedata')
+        }
+    }
+
+    const switchComparisonMode = (mode) => {
+        setComparisonMode(mode)
+        const dogId = comparisonData?.dog_track?.id ?? selectedDogTrack?.id
+        if (dogId) {
+            loadComparisonData(dogId, mode)
         }
     }
 
@@ -1177,6 +1196,7 @@ const GeofenceEditor = () => {
                 }
             })
             setComparisonData(response.data)
+            setComparisonMode('point') // manuell jämförelse returnerar punktformat
             setShowManualCompare(false)
         } catch (error) {
             console.error('Fel vid manuell jämförelse:', error)
@@ -1891,7 +1911,7 @@ const GeofenceEditor = () => {
                     {/* Jämförelsedata modal */}
                     {comparisonData && (
                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="text-xl font-bold">📊 Jämförelse</h2>
                                     <button
@@ -1902,30 +1922,107 @@ const GeofenceEditor = () => {
                                     </button>
                                 </div>
 
-                                <div className="space-y-4">
-                                    {/* Matchningsprocent */}
-                                    <div className="bg-purple-50 p-4 rounded">
-                                        <div className="text-sm text-gray-600 mb-1">Matchning</div>
-                                        <div className="text-3xl font-bold text-purple-600">
-                                            {comparisonData.match_percentage}%
-                                        </div>
-                                    </div>
+                                {/* Tabs: Punkt / Segment / DTW */}
+                                <div className="flex gap-2 mb-4">
+                                    {['point', 'segment', 'dtw'].map((mode) => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => switchComparisonMode(mode)}
+                                            className={`px-4 py-2 rounded font-medium transition ${
+                                                comparisonMode === mode
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {mode === 'point' ? 'Punkt' : mode === 'segment' ? 'Segment' : 'DTW'}
+                                        </button>
+                                    ))}
+                                </div>
 
-                                    {/* Avståndsstatistik */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-blue-50 p-3 rounded">
-                                            <div className="text-xs text-gray-600 mb-1">Genomsnitt</div>
-                                            <div className="text-lg font-bold text-blue-600">
-                                                {comparisonData.distance_stats.average_meters}m
+                                <div className="space-y-4">
+                                    {/* Punkt: Matchningsprocent + avstånd */}
+                                    {comparisonMode === 'point' && comparisonData.match_percentage != null && (
+                                        <>
+                                            <div className="bg-purple-50 p-4 rounded">
+                                                <div className="text-sm text-gray-600 mb-1">Matchning</div>
+                                                <div className="text-3xl font-bold text-purple-600">
+                                                    {comparisonData.match_percentage}%
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="bg-orange-50 p-3 rounded">
-                                            <div className="text-xs text-gray-600 mb-1">Max</div>
-                                            <div className="text-lg font-bold text-orange-600">
-                                                {comparisonData.distance_stats.max_meters}m
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-blue-50 p-3 rounded">
+                                                    <div className="text-xs text-gray-600 mb-1">Genomsnitt</div>
+                                                    <div className="text-lg font-bold text-blue-600">
+                                                        {comparisonData.distance_stats?.average_meters ?? 0}m
+                                                    </div>
+                                                </div>
+                                                <div className="bg-orange-50 p-3 rounded">
+                                                    <div className="text-xs text-gray-600 mb-1">Max</div>
+                                                    <div className="text-lg font-bold text-orange-600">
+                                                        {comparisonData.distance_stats?.max_meters ?? 0}m
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
+
+                                    {/* Segment: overall_similarity + segment_counts */}
+                                    {comparisonMode === 'segment' && !comparisonData.segment_comparison && (
+                                        <div className="bg-gray-50 p-4 rounded text-center text-gray-500">Laddar segmentjämförelse…</div>
+                                    )}
+                                    {comparisonMode === 'segment' && comparisonData.segment_comparison && (
+                                        <>
+                                            <div className="bg-purple-50 p-4 rounded">
+                                                <div className="text-sm text-gray-600 mb-1">Segmentlikhet</div>
+                                                <div className="text-3xl font-bold text-purple-600">
+                                                    {Math.round(comparisonData.segment_comparison.overall_similarity)}%
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-blue-50 p-3 rounded">
+                                                    <div className="text-xs text-gray-600 mb-1">Human segment</div>
+                                                    <div className="text-lg font-bold text-blue-600">
+                                                        {comparisonData.segment_comparison.segment_counts?.human_segments ?? 0}
+                                                    </div>
+                                                </div>
+                                                <div className="bg-orange-50 p-3 rounded">
+                                                    <div className="text-xs text-gray-600 mb-1">Hund segment</div>
+                                                    <div className="text-lg font-bold text-orange-600">
+                                                        {comparisonData.segment_comparison.segment_counts?.dog_segments ?? 0}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* DTW: similarity_score + dtw_distance */}
+                                    {comparisonMode === 'dtw' && !comparisonData.dtw && (
+                                        <div className="bg-gray-50 p-4 rounded text-center text-gray-500">Laddar DTW-jämförelse…</div>
+                                    )}
+                                    {comparisonMode === 'dtw' && comparisonData.dtw && (
+                                        <>
+                                            <div className="bg-purple-50 p-4 rounded">
+                                                <div className="text-sm text-gray-600 mb-1">DTW-likhet</div>
+                                                <div className="text-3xl font-bold text-purple-600">
+                                                    {comparisonData.dtw.similarity_score}%
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-blue-50 p-3 rounded">
+                                                    <div className="text-xs text-gray-600 mb-1">DTW-avstånd</div>
+                                                    <div className="text-lg font-bold text-blue-600">
+                                                        {comparisonData.dtw.dtw_distance}m
+                                                    </div>
+                                                </div>
+                                                <div className="bg-orange-50 p-3 rounded">
+                                                    <div className="text-xs text-gray-600 mb-1">Norm. snitt</div>
+                                                    <div className="text-lg font-bold text-orange-600">
+                                                        {comparisonData.dtw.dtw_normalized_avg_m}m
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
 
                                     {/* Gömställen statistik */}
                                     <div className="grid grid-cols-4 gap-2">
