@@ -41,6 +41,7 @@ def init_postgres(postgres_url):
             track_type TEXT NOT NULL,
             created_at TEXT NOT NULL,
             human_track_id INTEGER,
+            track_source TEXT NOT NULL DEFAULT 'own',
             FOREIGN KEY (human_track_id) REFERENCES tracks(id) ON DELETE CASCADE
         )
     """)

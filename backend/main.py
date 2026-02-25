@@ -390,6 +390,7 @@ def init_db():
                 track_type TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 human_track_id INTEGER,
+                track_source TEXT NOT NULL DEFAULT 'own',
                 FOREIGN KEY (human_track_id) REFERENCES tracks(id) ON DELETE CASCADE
             )
         """)
@@ -401,12 +402,14 @@ def init_db():
                 track_type TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 human_track_id INTEGER,
+                track_source TEXT NOT NULL DEFAULT 'own',
                 FOREIGN KEY (human_track_id) REFERENCES tracks(id) ON DELETE CASCADE
             )
         """)
 
-    # Lägg till kolumn om den inte finns (för migrations av existerande databaser)
+    # Lägg till kolumner om de inte finns (för migrations av existerande databaser)
     if is_postgres:
+        # human_track_id
         cursor.execute("""
             DO $$ 
             BEGIN
@@ -418,9 +421,25 @@ def init_db():
                 END IF;
             END $$;
         """)
+        # track_source
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name='tracks' AND column_name='track_source'
+                ) THEN
+                    ALTER TABLE tracks ADD COLUMN track_source TEXT NOT NULL DEFAULT 'own';
+                END IF;
+            END $$;
+        """)
     else:
         try:
             cursor.execute("ALTER TABLE tracks ADD COLUMN human_track_id INTEGER")
+        except Exception:
+            pass  # Kolumnen finns redan
+        try:
+            cursor.execute("ALTER TABLE tracks ADD COLUMN track_source TEXT NOT NULL DEFAULT 'own'")
         except Exception:
             pass  # Kolumnen finns redan
 
@@ -780,6 +799,7 @@ class Track(TrackCreate):
     id: int
     created_at: str
     positions: List[TrackPosition] = []
+    track_source: str = "own"
 
 
 class TrackPositionAdd(BaseModel):
@@ -1160,10 +1180,10 @@ def create_track(payload: TrackCreate):
         execute_query(
             cursor,
             f"""
-            INSERT INTO tracks (name, track_type, created_at, human_track_id)
-            VALUES ({", ".join([placeholder] * 4)}){returning}
+            INSERT INTO tracks (name, track_type, created_at, human_track_id, track_source)
+            VALUES ({", ".join([placeholder] * 5)}){returning}
         """,
-            (name, payload.track_type, now, payload.human_track_id),
+            (name, payload.track_type, now, payload.human_track_id, "own"),
         )
 
         if is_postgres:
@@ -1181,6 +1201,7 @@ def create_track(payload: TrackCreate):
             created_at=now,
             positions=[],
             human_track_id=payload.human_track_id,
+            track_source="own",
         )
     except Exception as e:
         import traceback
@@ -1249,6 +1270,9 @@ def list_tracks():
                 human_track_id=row["human_track_id"]
                 if "human_track_id" in row.keys()
                 else None,
+                track_source=row["track_source"]
+                if "track_source" in row.keys()
+                else "own",
             )
         )
 

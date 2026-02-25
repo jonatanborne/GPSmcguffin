@@ -32,8 +32,8 @@ def migrate(sqlite_path, postgres_url):
     for track in tracks:
         postgres_cursor.execute(
             """
-            INSERT INTO tracks (id, name, track_type, created_at, human_track_id)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO tracks (id, name, track_type, created_at, human_track_id, track_source)
+            VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO NOTHING
             """,
             (
@@ -42,6 +42,7 @@ def migrate(sqlite_path, postgres_url):
                 track["track_type"],
                 track["created_at"],
                 track.get("human_track_id"),
+                "own",
             ),
         )
 

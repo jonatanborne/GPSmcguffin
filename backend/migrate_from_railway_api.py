@@ -55,15 +55,15 @@ def migrate_from_api(railway_url, postgres_url):
         try:
             postgres_cursor.execute(
                 """
-                INSERT INTO tracks (id, name, track_type, created_at, human_track_id)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO tracks (id, name, track_type, created_at, human_track_id, track_source)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET
                     name = EXCLUDED.name,
                     track_type = EXCLUDED.track_type,
                     created_at = EXCLUDED.created_at,
                     human_track_id = EXCLUDED.human_track_id
                 """,
-                (track_id, name, track_type, created_at, human_track_id),
+                (track_id, name, track_type, created_at, human_track_id, "own"),
             )
             migrated_tracks += 1
         except Exception as e:

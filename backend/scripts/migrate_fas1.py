@@ -184,6 +184,17 @@ def migrate_tracks(cursor):
     else:
         print("  - competition_id kolumn finns redan")
 
+    # Track source (egna spår vs importerade spår)
+    if not column_exists(cursor, "tracks", "track_source"):
+        cursor.execute("""
+            ALTER TABLE tracks
+            ADD COLUMN track_source TEXT DEFAULT 'own'
+        """)
+        changes.append("track_source")
+        print("  ✓ Lagt till track_source kolumn (default 'own')")
+    else:
+        print("  - track_source kolumn finns redan")
+
     return changes
 
 

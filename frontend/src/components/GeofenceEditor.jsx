@@ -53,6 +53,16 @@ const GeofenceEditor = () => {
     const [pendingSyncItems, setPendingSyncItems] = useState(0) // Antal objekt som väntar på synk
     const [isSyncingOfflineData, setIsSyncingOfflineData] = useState(false) // Om synkning pågår
     const [forceSyncMessage, setForceSyncMessage] = useState(null) // Statusmeddelande för tvångssynk
+    const [trackSourceFilter, setTrackSourceFilter] = useState('all') // 'all' | 'own' | 'imported'
+
+    const filteredTracks = useMemo(() => {
+        if (trackSourceFilter === 'all') return tracks
+        if (trackSourceFilter === 'imported') {
+            return tracks.filter(t => t.track_source === 'imported')
+        }
+        // 'own' – allt som inte är importerade (inkl. lokala/offline-spår)
+        return tracks.filter(t => t.track_source !== 'imported')
+    }, [tracks, trackSourceFilter])
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -1834,7 +1844,21 @@ const GeofenceEditor = () => {
                     {/* Befintliga spår */}
                     <div>
                         <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-bold">Befintliga spår:</h3>
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-bold">Befintliga spår:</h3>
+                                <div className="flex items-center gap-1 text-xs">
+                                    <span className="text-gray-500">Filter:</span>
+                                    <select
+                                        className="border rounded px-1 py-0.5"
+                                        value={trackSourceFilter}
+                                        onChange={(e) => setTrackSourceFilter(e.target.value)}
+                                    >
+                                        <option value="all">Alla</option>
+                                        <option value="own">Egna</option>
+                                        <option value="imported">Kundspår</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div className="flex gap-1">
                                 <button
                                     onClick={() => setShowManualCompare(true)}
@@ -1852,10 +1876,10 @@ const GeofenceEditor = () => {
                             </div>
                         </div>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
-                            {tracks.length === 0 ? (
+                            {filteredTracks.length === 0 ? (
                                 <p className="text-sm text-gray-500">Inga spår än</p>
                             ) : (
-                                tracks.map(track => {
+                                filteredTracks.map(track => {
                                     const isActiveTrack = currentTrack && currentTrack.id === track.id
                                     return (
                                         <div
@@ -1872,8 +1896,13 @@ const GeofenceEditor = () => {
                                                             <span className="text-xs bg-green-500 text-white px-1 rounded">Aktiv</span>
                                                         )}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {track.positions?.length || 0} positioner
+                                                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                                                        <span>{track.positions?.length || 0} positioner</span>
+                                                        {track.track_source === 'imported' && (
+                                                            <span className="px-1 py-0.5 rounded bg-yellow-100 text-yellow-700">
+                                                                Kundspår
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1">
@@ -2093,13 +2122,13 @@ const GeofenceEditor = () => {
                                         <select
                                             value={selectedHumanTrack?.id || ''}
                                             onChange={(e) => {
-                                                const track = tracks.find(t => t.id.toString() === e.target.value && t.track_type === 'human')
+                                                const track = filteredTracks.find(t => t.id.toString() === e.target.value && t.track_type === 'human')
                                                 setSelectedHumanTrack(track)
                                             }}
                                             className="w-full px-3 py-2 border rounded"
                                         >
                                             <option value="">Välj...</option>
-                                            {tracks
+                                            {filteredTracks
                                                 .filter(t => t.track_type === 'human')
                                                 .map(track => (
                                                     <option key={track.id} value={track.id}>
@@ -2116,13 +2145,13 @@ const GeofenceEditor = () => {
                                         <select
                                             value={selectedDogTrack?.id || ''}
                                             onChange={(e) => {
-                                                const track = tracks.find(t => t.id.toString() === e.target.value && t.track_type === 'dog')
+                                                const track = filteredTracks.find(t => t.id.toString() === e.target.value && t.track_type === 'dog')
                                                 setSelectedDogTrack(track)
                                             }}
                                             className="w-full px-3 py-2 border rounded"
                                         >
                                             <option value="">Välj...</option>
-                                            {tracks
+                                            {filteredTracks
                                                 .filter(t => t.track_type === 'dog')
                                                 .map(track => (
                                                     <option key={track.id} value={track.id}>

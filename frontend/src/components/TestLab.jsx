@@ -106,6 +106,7 @@ const TestLab = () => {
         } catch { /* ignorerar */ }
     }, [tileSource])
     const [statusFilter, setStatusFilter] = useState('all') // Filter för status: 'all', 'pending', 'correct', 'incorrect'
+    const [trackSourceFilter, setTrackSourceFilter] = useState('all') // 'all' | 'own' | 'imported'
 
     // ML-integration state
     const [mlPredictions, setMlPredictions] = useState(null) // ML-förutsägelser för valda spår
@@ -151,6 +152,15 @@ const TestLab = () => {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         return R * c
     }
+
+    const filteredTracks = useMemo(() => {
+        if (trackSourceFilter === 'all') return tracks
+        if (trackSourceFilter === 'imported') {
+            return tracks.filter(t => t.track_source === 'imported')
+        }
+        // 'own' – allt som inte är importerade
+        return tracks.filter(t => t.track_source !== 'imported')
+    }, [tracks, trackSourceFilter])
 
     // Filtrera positioner baserat på status-filter
     const filteredHumanPositions = useMemo(() => {
@@ -2293,14 +2303,28 @@ const TestLab = () => {
 
                     <div className="space-y-3">
                         <div>
-                            <label className="block text-sm font-medium mb-1">🚶 Människaspår</label>
+                            <div className="flex items-center justify-between mb-1">
+                                <label className="block text-sm font-medium">🚶 Människaspår</label>
+                                <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                                    <span>Filter:</span>
+                                    <select
+                                        value={trackSourceFilter}
+                                        onChange={(e) => setTrackSourceFilter(e.target.value)}
+                                        className="border border-slate-300 rounded px-1 py-0.5"
+                                    >
+                                        <option value="all">Alla</option>
+                                        <option value="own">Egna</option>
+                                        <option value="imported">Kundspår</option>
+                                    </select>
+                                </div>
+                            </div>
                             <select
                                 value={humanTrackId}
                                 onChange={(e) => setHumanTrackId(e.target.value)}
                                 className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
                             >
                                 <option value="">-- Välj människaspår --</option>
-                                {tracks.filter(t => t.track_type === 'human').map((track) => {
+                                {filteredTracks.filter(t => t.track_type === 'human').map((track) => {
                                     const progress = calculateTrackProgress(track)
                                     const progressStyle = getProgressColor(progress)
                                     return (
@@ -2310,6 +2334,7 @@ const TestLab = () => {
                                             style={{ ...progressStyle, fontWeight: progress >= 50 ? 'bold' : 'normal' }}
                                         >
                                             {track.name} ({track.positions?.length || 0} pos) ({progress}%)
+                                            {track.track_source === 'imported' ? ' [Kundspår]' : ''}
                                         </option>
                                     )
                                 })}
@@ -2324,7 +2349,7 @@ const TestLab = () => {
                                 className="w-full border border-slate-300 rounded px-2 py-2 text-sm"
                             >
                                 <option value="">-- Välj hundspår --</option>
-                                {tracks.filter(t => t.track_type === 'dog').map((track) => {
+                                {filteredTracks.filter(t => t.track_type === 'dog').map((track) => {
                                     const progress = calculateTrackProgress(track)
                                     const progressStyle = getProgressColor(progress)
                                     return (
@@ -2334,6 +2359,7 @@ const TestLab = () => {
                                             style={{ ...progressStyle, fontWeight: progress >= 50 ? 'bold' : 'normal' }}
                                         >
                                             {track.name} ({track.positions?.length || 0} pos) ({progress}%)
+                                            {track.track_source === 'imported' ? ' [Kundspår]' : ''}
                                         </option>
                                     )
                                 })}

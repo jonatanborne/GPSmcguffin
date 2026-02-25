@@ -145,11 +145,11 @@ def test_crud_operations(database_url):
         test_name = f"test_verify_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         cursor.execute(
             """
-            INSERT INTO tracks (name, track_type, created_at)
-            VALUES (%s, %s, %s)
+            INSERT INTO tracks (name, track_type, created_at, track_source)
+            VALUES (%s, %s, %s, %s)
             RETURNING id;
         """,
-            (test_name, "human", datetime.now().isoformat()),
+            (test_name, "human", datetime.now().isoformat(), "own"),
         )
 
         track_id = cursor.fetchone()["id"]
