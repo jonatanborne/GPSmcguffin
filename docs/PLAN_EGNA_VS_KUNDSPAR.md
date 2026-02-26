@@ -118,3 +118,28 @@
 - Allt bygger på en gemensam `tracks`/`track_positions`-modell med en extra kolumn och tydliga filter i API och UI, så att vi kan implementera och använda båda datamängderna utan att blanda ihop dem.
 
 När du vill kan vi gå fas för fas och implementera (migrering → import-skript → API-filter → frontend-filter).
+
+---
+
+## 7. Träna modell med kundspår
+
+Efter att kundspår är importerade kan du bygga träningsdata och träna modellen **utan manuell märkning**:
+
+### Steg 1 – Bygg träningsdataset från importerade spår
+
+Scriptet `ml/build_dataset_from_imported_tracks.py` läser alla spår med `track_source='imported'`, för varje hundposition hittar närmaste punkt på människaspåret och sparar `correction_distance_meters` + `corrected_position` som träningsdata till **ml/data/imported_tracks_training.json**.
+
+Kör:
+```bash
+export DATABASE_URL="postgresql://..."
+python ml/build_dataset_from_imported_tracks.py
+```
+
+### Steg 2 – Träna modellen
+
+`ml/analysis.py` laddar alla JSON-filer i `ml/data/` (inkl. den nya). Kör träning:
+```bash
+cd ml
+python analysis.py
+```
+Välj träningssteg i menyn. Modellen tränas då på både befintlig annoterad data och de automatiskt genererade exemplen från kundspåren.

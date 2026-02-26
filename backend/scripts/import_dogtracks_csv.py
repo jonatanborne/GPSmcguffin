@@ -27,7 +27,6 @@ from main import (
     get_db,
     get_cursor,
     execute_query,
-    get_last_insert_id,
 )
 
 
@@ -72,27 +71,33 @@ def import_header_tracks(header_csv: Path) -> Dict[str, Dict[int, int]]:
                 print(f"Hoppar över rad i header (ogiltiga TrackId): {row} ({e})")
                 continue
 
-            # Skapa människaspår
+            # Skapa människaspår (RETURNING id krävs för Postgres)
             execute_query(
                 cursor,
                 """
                 INSERT INTO tracks (name, track_type, created_at, human_track_id, track_source)
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?) RETURNING id
                 """,
                 (f"{name} [Person {case_id}]", "human", now, None, "imported"),
             )
-            human_track_id = get_last_insert_id(cursor)
+            row = cursor.fetchone()
+            human_track_id = row["id"] if row else None
+            if human_track_id is None:
+                raise RuntimeError(f"Kunde inte skapa människaspår för {name}")
 
             # Skapa hundspår, kopplat till människaspåret
             execute_query(
                 cursor,
                 """
                 INSERT INTO tracks (name, track_type, created_at, human_track_id, track_source)
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?) RETURNING id
                 """,
                 (f"{name} [Dog {case_id}]", "dog", now, human_track_id, "imported"),
             )
-            dog_track_id = get_last_insert_id(cursor)
+            row = cursor.fetchone()
+            dog_track_id = row["id"] if row else None
+            if dog_track_id is None:
+                raise RuntimeError(f"Kunde inte skapa hundspår för {name}")
 
             person_map[person_track_csv] = human_track_id
             dog_map[dog_track_csv] = dog_track_id
