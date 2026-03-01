@@ -10,7 +10,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 })
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 
 function ExperimentMode() {
     const mapRef = useRef(null)
@@ -54,7 +54,7 @@ function ExperimentMode() {
 
     const loadStats = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/ml/experiments/stats`)
+            const res = await fetch(`${API_BASE}/ml/experiments/stats`)
             const data = await res.json()
             if (data.status === 'success') {
                 setStats(data.stats)
@@ -71,7 +71,7 @@ function ExperimentMode() {
 
         setGenerating(true)
         try {
-            const res = await fetch(`${API_BASE_URL}/api/ml/experiments/batch/generate`, {
+            const res = await fetch(`${API_BASE}/ml/experiments/batch/generate`, {
                 method: 'POST'
             })
             const data = await res.json()
@@ -93,7 +93,7 @@ function ExperimentMode() {
     const loadNextExperiment = async () => {
         setLoading(true)
         try {
-            const res = await fetch(`${API_BASE_URL}/api/ml/experiments/next`)
+            const res = await fetch(`${API_BASE}/ml/experiments/next`)
             const data = await res.json()
 
             if (data.status === 'completed') {
@@ -208,7 +208,7 @@ function ExperimentMode() {
 
         setLoading(true)
         try {
-            const res = await fetch(`${API_BASE_URL}/api/ml/experiments/${experiment.id}/rate`, {
+            const res = await fetch(`${API_BASE}/ml/experiments/${experiment.id}/rate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -236,7 +236,7 @@ function ExperimentMode() {
 
         setLoading(true)
         try {
-            const res = await fetch(`${API_BASE_URL}/api/ml/experiments/${experiment.id}/skip`, {
+            const res = await fetch(`${API_BASE}/ml/experiments/${experiment.id}/skip`, {
                 method: 'POST'
             })
             const data = await res.json()
