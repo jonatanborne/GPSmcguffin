@@ -15,7 +15,7 @@ Ett nytt sätt att träna ML-modellen genom att **bedöma hela spår** istället
 ### 1. Kör migrering (en gång)
 
 ```bash
-export DATABASE_URL="postgresql://postgres:OAQKVEHeKhGwCHkoSehCMsXaVnZzvnAc@turntable.proxy.rlwy.net:31302/railway"
+export DATABASE_URL="postgresql://user:password@host:port/database"
 python backend/scripts/migrate_ml_experiments.py
 ```
 
@@ -46,7 +46,7 @@ För varje spår:
 ### 5. Konvertera till träningsdata
 
 ```bash
-export DATABASE_URL="postgresql://postgres:OAQKVEHeKhGwCHkoSehCMsXaVnZzvnAc@turntable.proxy.rlwy.net:31302/railway"
+export DATABASE_URL="postgresql://user:password@host:port/database"
 python ml/train_from_experiments.py
 ```
 
