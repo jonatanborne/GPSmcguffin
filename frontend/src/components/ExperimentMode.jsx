@@ -1,10 +1,23 @@
-import React, { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup } from 'react-leaflet'
+import React, { useState, useEffect, useRef } from 'react'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+// Fix för Leaflet ikoner
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 function ExperimentMode() {
+    const mapRef = useRef(null)
+    const mapInstanceRef = useRef(null)
+    const originalLayerRef = useRef(null)
+    const correctedLayerRef = useRef(null)
+    
     const [experiment, setExperiment] = useState(null)
     const [progress, setProgress] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -15,6 +28,28 @@ function ExperimentMode() {
 
     useEffect(() => {
         loadStats()
+        
+        // Initiera kartan
+        if (!mapInstanceRef.current && mapRef.current) {
+            const map = L.map(mapRef.current, {
+                center: [59.334, 18.066],
+                zoom: 13,
+                zoomControl: true
+            })
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map)
+
+            mapInstanceRef.current = map
+        }
+
+        return () => {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove()
+                mapInstanceRef.current = null
+            }
+        }
     }, [])
 
     const loadStats = async () => {
@@ -78,6 +113,96 @@ function ExperimentMode() {
         }
     }
 
+    // Rita om kartan när experiment ändras
+    useEffect(() => {
+        if (!mapInstanceRef.current || !experiment) return
+
+        const map = mapInstanceRef.current
+
+        // Ta bort gamla lager
+        if (originalLayerRef.current) {
+            map.removeLayer(originalLayerRef.current)
+        }
+        if (correctedLayerRef.current) {
+            map.removeLayer(correctedLayerRef.current)
+        }
+
+        // Skapa layer group för original track
+        const originalGroup = L.layerGroup()
+        
+        // Rita original track (grå, streckad)
+        const originalPositions = experiment.original_track.positions.map(p => [p.lat, p.lng])
+        L.polyline(originalPositions, {
+            color: 'gray',
+            weight: 3,
+            opacity: 0.6,
+            dashArray: '5, 5'
+        }).addTo(originalGroup)
+
+        // Rita original punkter
+        experiment.original_track.positions.forEach((p, idx) => {
+            L.circleMarker([p.lat, p.lng], {
+                radius: 4,
+                fillColor: 'gray',
+                color: 'white',
+                weight: 1,
+                fillOpacity: 0.6
+            })
+            .bindPopup(`
+                <div style="font-size: 12px;">
+                    <strong>Original</strong><br/>
+                    Punkt ${idx + 1}<br/>
+                    ${p.timestamp || ''}
+                </div>
+            `)
+            .addTo(originalGroup)
+        })
+
+        originalGroup.addTo(map)
+        originalLayerRef.current = originalGroup
+
+        // Skapa layer group för corrected track
+        const correctedGroup = L.layerGroup()
+        
+        // Rita corrected track (röd)
+        const correctedPositions = experiment.corrected_track.positions.map(p => [p.lat, p.lng])
+        L.polyline(correctedPositions, {
+            color: 'red',
+            weight: 3,
+            opacity: 0.8
+        }).addTo(correctedGroup)
+
+        // Rita corrected punkter
+        experiment.corrected_track.positions.forEach((p, idx) => {
+            L.circleMarker([p.lat, p.lng], {
+                radius: 5,
+                fillColor: 'red',
+                color: 'white',
+                weight: 1,
+                fillOpacity: 0.8
+            })
+            .bindPopup(`
+                <div style="font-size: 12px;">
+                    <strong>Korrigerad (ML)</strong><br/>
+                    Punkt ${idx + 1}<br/>
+                    Korrigering: ${p.predicted_correction_distance?.toFixed(2) || '?'} m
+                </div>
+            `)
+            .addTo(correctedGroup)
+        })
+
+        correctedGroup.addTo(map)
+        correctedLayerRef.current = correctedGroup
+
+        // Anpassa zoom för att visa båda spåren
+        const allPositions = [...originalPositions, ...correctedPositions]
+        if (allPositions.length > 0) {
+            const bounds = L.latLngBounds(allPositions)
+            map.fitBounds(bounds, { padding: [50, 50] })
+        }
+
+    }, [experiment])
+
     const saveRating = async () => {
         if (!experiment) return
 
@@ -125,25 +250,6 @@ function ExperimentMode() {
         } finally {
             setLoading(false)
         }
-    }
-
-    const getMapBounds = () => {
-        if (!experiment) return null
-
-        const allPositions = [
-            ...experiment.original_track.positions,
-            ...experiment.corrected_track.positions
-        ]
-
-        if (allPositions.length === 0) return null
-
-        const lats = allPositions.map(p => p.lat)
-        const lngs = allPositions.map(p => p.lng)
-
-        return [
-            [Math.min(...lats), Math.min(...lngs)],
-            [Math.max(...lats), Math.max(...lngs)]
-        ]
     }
 
     return (
@@ -227,98 +333,36 @@ function ExperimentMode() {
 
                     {/* Map */}
                     <div className="flex-1 relative">
-                        <MapContainer
-                            bounds={getMapBounds()}
-                            className="h-full w-full"
-                            scrollWheelZoom={true}
-                        >
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-
-                            {/* Original track (grå) */}
-                            <Polyline
-                                positions={experiment.original_track.positions.map(p => [p.lat, p.lng])}
-                                color="gray"
-                                weight={3}
-                                opacity={0.6}
-                                dashArray="5, 5"
-                            />
-                            {experiment.original_track.positions.map((p, idx) => (
-                                <CircleMarker
-                                    key={`orig-${idx}`}
-                                    center={[p.lat, p.lng]}
-                                    radius={4}
-                                    fillColor="gray"
-                                    color="white"
-                                    weight={1}
-                                    fillOpacity={0.6}
-                                >
-                                    <Popup>
-                                        <div className="text-xs">
-                                            <strong>Original</strong><br />
-                                            Punkt {idx + 1}<br />
-                                            {p.timestamp}
-                                        </div>
-                                    </Popup>
-                                </CircleMarker>
-                            ))}
-
-                            {/* Corrected track (röd) */}
-                            <Polyline
-                                positions={experiment.corrected_track.positions.map(p => [p.lat, p.lng])}
-                                color="red"
-                                weight={3}
-                                opacity={0.8}
-                            />
-                            {experiment.corrected_track.positions.map((p, idx) => (
-                                <CircleMarker
-                                    key={`corr-${idx}`}
-                                    center={[p.lat, p.lng]}
-                                    radius={5}
-                                    fillColor="red"
-                                    color="white"
-                                    weight={1}
-                                    fillOpacity={0.8}
-                                >
-                                    <Popup>
-                                        <div className="text-xs">
-                                            <strong>Korrigerad (ML)</strong><br />
-                                            Punkt {idx + 1}<br />
-                                            Korrigering: {p.predicted_correction_distance?.toFixed(2) || '?'} m
-                                        </div>
-                                    </Popup>
-                                </CircleMarker>
-                            ))}
-                        </MapContainer>
+                        <div ref={mapRef} className="h-full w-full" />
 
                         {/* Track info overlay */}
-                        <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs z-[1000]">
-                            <h3 className="font-semibold text-gray-800 mb-2">
-                                {experiment.original_track.track_name}
-                            </h3>
-                            <div className="text-sm text-gray-600 space-y-1">
-                                <div>
-                                    <span className="font-medium">Positioner:</span>{' '}
-                                    {experiment.original_track.positions.length}
-                                </div>
-                                <div>
-                                    <span className="font-medium">Modell:</span>{' '}
-                                    {experiment.model_version}
-                                </div>
-                                <div className="mt-2 pt-2 border-t">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="w-4 h-0.5 bg-gray-400 border-t-2 border-dashed"></div>
-                                        <span className="text-xs">Original (kundspår)</span>
+                        {experiment && (
+                            <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs z-[1000]">
+                                <h3 className="font-semibold text-gray-800 mb-2">
+                                    {experiment.original_track.track_name}
+                                </h3>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                    <div>
+                                        <span className="font-medium">Positioner:</span>{' '}
+                                        {experiment.original_track.positions.length}
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-0.5 bg-red-500"></div>
-                                        <span className="text-xs">Korrigerad (ML)</span>
+                                    <div>
+                                        <span className="font-medium">Modell:</span>{' '}
+                                        {experiment.model_version}
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="w-4 h-0.5 bg-gray-400 border-t-2 border-dashed"></div>
+                                            <span className="text-xs">Original (kundspår)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-0.5 bg-red-500"></div>
+                                            <span className="text-xs">Korrigerad (ML)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Rating panel */}
