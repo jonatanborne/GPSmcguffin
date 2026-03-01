@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import GeofenceEditor from './components/GeofenceEditor'
 import TestLab from './components/TestLab'
 import MLDashboard from './components/MLDashboard'
+import ExperimentMode from './components/ExperimentMode'
 
 function App() {
     const [activeView, setActiveView] = useState('app')
@@ -9,6 +10,7 @@ function App() {
     const isAppView = activeView === 'app'
     const isTestView = activeView === 'test'
     const isMLView = activeView === 'ml'
+    const isExperimentView = activeView === 'experiment'
 
     return (
         <div className="h-screen flex flex-col">
@@ -42,6 +44,13 @@ function App() {
                         >
                             ML
                         </button>
+                        <button
+                            onClick={() => setActiveView('experiment')}
+                            className={`px-4 py-1.5 text-sm font-medium rounded-full transition ${isExperimentView ? 'bg-white text-blue-600 shadow' : 'text-white hover:bg-blue-500/60'
+                                }`}
+                        >
+                            Experiment
+                        </button>
                     </nav>
                 </div>
             </header>
@@ -49,6 +58,7 @@ function App() {
                 {isAppView && <GeofenceEditor />}
                 {isTestView && <TestLab />}
                 {isMLView && <MLDashboard />}
+                {isExperimentView && <ExperimentMode />}
             </main>
         </div>
     )

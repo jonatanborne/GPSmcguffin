@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""
+Träna ML-modell från experiment-feedback (Reinforcement Learning).
+
+Detta script:
+1. Hämtar alla rated experiments från databasen
+2. Konverterar betyg (1-10) till träningsdata
+3. Tränar modell att maximera betyg
+4. Kombinerar med befintlig träningsdata från analysis.py
+
+Strategi:
+- Höga betyg (8-10): Använd som positiva exempel
+- Låga betyg (1-3): Använd som negativa exempel (lär modellen att INTE göra så)
+- Mellanbetyg (4-7): Viktade exempel
+
+Kör:
+    export DATABASE_URL="postgresql://..."
+    python ml/train_from_experiments.py
+"""
+
+import json
+import math
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    print("psycopg2 krävs: pip install psycopg2-binary")
+    sys.exit(1)
+
+try:
+    import numpy as np
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.preprocessing import RobustScaler
+    import pickle
+except ImportError:
+    print("scikit-learn krävs: pip install scikit-learn")
+    sys.exit(1)
+
+
+def main():
+    database_url = os.environ.get("DATABASE_URL", "").strip()
+    if not database_url:
+        print("DATABASE_URL är inte satt.")
+        sys.exit(1)
+
+    conn = psycopg2.connect(database_url, connect_timeout=10)
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Hämta alla rated experiments
+    cur.execute(
+        """
+        SELECT id, track_id, original_track_json, corrected_track_json, 
+               rating, feedback_notes, model_version
+        FROM ml_experiments
+        WHERE status = 'rated' AND rating IS NOT NULL
+        ORDER BY id
+        """
+    )
+    experiments = cur.fetchall()
+    conn.close()
+
+    if not experiments:
+        print("Inga rated experiments hittades. Bedöm experiment först i Experiment Mode.")
+        sys.exit(0)
+
+    print(f"Hittade {len(experiments)} rated experiments")
+    print(f"  Betyg: min={min(e['rating'] for e in experiments)}, max={max(e['rating'] for e in experiments)}, snitt={sum(e['rating'] for e in experiments)/len(experiments):.1f}")
+
+    # Konvertera experiment till träningsdata
+    # Strategi: Använd experiment med höga betyg (>= 7) som träningsdata
+    # För låga betyg (< 4): Invertera korrigeringen (lär modellen att INTE göra så)
+    
+    training_data = []
+    high_rating_count = 0
+    low_rating_count = 0
+    
+    for exp in experiments:
+        rating = exp["rating"]
+        original = exp["original_track_json"]
+        corrected = exp["corrected_track_json"]
+        
+        # Endast använd experiment med tydliga betyg
+        if rating >= 7:
+            # Höga betyg: Använd korrigeringen som positiv träningsdata
+            high_rating_count += 1
+            for i, orig_pos in enumerate(original["positions"]):
+                if i < len(corrected["positions"]):
+                    corr_pos = corrected["positions"][i]
+                    training_data.append({
+                        "track_id": original["track_id"],
+                        "track_name": original["track_name"],
+                        "track_type": "dog",
+                        "timestamp": orig_pos["timestamp"],
+                        "verified_status": "correct",
+                        "original_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},
+                        "corrected_position": {"lat": corr_pos["lat"], "lng": corr_pos["lng"]},
+                        "correction_distance_meters": corr_pos.get("predicted_correction_distance", 0.0),
+                        "accuracy": orig_pos.get("accuracy"),
+                        "annotation_notes": f"Experiment rating: {rating}",
+                        "environment": None,
+                        "source": "experiment_high_rating"
+                    })
+        
+        elif rating <= 3:
+            # Låga betyg: Lär modellen att original var bättre (minimal korrigering)
+            low_rating_count += 1
+            for i, orig_pos in enumerate(original["positions"]):
+                training_data.append({
+                    "track_id": original["track_id"],
+                    "track_name": original["track_name"],
+                    "track_type": "dog",
+                    "timestamp": orig_pos["timestamp"],
+                    "verified_status": "correct",
+                    "original_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},
+                    "corrected_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},  # Ingen korrigering
+                    "correction_distance_meters": 0.0,
+                    "accuracy": orig_pos.get("accuracy"),
+                    "annotation_notes": f"Experiment rating: {rating} (low - no correction better)",
+                    "environment": None,
+                    "source": "experiment_low_rating"
+                })
+
+    print(f"\nKonverterade till träningsdata:")
+    print(f"  Höga betyg (>= 7): {high_rating_count} experiment → {sum(1 for d in training_data if d['source'] == 'experiment_high_rating')} positioner")
+    print(f"  Låga betyg (<= 3): {low_rating_count} experiment → {sum(1 for d in training_data if d['source'] == 'experiment_low_rating')} positioner")
+    print(f"  Totalt: {len(training_data)} nya träningspunkter")
+
+    # Spara som JSON
+    script_dir = Path(__file__).resolve().parent
+    data_dir = script_dir / "data"
+    data_dir.mkdir(exist_ok=True)
+    
+    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path = data_dir / f"experiment_feedback_{timestamp_str}.json"
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(training_data, f, ensure_ascii=False, indent=2)
+
+    print(f"\nSparat till: {out_path}")
+    print(f"\nNästa steg:")
+    print(f"  1. Kör träning: python ml/analysis.py")
+    print(f"  2. Den nya filen kombineras automatiskt med dina andra träningsfiler")
+    print(f"  3. Modellen lär sig från både exakta korrigeringar OCH experiment-feedback")
+
+
+if __name__ == "__main__":
+    main()

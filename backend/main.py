@@ -6023,3 +6023,573 @@ def export_feedback_data(
             status_code=500,
             detail=f"Fel vid export av feedback: {str(e)}\n\n{traceback.format_exc()}",
         )
+
+
+# ============================================================================
+# ML EXPERIMENTS - Reinforcement Learning från kundspår
+# ============================================================================
+
+
+class ExperimentRating(BaseModel):
+    """Rating för ett experiment"""
+    rating: int = Field(..., ge=1, le=10, description="Betyg 1-10")
+    feedback_notes: Optional[str] = None
+
+
+@app.post("/ml/experiments/batch/generate")
+@app.post("/api/ml/experiments/batch/generate")
+def generate_experiments_batch():
+    """
+    Generera experiment för alla kundspår (track_source='imported').
+    Kör ML-modellen på alla hundspår och sparar resultaten som experiment.
+    """
+    try:
+        import numpy as np
+
+        # Ladda modell
+        ml_dir = Path(__file__).parent.parent / "ml" / "output"
+        model_path = ml_dir / "gps_correction_model_best.pkl"
+        scaler_path = ml_dir / "gps_correction_scaler.pkl"
+        model_info_path = ml_dir / "gps_correction_model_info.json"
+
+        if not model_path.exists():
+            raise HTTPException(
+                status_code=404, 
+                detail="Ingen tränad modell hittades. Kör python ml/analysis.py först."
+            )
+
+        model = _load_ml_pkl(model_path)
+        scaler = _load_ml_pkl(scaler_path)
+        
+        # Hämta model version
+        model_version = "unknown"
+        if model_info_path.exists():
+            with open(model_info_path, "r", encoding="utf-8") as f:
+                model_info = json.load(f)
+                model_version = model_info.get("model_version", "unknown")
+
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Hämta alla importerade hundspår
+        execute_query(
+            cursor,
+            """
+            SELECT id, name, human_track_id
+            FROM tracks
+            WHERE track_source = 'imported' AND track_type = 'dog'
+            ORDER BY id
+            """,
+        )
+        dog_tracks = cursor.fetchall()
+
+        if not dog_tracks:
+            conn.close()
+            return {
+                "status": "success",
+                "message": "Inga kundspår hittades",
+                "generated": 0
+            }
+
+        experiments_created = 0
+
+        for track_row in dog_tracks:
+            track_id = get_row_value(track_row, "id")
+            track_name = get_row_value(track_row, "name") or f"Track_{track_id}"
+            human_track_id = get_row_value(track_row, "human_track_id")
+
+            # Kontrollera om experiment redan finns för detta spår
+            execute_query(
+                cursor,
+                "SELECT id FROM ml_experiments WHERE track_id = %s",
+                (track_id,)
+            )
+            existing = cursor.fetchone()
+            if existing:
+                continue  # Skippa om experiment redan finns
+
+            # Hämta hundpositioner
+            execute_query(
+                cursor,
+                """
+                SELECT id, position_lat, position_lng, timestamp, accuracy
+                FROM track_positions
+                WHERE track_id = %s
+                ORDER BY timestamp ASC
+                """,
+                (track_id,),
+            )
+            dog_positions = cursor.fetchall()
+
+            if not dog_positions:
+                continue
+
+            # Bygg original track JSON
+            original_track = {
+                "track_id": track_id,
+                "track_name": track_name,
+                "track_type": "dog",
+                "positions": [
+                    {
+                        "id": get_row_value(p, "id"),
+                        "lat": float(get_row_value(p, "position_lat")),
+                        "lng": float(get_row_value(p, "position_lng")),
+                        "timestamp": get_row_value(p, "timestamp"),
+                        "accuracy": float(get_row_value(p, "accuracy")) if get_row_value(p, "accuracy") else None
+                    }
+                    for p in dog_positions
+                ]
+            }
+
+            # Kör ML-modellen för att generera korrigerat spår
+            mean_lat = np.mean([get_row_value(p, "position_lat") for p in dog_positions])
+            mean_lng = np.mean([get_row_value(p, "position_lng") for p in dog_positions])
+
+            corrected_positions = []
+            predicted_corrections_history = []
+
+            for i, pos in enumerate(dog_positions):
+                orig_lat = get_row_value(pos, "position_lat")
+                orig_lng = get_row_value(pos, "position_lng")
+                accuracy = get_row_value(pos, "accuracy") or 0.0
+                timestamp_str = get_row_value(pos, "timestamp")
+
+                # Beräkna features (samma som predict_ml_corrections)
+                features = []
+                features.append(accuracy)
+                features.append(accuracy**2)
+                features.extend([orig_lat, orig_lng])
+                
+                if len(dog_positions) > 1:
+                    features.extend([orig_lat - mean_lat, orig_lng - mean_lng])
+                else:
+                    features.extend([0.0, 0.0])
+                
+                features.append(0)  # track_type dog
+
+                # Timestamp features
+                try:
+                    if timestamp_str:
+                        dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                        hour = dt.hour
+                        weekday = dt.weekday()
+                        features.append(math.sin(2 * math.pi * hour / 24))
+                        features.append(math.cos(2 * math.pi * hour / 24))
+                        features.append(math.sin(2 * math.pi * weekday / 7))
+                        features.append(math.cos(2 * math.pi * weekday / 7))
+                    else:
+                        features.extend([0.0, 1.0, 0.0, 1.0])
+                except Exception:
+                    features.extend([0.0, 1.0, 0.0, 1.0])
+
+                # Rörelse features (förenklad version)
+                speed = 0.0
+                acceleration = 0.0
+                distance_prev_1 = 0.0
+                distance_prev_2 = 0.0
+                distance_prev_3 = 0.0
+                bearing = 0.0
+
+                if i > 0:
+                    prev_pos = dog_positions[i - 1]
+                    prev_lat = get_row_value(prev_pos, "position_lat")
+                    prev_lng = get_row_value(prev_pos, "position_lng")
+                    distance_prev_1 = haversine_distance(orig_lat, orig_lng, prev_lat, prev_lng)
+                    
+                    try:
+                        curr_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                        prev_time = datetime.fromisoformat(get_row_value(prev_pos, "timestamp").replace("Z", "+00:00"))
+                        time_diff = (curr_time - prev_time).total_seconds()
+                        if time_diff > 0:
+                            speed = distance_prev_1 / time_diff
+                    except Exception:
+                        pass
+
+                    if i > 1:
+                        prev2_pos = dog_positions[i - 2]
+                        prev2_lat = get_row_value(prev2_pos, "position_lat")
+                        prev2_lng = get_row_value(prev2_pos, "position_lng")
+                        distance_prev_2 = haversine_distance(prev_lat, prev_lng, prev2_lat, prev2_lng)
+                        
+                        if i > 2:
+                            prev3_pos = dog_positions[i - 3]
+                            prev3_lat = get_row_value(prev3_pos, "position_lat")
+                            prev3_lng = get_row_value(prev3_pos, "position_lng")
+                            distance_prev_3 = haversine_distance(prev2_lat, prev2_lng, prev3_lat, prev3_lng)
+
+                features.extend([speed, acceleration, distance_prev_1, distance_prev_2, distance_prev_3, bearing])
+
+                # Rolling statistics
+                if len(predicted_corrections_history) >= 2:
+                    recent_mean = float(np.mean(predicted_corrections_history[-2:]))
+                    recent_std = float(np.std(predicted_corrections_history[-2:])) if len(predicted_corrections_history) > 1 else 0.0
+                else:
+                    recent_mean = 0.0
+                    recent_std = 0.0
+                features.extend([recent_mean, recent_std])
+
+                # Interaktioner
+                features.extend([accuracy * speed, accuracy * distance_prev_1, speed * distance_prev_1])
+
+                # Environment (alla 0 för kundspår)
+                features.extend([0.0] * 8)
+
+                # Smoothing features (förenklad)
+                features.extend([0.0, 0.0, 0.0])
+
+                # Human track features (förenklad - sätt default)
+                features.extend([999.0, 0.0, 0.0, 0.0])
+
+                # Förutsäg korrigering
+                try:
+                    features_array = np.array([features])
+                    features_scaled = scaler.transform(features_array)
+                    predicted_distance = float(model.predict(features_scaled)[0])
+                    predicted_corrections_history.append(predicted_distance)
+                except Exception:
+                    predicted_distance = 0.0
+
+                # Beräkna korrigerad position (flytta mot människaspår om det finns)
+                corrected_lat = orig_lat
+                corrected_lng = orig_lng
+
+                if human_track_id and predicted_distance > 0.1:
+                    # Hitta närmaste människaspår-position
+                    execute_query(
+                        cursor,
+                        """
+                        SELECT position_lat, position_lng, timestamp
+                        FROM track_positions
+                        WHERE track_id = %s
+                        ORDER BY timestamp ASC
+                        """,
+                        (human_track_id,)
+                    )
+                    human_positions = cursor.fetchall()
+                    
+                    if human_positions:
+                        # Hitta närmaste i tid
+                        min_time_diff = float('inf')
+                        nearest_human_lat = None
+                        nearest_human_lng = None
+                        
+                        try:
+                            dog_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                            for hp in human_positions:
+                                h_time_str = get_row_value(hp, "timestamp")
+                                h_time = datetime.fromisoformat(h_time_str.replace("Z", "+00:00"))
+                                time_diff = abs((dog_time - h_time).total_seconds())
+                                if time_diff < min_time_diff:
+                                    min_time_diff = time_diff
+                                    nearest_human_lat = get_row_value(hp, "position_lat")
+                                    nearest_human_lng = get_row_value(hp, "position_lng")
+                        except Exception:
+                            pass
+
+                        if nearest_human_lat and nearest_human_lng:
+                            # Beräkna riktning mot människan
+                            lat1_rad = math.radians(orig_lat)
+                            lat2_rad = math.radians(nearest_human_lat)
+                            delta_lng = math.radians(nearest_human_lng - orig_lng)
+                            y = math.sin(delta_lng) * math.cos(lat2_rad)
+                            x = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(lat1_rad) * math.cos(lat2_rad) * math.cos(delta_lng)
+                            bearing_rad = math.atan2(y, x)
+
+                            # Flytta punkten predicted_distance meter i den riktningen
+                            R = 6371000
+                            angular_distance = predicted_distance / R
+                            corrected_lat = math.degrees(
+                                math.asin(
+                                    math.sin(lat1_rad) * math.cos(angular_distance)
+                                    + math.cos(lat1_rad) * math.sin(angular_distance) * math.cos(bearing_rad)
+                                )
+                            )
+                            corrected_lng = orig_lng + math.degrees(
+                                math.atan2(
+                                    math.sin(bearing_rad) * math.sin(angular_distance) * math.cos(lat1_rad),
+                                    math.cos(angular_distance) - math.sin(lat1_rad) * math.sin(math.radians(corrected_lat))
+                                )
+                            )
+
+                corrected_positions.append({
+                    "id": get_row_value(pos, "id"),
+                    "lat": float(corrected_lat),
+                    "lng": float(corrected_lng),
+                    "timestamp": timestamp_str,
+                    "predicted_correction_distance": float(predicted_distance)
+                })
+
+            # Bygg corrected track JSON
+            corrected_track = {
+                "track_id": track_id,
+                "track_name": track_name,
+                "track_type": "dog",
+                "positions": corrected_positions
+            }
+
+            # Spara experiment
+            execute_query(
+                cursor,
+                """
+                INSERT INTO ml_experiments 
+                (track_id, original_track_json, corrected_track_json, model_version, status)
+                VALUES (%s, %s, %s, %s, 'pending')
+                """,
+                (track_id, json.dumps(original_track), json.dumps(corrected_track), model_version)
+            )
+            experiments_created += 1
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Genererade {experiments_created} experiment från kundspår",
+            "generated": experiments_created,
+            "total_tracks": len(dog_tracks)
+        }
+
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid generering av experiment: {str(e)}\n\n{traceback.format_exc()}"
+        )
+
+
+@app.get("/ml/experiments/next")
+@app.get("/api/ml/experiments/next")
+def get_next_experiment():
+    """
+    Hämta nästa pending experiment för bedömning.
+    Returnerar original och korrigerat spår.
+    """
+    try:
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Hämta nästa pending experiment
+        execute_query(
+            cursor,
+            """
+            SELECT id, track_id, original_track_json, corrected_track_json, 
+                   model_version, created_at
+            FROM ml_experiments
+            WHERE status = 'pending'
+            ORDER BY id ASC
+            LIMIT 1
+            """,
+        )
+        experiment = cursor.fetchone()
+
+        if not experiment:
+            # Räkna totalt antal experiment och hur många som är rated
+            execute_query(cursor, "SELECT COUNT(*) as total FROM ml_experiments")
+            total_result = cursor.fetchone()
+            total = get_row_value(total_result, "total") if total_result else 0
+
+            execute_query(cursor, "SELECT COUNT(*) as rated FROM ml_experiments WHERE status = 'rated'")
+            rated_result = cursor.fetchone()
+            rated = get_row_value(rated_result, "rated") if rated_result else 0
+
+            conn.close()
+            return {
+                "status": "completed",
+                "message": "Alla experiment är bedömda!",
+                "experiment": None,
+                "progress": {
+                    "rated": rated,
+                    "total": total,
+                    "remaining": 0
+                }
+            }
+
+        experiment_id = get_row_value(experiment, "id")
+        original_json = get_row_value(experiment, "original_track_json")
+        corrected_json = get_row_value(experiment, "corrected_track_json")
+
+        # Räkna progress
+        execute_query(cursor, "SELECT COUNT(*) as total FROM ml_experiments")
+        total_result = cursor.fetchone()
+        total = get_row_value(total_result, "total") if total_result else 0
+
+        execute_query(cursor, "SELECT COUNT(*) as rated FROM ml_experiments WHERE status = 'rated'")
+        rated_result = cursor.fetchone()
+        rated = get_row_value(rated_result, "rated") if rated_result else 0
+
+        conn.close()
+
+        return {
+            "status": "success",
+            "experiment": {
+                "id": experiment_id,
+                "track_id": get_row_value(experiment, "track_id"),
+                "original_track": original_json,
+                "corrected_track": corrected_json,
+                "model_version": get_row_value(experiment, "model_version"),
+                "created_at": get_row_value(experiment, "created_at")
+            },
+            "progress": {
+                "current": rated + 1,
+                "total": total,
+                "rated": rated,
+                "remaining": total - rated
+            }
+        }
+
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid hämtning av experiment: {str(e)}\n\n{traceback.format_exc()}"
+        )
+
+
+@app.post("/ml/experiments/{experiment_id}/rate")
+@app.post("/api/ml/experiments/{experiment_id}/rate")
+def rate_experiment(experiment_id: int, rating_data: ExperimentRating):
+    """
+    Spara betyg för ett experiment.
+    """
+    try:
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Uppdatera experiment
+        execute_query(
+            cursor,
+            """
+            UPDATE ml_experiments
+            SET rating = %s,
+                feedback_notes = %s,
+                status = 'rated',
+                rated_at = NOW()
+            WHERE id = %s
+            """,
+            (rating_data.rating, rating_data.feedback_notes, experiment_id)
+        )
+
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Experiment hittades inte")
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Betyg {rating_data.rating} sparat för experiment {experiment_id}"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid sparande av betyg: {str(e)}\n\n{traceback.format_exc()}"
+        )
+
+
+@app.post("/ml/experiments/{experiment_id}/skip")
+@app.post("/api/ml/experiments/{experiment_id}/skip")
+def skip_experiment(experiment_id: int):
+    """
+    Hoppa över ett experiment utan att ge betyg.
+    """
+    try:
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        execute_query(
+            cursor,
+            """
+            UPDATE ml_experiments
+            SET status = 'skipped'
+            WHERE id = %s
+            """,
+            (experiment_id,)
+        )
+
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Experiment hittades inte")
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Experiment {experiment_id} överhoppat"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid överhoppning: {str(e)}\n\n{traceback.format_exc()}"
+        )
+
+
+@app.get("/ml/experiments/stats")
+@app.get("/api/ml/experiments/stats")
+def get_experiments_stats():
+    """
+    Hämta statistik över experiment.
+    """
+    try:
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        # Räkna status
+        execute_query(
+            cursor,
+            """
+            SELECT status, COUNT(*) as count
+            FROM ml_experiments
+            GROUP BY status
+            """
+        )
+        status_counts = {get_row_value(row, "status"): get_row_value(row, "count") for row in cursor.fetchall()}
+
+        # Räkna betyg
+        execute_query(
+            cursor,
+            """
+            SELECT rating, COUNT(*) as count
+            FROM ml_experiments
+            WHERE rating IS NOT NULL
+            GROUP BY rating
+            ORDER BY rating
+            """
+        )
+        rating_counts = {get_row_value(row, "rating"): get_row_value(row, "count") for row in cursor.fetchall()}
+
+        # Genomsnittligt betyg
+        execute_query(
+            cursor,
+            "SELECT AVG(rating) as avg_rating FROM ml_experiments WHERE rating IS NOT NULL"
+        )
+        avg_result = cursor.fetchone()
+        avg_rating = float(get_row_value(avg_result, "avg_rating")) if avg_result and get_row_value(avg_result, "avg_rating") else None
+
+        conn.close()
+
+        return {
+            "status": "success",
+            "stats": {
+                "by_status": status_counts,
+                "by_rating": rating_counts,
+                "average_rating": avg_rating,
+                "total": sum(status_counts.values())
+            }
+        }
+
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid hämtning av statistik: {str(e)}\n\n{traceback.format_exc()}"
+        )
