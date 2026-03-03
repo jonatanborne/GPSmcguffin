@@ -24,7 +24,7 @@ except ImportError:
     pass
 
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import execute_values
 
 
 def get_database_url():
@@ -38,8 +38,11 @@ def get_database_url():
     return database_url
 
 
-def restore_table(conn, table_name, backup_file):
-    """Återställ en tabell från JSON-backup"""
+def restore_table(conn, table_name, backup_file, preserve_id=False):
+    """Återställ en tabell från JSON-backup.
+    
+    preserve_id: Om True behåller vi original-id (behövs för tracks så att track_positions FK fungerar)
+    """
     cursor = conn.cursor()
 
     try:
@@ -53,19 +56,24 @@ def restore_table(conn, table_name, backup_file):
         # Hämta kolumnnamn från första raden
         columns = list(data[0].keys())
         
-        # Skippa 'id' om den finns (auto-increment)
-        if 'id' in columns:
+        # Skippa 'id' bara om vi inte ska bevara den (för tracks behåller vi id för FK-mapping)
+        if 'id' in columns and not preserve_id:
             columns.remove('id')
 
-        # Bygg INSERT-query
-        placeholders = ", ".join(["%s"] * len(columns))
+        # Bygg INSERT-query (execute_values använder %s för value-placeholder)
         cols_str = ", ".join(columns)
-        query = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders})"
+        query = f"INSERT INTO {table_name} ({cols_str}) VALUES %s"
 
-        # Infoga alla rader
-        for row in data:
-            values = [row.get(col) for col in columns]
-            cursor.execute(query, values)
+        # Infoga i batchar (mycket snabbare än rad för rad)
+        values_list = [tuple(row.get(col) for col in columns) for row in data]
+        execute_values(cursor, query, values_list, page_size=1000)
+
+        # Om vi behöll id, uppdatera sekvensen så nästa auto-id blir rätt
+        if preserve_id and 'id' in columns:
+            cursor.execute(
+                f"SELECT setval(pg_get_serial_sequence(%s, 'id'), COALESCE((SELECT MAX(id) FROM {table_name}), 1))",
+                (table_name,)
+            )
 
         print(f"  ✓ {table_name}: {len(data)} rader återställda")
         return len(data)
@@ -134,7 +142,9 @@ def main():
         for table in tables:
             backup_file = backup_path / f"{table}.json"
             if backup_file.exists():
-                rows = restore_table(conn, table, backup_file)
+                # tracks behåller original-id så att track_positions FK (track_id) matchar
+                preserve_id = table == "tracks"
+                rows = restore_table(conn, table, backup_file, preserve_id=preserve_id)
                 total_rows += rows
             else:
                 print(f"  - {table}: Ingen backup hittades")

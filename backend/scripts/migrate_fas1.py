@@ -162,6 +162,17 @@ def migrate_track_positions(cursor):
     else:
         print("  - corrected_by kolumn finns redan")
 
+    # corrected_at (timestamp för när korrigering gjordes)
+    if not column_exists(cursor, "track_positions", "corrected_at"):
+        cursor.execute("""
+            ALTER TABLE track_positions 
+            ADD COLUMN corrected_at TEXT
+        """)
+        changes.append("corrected_at")
+        print("  ✓ Lagt till corrected_at kolumn")
+    else:
+        print("  - corrected_at kolumn finns redan")
+
     return changes
 
 
