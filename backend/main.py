@@ -1040,6 +1040,20 @@ def row_to_track_position(row):
     )
 
 
+def haversine_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Avstånd i meter mellan två koordinater (lat, lng)."""
+    R = 6371000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lng2 - lng1)
+    s = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    )
+    return 2 * R * math.atan2(math.sqrt(s), math.sqrt(1 - s))
+
+
 def haversine_meters(a: LatLng, b: LatLng) -> float:
     R = 6371000.0
     phi1 = math.radians(a.lat)
@@ -6231,8 +6245,9 @@ def generate_experiments_batch():
                     distance_prev_1 = haversine_distance(orig_lat, orig_lng, prev_lat, prev_lng)
                     
                     try:
-                        curr_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-                        prev_time = datetime.fromisoformat(get_row_value(prev_pos, "timestamp").replace("Z", "+00:00"))
+                        curr_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")) if timestamp_str else None
+                        prev_ts_str = _to_iso_str(get_row_value(prev_pos, "timestamp"))
+                        prev_time = datetime.fromisoformat(prev_ts_str.replace("Z", "+00:00")) if prev_ts_str else None
                         time_diff = (curr_time - prev_time).total_seconds()
                         if time_diff > 0:
                             speed = distance_prev_1 / time_diff
