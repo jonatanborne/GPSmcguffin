@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Literal, Any
 from datetime import datetime
 import math
@@ -766,6 +766,15 @@ class Position(BaseModel):
     position: LatLng
 
 
+def _coerce_datetime_to_str(v):
+    """Postgres returnerar datetime; Pydantic vill ha str. Konvertera automatiskt."""
+    if v is None:
+        return None
+    if hasattr(v, "isoformat"):
+        return v.isoformat()
+    return str(v)
+
+
 class TrackPosition(BaseModel):
     id: Optional[int] = None
     track_id: Optional[int] = None
@@ -775,6 +784,11 @@ class TrackPosition(BaseModel):
     verified_status: Optional[Literal["pending", "correct", "incorrect"]] = "pending"
     corrected_position: Optional[LatLng] = None
     corrected_at: Optional[str] = None
+
+    @field_validator("timestamp", "corrected_at", mode="before")
+    @classmethod
+    def coerce_datetime_fields(cls, v):
+        return _coerce_datetime_to_str(v)
     annotation_notes: Optional[str] = None
     environment: Optional[str] = (
         None  # Miljö-kategorisering: "urban", "forest", "open", "mixed", etc.
@@ -801,6 +815,11 @@ class Track(TrackCreate):
     created_at: str
     positions: List[TrackPosition] = []
     track_source: str = "own"
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def coerce_created_at(cls, v):
+        return _coerce_datetime_to_str(v)
 
 
 class TrackPositionAdd(BaseModel):
@@ -838,6 +857,11 @@ class HidingSpot(HidingSpotCreate):
         None  # None = inte markerat än, True = hittade, False = hittade inte
     )
     found_at: Optional[str] = None  # När det markerades som hittat/ej hittat
+
+    @field_validator("created_at", "found_at", mode="before")
+    @classmethod
+    def coerce_datetime_fields(cls, v):
+        return _coerce_datetime_to_str(v)
 
 
 # SQLite databas används istället för in-memory storage
