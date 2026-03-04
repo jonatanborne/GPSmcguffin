@@ -120,51 +120,55 @@ function ExperimentMode() {
         // Skapa layer group för original track
         const originalGroup = L.layerGroup()
         
-        // Rita original track (grå, streckad)
-        const originalPositions = experiment.original_track.positions.map(p => [p.lat, p.lng])
-        L.polyline(originalPositions, {
-            color: 'gray',
-            weight: 3,
-            opacity: 0.6,
-            dashArray: '5, 5'
-        }).addTo(originalGroup)
+        // Hjälp: hämta lat/lng oavsett om API ger lat eller position_lat
+        const getLatLng = (p) => [p.lat ?? p.position_lat, p.lng ?? p.position_lng]
+        const origPos = experiment.original_track?.positions || []
+        const corrPos = experiment.corrected_track?.positions || []
+        const originalPositions = origPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
+        if (originalPositions.length > 0) {
+            L.polyline(originalPositions, {
+                color: '#2563eb',
+                weight: 4,
+                opacity: 0.9,
+                dashArray: '10, 10'
+            }).addTo(originalGroup)
 
-        // Rita original punkter
-        experiment.original_track.positions.forEach((p, idx) => {
-            L.circleMarker([p.lat, p.lng], {
-                radius: 4,
-                fillColor: 'gray',
-                color: 'white',
-                weight: 1,
-                fillOpacity: 0.6
-            })
+            origPos.forEach((p, idx) => {
+                const [lat, lng] = getLatLng(p)
+                if (lat == null || lng == null) return
+                L.circleMarker([lat, lng], {
+                    radius: 4,
+                    fillColor: '#2563eb',
+                    color: 'white',
+                    weight: 1,
+                    fillOpacity: 0.8
+                })
             .bindPopup(`
                 <div style="font-size: 12px;">
-                    <strong>Original</strong><br/>
+                    <strong>Original (kundspår)</strong><br/>
                     Punkt ${idx + 1}<br/>
                     ${p.timestamp || ''}
                 </div>
             `)
             .addTo(originalGroup)
-        })
+            })
+        }
 
-        originalGroup.addTo(map)
-        originalLayerRef.current = originalGroup
-
-        // Skapa layer group för corrected track
+        // Skapa layer group för corrected track (ritas först = under)
         const correctedGroup = L.layerGroup()
+        const correctedPositions = corrPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
         
-        // Rita corrected track (röd)
-        const correctedPositions = experiment.corrected_track.positions.map(p => [p.lat, p.lng])
-        L.polyline(correctedPositions, {
-            color: 'red',
-            weight: 3,
-            opacity: 0.8
-        }).addTo(correctedGroup)
+        if (correctedPositions.length > 0) {
+            L.polyline(correctedPositions, {
+                color: '#dc2626',
+                weight: 3,
+                opacity: 0.9
+            }).addTo(correctedGroup)
 
-        // Rita corrected punkter
-        experiment.corrected_track.positions.forEach((p, idx) => {
-            L.circleMarker([p.lat, p.lng], {
+            corrPos.forEach((p, idx) => {
+                const [lat, lng] = getLatLng(p)
+                if (lat == null || lng == null) return
+                L.circleMarker([lat, lng], {
                 radius: 5,
                 fillColor: 'red',
                 color: 'white',
@@ -179,10 +183,13 @@ function ExperimentMode() {
                 </div>
             `)
             .addTo(correctedGroup)
-        })
+            })
+        }
 
         correctedGroup.addTo(map)
         correctedLayerRef.current = correctedGroup
+        originalGroup.addTo(map)
+        originalLayerRef.current = originalGroup
 
         // Anpassa zoom för att visa båda spåren
         const allPositions = [...originalPositions, ...correctedPositions]
@@ -348,7 +355,7 @@ function ExperimentMode() {
                                     </div>
                                     <div className="mt-2 pt-2 border-t">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-4 h-0.5 bg-gray-400 border-t-2 border-dashed"></div>
+                                            <div className="w-4 h-0.5 border-t-2 border-dashed border-blue-500"></div>
                                             <span className="text-xs">Original (kundspår)</span>
                                         </div>
                                         <div className="flex items-center gap-2">
