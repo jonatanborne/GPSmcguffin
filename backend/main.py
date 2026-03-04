@@ -6158,7 +6158,7 @@ def generate_experiments_batch():
             if not dog_positions:
                 continue
 
-            # Bygg original track JSON
+            # Bygg original track JSON (datetime -> str för JSON-serialisering)
             original_track = {
                 "track_id": track_id,
                 "track_name": track_name,
@@ -6168,7 +6168,7 @@ def generate_experiments_batch():
                         "id": get_row_value(p, "id"),
                         "lat": float(get_row_value(p, "position_lat")),
                         "lng": float(get_row_value(p, "position_lng")),
-                        "timestamp": get_row_value(p, "timestamp"),
+                        "timestamp": _to_iso_str(get_row_value(p, "timestamp")),
                         "accuracy": float(get_row_value(p, "accuracy")) if get_row_value(p, "accuracy") else None
                     }
                     for p in dog_positions
@@ -6186,7 +6186,7 @@ def generate_experiments_batch():
                 orig_lat = get_row_value(pos, "position_lat")
                 orig_lng = get_row_value(pos, "position_lng")
                 accuracy = get_row_value(pos, "accuracy") or 0.0
-                timestamp_str = get_row_value(pos, "timestamp")
+                timestamp_str = _to_iso_str(get_row_value(pos, "timestamp"))
 
                 # Beräkna features (samma som predict_ml_corrections)
                 features = []
