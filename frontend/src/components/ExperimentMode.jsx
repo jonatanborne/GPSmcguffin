@@ -28,28 +28,6 @@ function ExperimentMode() {
 
     useEffect(() => {
         loadStats()
-        
-        // Initiera kartan
-        if (!mapInstanceRef.current && mapRef.current) {
-            const map = L.map(mapRef.current, {
-                center: [59.334, 18.066],
-                zoom: 13,
-                zoomControl: true
-            })
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map)
-
-            mapInstanceRef.current = map
-        }
-
-        return () => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove()
-                mapInstanceRef.current = null
-            }
-        }
     }, [])
 
     const loadStats = async () => {
@@ -113,11 +91,23 @@ function ExperimentMode() {
         }
     }
 
-    // Rita om kartan när experiment ändras
+    // Rita kartan när experiment ändras (kartan skapas här eftersom mapRef bara finns när experiment visas)
     useEffect(() => {
-        if (!mapInstanceRef.current || !experiment) return
+        if (!experiment) return
+        if (!mapRef.current) return
 
-        const map = mapInstanceRef.current
+        let map = mapInstanceRef.current
+        if (!map) {
+            map = L.map(mapRef.current, {
+                center: [59.334, 18.066],
+                zoom: 13,
+                zoomControl: true
+            })
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map)
+            mapInstanceRef.current = map
+        }
 
         // Ta bort gamla lager
         if (originalLayerRef.current) {
@@ -201,6 +191,12 @@ function ExperimentMode() {
             map.fitBounds(bounds, { padding: [50, 50] })
         }
 
+        return () => {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove()
+                mapInstanceRef.current = null
+            }
+        }
     }, [experiment])
 
     const saveRating = async () => {
