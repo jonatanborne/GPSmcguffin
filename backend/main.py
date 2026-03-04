@@ -966,6 +966,15 @@ def row_to_geofence(row):
     return Geofence(id=row["id"], name=row["name"], geofence=geofence_shape)
 
 
+def _to_iso_str(val):
+    """Konvertera datetime till ISO-sträng; Postgres returnerar datetime-objekt."""
+    if val is None:
+        return None
+    if hasattr(val, "isoformat"):
+        return val.isoformat()
+    return str(val)
+
+
 def row_to_track_position(row):
     """Konvertera databas-rad till TrackPosition-objekt"""
     corrected_position = None
@@ -993,11 +1002,11 @@ def row_to_track_position(row):
         id=row["id"],
         track_id=row["track_id"] if "track_id" in row.keys() else None,
         position=LatLng(lat=row["position_lat"], lng=row["position_lng"]),
-        timestamp=row["timestamp"],
+        timestamp=_to_iso_str(row["timestamp"]),
         accuracy=row["accuracy"],
         verified_status=verified_status,
         corrected_position=corrected_position,
-        corrected_at=row["corrected_at"],
+        corrected_at=_to_iso_str(row.get("corrected_at")),
         annotation_notes=row["annotation_notes"],
         environment=row.get("environment") if "environment" in row.keys() else None,
         truth_level=truth_level,
@@ -1266,7 +1275,7 @@ def list_tracks():
                 id=track_id,
                 name=row["name"],
                 track_type=row["track_type"],
-                created_at=row["created_at"],
+                created_at=_to_iso_str(row["created_at"]),
                 positions=positions,
                 human_track_id=row["human_track_id"]
                 if "human_track_id" in row.keys()
@@ -1628,7 +1637,7 @@ def get_track(track_id: int):
         id=row["id"],
         name=row["name"],
         track_type=row["track_type"],
-        created_at=row["created_at"],
+        created_at=_to_iso_str(row["created_at"]),
         positions=positions,
         human_track_id=row["human_track_id"]
         if "human_track_id" in row.keys()
