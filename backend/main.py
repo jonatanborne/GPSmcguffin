@@ -6088,9 +6088,11 @@ class ExperimentRating(BaseModel):
 @app.post("/api/ml/experiments/batch/generate")
 def generate_experiments_batch():
     """
-    Generera experiment för alla kundspår (track_source='imported').
-    Kör ML-modellen på alla hundspår och sparar resultaten som experiment.
+    Generera experiment för kundspår (track_source='imported').
+    Begränsar till MAX_PER_BATCH per anrop för att undvika timeout (503).
+    Klicka flera gånger om du har många spår.
     """
+    MAX_PER_BATCH = 15  # Max antal spår per anrop (undviker proxy timeout)
     try:
         import numpy as np
 
@@ -6140,8 +6142,11 @@ def generate_experiments_batch():
             }
 
         experiments_created = 0
+        skipped_existing = 0
 
         for track_row in dog_tracks:
+            if experiments_created >= MAX_PER_BATCH:
+                break
             track_id = get_row_value(track_row, "id")
             track_name = get_row_value(track_row, "name") or f"Track_{track_id}"
             human_track_id = get_row_value(track_row, "human_track_id")
@@ -6154,6 +6159,7 @@ def generate_experiments_batch():
             )
             existing = cursor.fetchone()
             if existing:
+                skipped_existing += 1
                 continue  # Skippa om experiment redan finns
 
             # Hämta hundpositioner
@@ -6391,11 +6397,17 @@ def generate_experiments_batch():
         conn.commit()
         conn.close()
 
+        remaining = len(dog_tracks) - experiments_created - skipped_existing
+        msg = f"Genererade {experiments_created} experiment"
+        if remaining > 0:
+            msg += f". {remaining} kundspår kvar – klicka igen för att generera fler (max 15 per gång för att undvika timeout)."
+
         return {
             "status": "success",
-            "message": f"Genererade {experiments_created} experiment från kundspår",
+            "message": msg,
             "generated": experiments_created,
-            "total_tracks": len(dog_tracks)
+            "total_tracks": len(dog_tracks),
+            "remaining": remaining
         }
 
     except Exception as e:

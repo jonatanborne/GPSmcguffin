@@ -77,7 +77,7 @@ function ExperimentMode() {
             const data = await res.json()
             
             if (data.status === 'success') {
-                alert(`Genererade ${data.generated} experiment från ${data.total_tracks} kundspår`)
+                alert(data.message || `Genererade ${data.generated} experiment`)
                 loadStats()
                 loadNextExperiment()
             } else {
