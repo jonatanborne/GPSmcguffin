@@ -31,17 +31,18 @@ except ImportError:
 
 app = FastAPI(title="Dogtracks Geofence Kit", version="0.1.0")
 
-# CORS - Tillåt anrop från alla domäner (för development/prototyping)
-# I Railway: tillåt både frontend-domänen och alla Railway-domäner
-# Använd regex för att matcha alla Railway-domäner dynamiskt
+# CORS - Tillåt anrop från frontend
+# Railway-domäner måste vara explicit listade; regex som backup
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.up\.railway\.app)(:\d+)?",
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://localhost:5173",  # Vite default port
+        "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://web-frontend.up.railway.app",
+        "https://web-production-0198c.up.railway.app",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
