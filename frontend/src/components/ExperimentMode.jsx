@@ -17,6 +17,7 @@ function ExperimentMode() {
     const mapInstanceRef = useRef(null)
     const originalLayerRef = useRef(null)
     const correctedLayerRef = useRef(null)
+    const humanLayerRef = useRef(null)
     
     const [experiment, setExperiment] = useState(null)
     const [progress, setProgress] = useState(null)
@@ -116,6 +117,9 @@ function ExperimentMode() {
         if (correctedLayerRef.current) {
             map.removeLayer(correctedLayerRef.current)
         }
+        if (humanLayerRef.current) {
+            map.removeLayer(humanLayerRef.current)
+        }
 
         // Skapa layer group för original track
         const originalGroup = L.layerGroup()
@@ -191,8 +195,22 @@ function ExperimentMode() {
         originalGroup.addTo(map)
         originalLayerRef.current = originalGroup
 
-        // Anpassa zoom för att visa båda spåren
-        const allPositions = [...originalPositions, ...correctedPositions]
+        // Rita människaspår (referens - "så här ska det vara") om det finns
+        const humanPos = experiment.corrected_track?.human_track?.positions || []
+        const humanPositions = humanPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
+        if (humanPositions.length > 0) {
+            const humanGroup = L.layerGroup()
+            L.polyline(humanPositions, {
+                color: '#16a34a',
+                weight: 3,
+                opacity: 0.9
+            }).addTo(humanGroup)
+            humanGroup.addTo(map)
+            humanLayerRef.current = humanGroup
+        }
+
+        // Anpassa zoom för att visa alla spår
+        const allPositions = [...originalPositions, ...correctedPositions, ...humanPositions]
         if (allPositions.length > 0) {
             const bounds = L.latLngBounds(allPositions)
             map.fitBounds(bounds, { padding: [50, 50] })
@@ -356,12 +374,18 @@ function ExperimentMode() {
                                     <div className="mt-2 pt-2 border-t">
                                         <div className="flex items-center gap-2 mb-1">
                                             <div className="w-4 h-0.5 border-t-2 border-dashed border-blue-500"></div>
-                                            <span className="text-xs">Original (kundspår)</span>
+                                            <span className="text-xs">Original (hund)</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 mb-1">
                                             <div className="w-4 h-0.5 bg-red-500"></div>
                                             <span className="text-xs">Korrigerad (ML)</span>
                                         </div>
+                                        {experiment.corrected_track?.human_track?.positions?.length > 0 && (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-0.5 bg-green-600"></div>
+                                                <span className="text-xs">Människaspår (referens)</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

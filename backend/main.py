@@ -6151,18 +6151,7 @@ def generate_experiments_batch():
             track_name = get_row_value(track_row, "name") or f"Track_{track_id}"
             human_track_id = get_row_value(track_row, "human_track_id")
 
-            # Kontrollera om experiment redan finns för detta spår
-            execute_query(
-                cursor,
-                "SELECT id FROM ml_experiments WHERE track_id = %s",
-                (track_id,)
-            )
-            existing = cursor.fetchone()
-            if existing:
-                skipped_existing += 1
-                continue  # Skippa om experiment redan finns
-
-            # Hämta hundpositioner
+            # Kontrollera om experiment redan finns
             execute_query(
                 cursor,
                 """
@@ -6177,6 +6166,41 @@ def generate_experiments_batch():
 
             if not dog_positions:
                 continue
+
+            # Om human_track_id saknas: hitta matchande människaspår via överlappande tidsintervall
+            if not human_track_id:
+                dog_t_start = get_row_value(dog_positions[0], "timestamp")
+                dog_t_end = get_row_value(dog_positions[-1], "timestamp")
+                execute_query(
+                    cursor,
+                    """
+                    SELECT t.id,
+                        (SELECT MIN(timestamp) FROM track_positions WHERE track_id = t.id) AS t_start,
+                        (SELECT MAX(timestamp) FROM track_positions WHERE track_id = t.id) AS t_end
+                    FROM tracks t
+                    WHERE track_source = 'imported' AND track_type = 'human'
+                    """,
+                )
+                best_match_id = None
+                best_overlap = 0.0
+                try:
+                    for hr in cursor.fetchall():
+                        h_start = get_row_value(hr, "t_start")
+                        h_end = get_row_value(hr, "t_end")
+                        if h_start is None or h_end is None or dog_t_start is None or dog_t_end is None:
+                            continue
+                        ts_dog_s = dog_t_start.timestamp() if hasattr(dog_t_start, "timestamp") else 0
+                        ts_dog_e = dog_t_end.timestamp() if hasattr(dog_t_end, "timestamp") else 1
+                        ts_h_s = h_start.timestamp() if hasattr(h_start, "timestamp") else 0
+                        ts_h_e = h_end.timestamp() if hasattr(h_end, "timestamp") else 1
+                        overlap = max(0.0, min(ts_dog_e, ts_h_e) - max(ts_dog_s, ts_h_s))
+                        if overlap > best_overlap:
+                            best_overlap = overlap
+                            best_match_id = get_row_value(hr, "id")
+                except Exception:
+                    pass
+                if best_match_id:
+                    human_track_id = best_match_id
 
             # Bygg original track JSON (datetime -> str för JSON-serialisering)
             original_track = {
@@ -6304,67 +6328,69 @@ def generate_experiments_batch():
                 except Exception:
                     predicted_distance = 0.0
 
-                # Beräkna korrigerad position (flytta mot människaspår om det finns)
+                # Beräkna korrigerad position
                 corrected_lat = orig_lat
                 corrected_lng = orig_lng
 
-                if human_track_id and predicted_distance > 0.1:
-                    # Hitta närmaste människaspår-position
-                    execute_query(
-                        cursor,
-                        """
-                        SELECT position_lat, position_lng, timestamp
-                        FROM track_positions
-                        WHERE track_id = %s
-                        ORDER BY timestamp ASC
-                        """,
-                        (human_track_id,)
-                    )
-                    human_positions = cursor.fetchall()
-                    
-                    if human_positions:
-                        # Hitta närmaste i tid
-                        min_time_diff = float('inf')
-                        nearest_human_lat = None
-                        nearest_human_lng = None
+                if predicted_distance > 0.1:
+                    target_lat, target_lng = None, None
+
+                    if human_track_id:
+                        # Flytta mot människaspår om det finns
+                        execute_query(
+                            cursor,
+                            """
+                            SELECT position_lat, position_lng, timestamp
+                            FROM track_positions
+                            WHERE track_id = %s
+                            ORDER BY timestamp ASC
+                            """,
+                            (human_track_id,)
+                        )
+                        human_positions = cursor.fetchall()
                         
-                        try:
-                            dog_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-                            for hp in human_positions:
-                                h_time_str = get_row_value(hp, "timestamp")
-                                h_time = datetime.fromisoformat(h_time_str.replace("Z", "+00:00"))
-                                time_diff = abs((dog_time - h_time).total_seconds())
-                                if time_diff < min_time_diff:
-                                    min_time_diff = time_diff
-                                    nearest_human_lat = get_row_value(hp, "position_lat")
-                                    nearest_human_lng = get_row_value(hp, "position_lng")
-                        except Exception:
-                            pass
+                        if human_positions:
+                            min_time_diff = float('inf')
+                            nearest_human_lat = None
+                            nearest_human_lng = None
+                            try:
+                                dog_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")) if timestamp_str else None
+                                if dog_time:
+                                    for hp in human_positions:
+                                        h_ts = _to_iso_str(get_row_value(hp, "timestamp"))
+                                        if h_ts:
+                                            h_time = datetime.fromisoformat(h_ts.replace("Z", "+00:00"))
+                                            time_diff = abs((dog_time - h_time).total_seconds())
+                                            if time_diff < min_time_diff:
+                                                min_time_diff = time_diff
+                                                nearest_human_lat = get_row_value(hp, "position_lat")
+                                                nearest_human_lng = get_row_value(hp, "position_lng")
+                            except Exception:
+                                pass
+                            if nearest_human_lat is not None and nearest_human_lng is not None:
+                                target_lat, target_lng = nearest_human_lat, nearest_human_lng
 
-                        if nearest_human_lat and nearest_human_lng:
-                            # Beräkna riktning mot människan
-                            lat1_rad = math.radians(orig_lat)
-                            lat2_rad = math.radians(nearest_human_lat)
-                            delta_lng = math.radians(nearest_human_lng - orig_lng)
-                            y = math.sin(delta_lng) * math.cos(lat2_rad)
-                            x = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(lat1_rad) * math.cos(lat2_rad) * math.cos(delta_lng)
-                            bearing_rad = math.atan2(y, x)
+                    if target_lat is None and target_lng is None and len(dog_positions) > 1:
+                        # Fallback för kundspår utan människaspår: flytta mot "slätat" riktning (mitt mellan grannar)
+                        prev_lat = get_row_value(dog_positions[i - 1], "position_lat") if i > 0 else None
+                        prev_lng = get_row_value(dog_positions[i - 1], "position_lng") if i > 0 else None
+                        next_lat = get_row_value(dog_positions[i + 1], "position_lat") if i < len(dog_positions) - 1 else None
+                        next_lng = get_row_value(dog_positions[i + 1], "position_lng") if i < len(dog_positions) - 1 else None
+                        if prev_lat is not None and next_lat is not None:
+                            target_lat = (prev_lat + next_lat) / 2
+                            target_lng = (prev_lng + next_lng) / 2
+                        elif prev_lat is not None:
+                            target_lat, target_lng = prev_lat, prev_lng
+                        elif next_lat is not None:
+                            target_lat, target_lng = next_lat, next_lng
 
-                            # Flytta punkten predicted_distance meter i den riktningen
-                            R = 6371000
-                            angular_distance = predicted_distance / R
-                            corrected_lat = math.degrees(
-                                math.asin(
-                                    math.sin(lat1_rad) * math.cos(angular_distance)
-                                    + math.cos(lat1_rad) * math.sin(angular_distance) * math.cos(bearing_rad)
-                                )
-                            )
-                            corrected_lng = orig_lng + math.degrees(
-                                math.atan2(
-                                    math.sin(bearing_rad) * math.sin(angular_distance) * math.cos(lat1_rad),
-                                    math.cos(angular_distance) - math.sin(lat1_rad) * math.sin(math.radians(corrected_lat))
-                                )
-                            )
+                    if target_lat is not None and target_lng is not None:
+                        # Flytta orig mot target med predicted_distance meter
+                        dist_orig = haversine_distance(orig_lat, orig_lng, target_lat, target_lng)
+                        if dist_orig > 0.001:
+                            frac = min(1.0, predicted_distance / dist_orig)
+                            corrected_lat = orig_lat + frac * (target_lat - orig_lat)
+                            corrected_lng = orig_lng + frac * (target_lng - orig_lng)
 
                 corrected_positions.append({
                     "id": get_row_value(pos, "id"),
@@ -6374,12 +6400,33 @@ def generate_experiments_batch():
                     "predicted_correction_distance": float(predicted_distance)
                 })
 
-            # Bygg corrected track JSON
+            # Hämta människaspår om det finns (för visning - "så här ska det vara")
+            human_track_positions = []
+            if human_track_id:
+                execute_query(
+                    cursor,
+                    """
+                    SELECT position_lat, position_lng, timestamp
+                    FROM track_positions
+                    WHERE track_id = %s
+                    ORDER BY timestamp ASC
+                    """,
+                    (human_track_id,),
+                )
+                for hp in cursor.fetchall():
+                    human_track_positions.append({
+                        "lat": float(get_row_value(hp, "position_lat")),
+                        "lng": float(get_row_value(hp, "position_lng")),
+                        "timestamp": _to_iso_str(get_row_value(hp, "timestamp")),
+                    })
+
+            # Bygg corrected track JSON (inkl. human_track för visning)
             corrected_track = {
                 "track_id": track_id,
                 "track_name": track_name,
                 "track_type": "dog",
-                "positions": corrected_positions
+                "positions": corrected_positions,
+                "human_track": {"positions": human_track_positions} if human_track_positions else None
             }
 
             # Spara experiment
