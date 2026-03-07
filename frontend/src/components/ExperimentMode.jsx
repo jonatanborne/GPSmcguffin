@@ -129,6 +129,12 @@ function ExperimentMode() {
         const origPos = experiment.original_track?.positions || []
         const corrPos = experiment.corrected_track?.positions || []
         const originalPositions = origPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
+        // Offset korrigerat spår ~5m åt sidan så det syns bredvid original när de överlappar
+        const offsetMeters = 5
+        const meterToDegLng = 1 / (111320 * Math.cos((originalPositions[0]?.[0] ?? 59) * Math.PI / 180))
+        const offset = [offsetMeters / 111320, offsetMeters * meterToDegLng]
+        const correctedPositionsRaw = corrPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
+        const correctedPositions = correctedPositionsRaw.map(([lat, lng], i) => [lat + offset[0], lng + offset[1]])
         if (originalPositions.length > 0) {
             L.polyline(originalPositions, {
                 color: '#2563eb',
@@ -160,7 +166,6 @@ function ExperimentMode() {
 
         // Skapa layer group för corrected track (ritas först = under)
         const correctedGroup = L.layerGroup()
-        const correctedPositions = corrPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
         
         if (correctedPositions.length > 0) {
             L.polyline(correctedPositions, {
@@ -170,7 +175,7 @@ function ExperimentMode() {
             }).addTo(correctedGroup)
 
             corrPos.forEach((p, idx) => {
-                const [lat, lng] = getLatLng(p)
+                const [lat, lng] = correctedPositions[idx]
                 if (lat == null || lng == null) return
                 L.circleMarker([lat, lng], {
                 radius: 5,
