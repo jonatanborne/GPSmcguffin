@@ -6194,12 +6194,23 @@ def generate_experiments_batch():
                 if best_match_id:
                     human_track_id = best_match_id
 
-            # Bygg original track JSON (datetime -> str för JSON-serialisering)
-            original_track = {
-                "track_id": track_id,
-                "track_name": track_name,
-                "track_type": "dog",
-                "positions": [
+            # Hämta människaspårets positioner (om det finns)
+            human_positions_db = []
+            if human_track_id:
+                execute_query(
+                    cursor,
+                    """
+                    SELECT id, position_lat, position_lng, timestamp, accuracy
+                    FROM track_positions
+                    WHERE track_id = %s
+                    ORDER BY timestamp ASC
+                    """,
+                    (human_track_id,),
+                )
+                human_positions_db = cursor.fetchall()
+
+            def _positions_to_json(positions, prefix=""):
+                return [
                     {
                         "id": get_row_value(p, "id"),
                         "lat": float(get_row_value(p, "position_lat")),
@@ -6207,218 +6218,152 @@ def generate_experiments_batch():
                         "timestamp": _to_iso_str(get_row_value(p, "timestamp")),
                         "accuracy": float(get_row_value(p, "accuracy")) if get_row_value(p, "accuracy") else None
                     }
-                    for p in dog_positions
+                    for p in positions
                 ]
-            }
 
-            # Kör ML-modellen för att generera korrigerat spår
-            mean_lat = np.mean([get_row_value(p, "position_lat") for p in dog_positions])
-            mean_lng = np.mean([get_row_value(p, "position_lng") for p in dog_positions])
+            def _run_ml_correction(positions, track_type_int, human_pos_for_target, m, scl):
+                """Kör ML-korrigering på positions. track_type_int: 0=dog, 1=human."""
+                if not positions:
+                    return []
+                mean_lat = np.mean([get_row_value(p, "position_lat") for p in positions])
+                mean_lng = np.mean([get_row_value(p, "position_lng") for p in positions])
+                corrected = []
+                pred_history = []
+                for i, pos in enumerate(positions):
+                    orig_lat = get_row_value(pos, "position_lat")
+                    orig_lng = get_row_value(pos, "position_lng")
+                    accuracy = get_row_value(pos, "accuracy") or 0.0
+                    timestamp_str = _to_iso_str(get_row_value(pos, "timestamp"))
 
-            corrected_positions = []
-            predicted_corrections_history = []
-
-            for i, pos in enumerate(dog_positions):
-                orig_lat = get_row_value(pos, "position_lat")
-                orig_lng = get_row_value(pos, "position_lng")
-                accuracy = get_row_value(pos, "accuracy") or 0.0
-                timestamp_str = _to_iso_str(get_row_value(pos, "timestamp"))
-
-                # Beräkna features (samma som predict_ml_corrections)
-                features = []
-                features.append(accuracy)
-                features.append(accuracy**2)
-                features.extend([orig_lat, orig_lng])
-                
-                if len(dog_positions) > 1:
-                    features.extend([orig_lat - mean_lat, orig_lng - mean_lng])
-                else:
-                    features.extend([0.0, 0.0])
-                
-                features.append(0)  # track_type dog
-
-                # Timestamp features
-                try:
-                    if timestamp_str:
-                        dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-                        hour = dt.hour
-                        weekday = dt.weekday()
-                        features.append(math.sin(2 * math.pi * hour / 24))
-                        features.append(math.cos(2 * math.pi * hour / 24))
-                        features.append(math.sin(2 * math.pi * weekday / 7))
-                        features.append(math.cos(2 * math.pi * weekday / 7))
+                    features = []
+                    features.append(accuracy)
+                    features.append(accuracy**2)
+                    features.extend([orig_lat, orig_lng])
+                    if len(positions) > 1:
+                        features.extend([orig_lat - mean_lat, orig_lng - mean_lng])
                     else:
-                        features.extend([0.0, 1.0, 0.0, 1.0])
-                except Exception:
-                    features.extend([0.0, 1.0, 0.0, 1.0])
+                        features.extend([0.0, 0.0])
+                    features.append(track_type_int)
 
-                # Rörelse features (förenklad version)
-                speed = 0.0
-                acceleration = 0.0
-                distance_prev_1 = 0.0
-                distance_prev_2 = 0.0
-                distance_prev_3 = 0.0
-                bearing = 0.0
-
-                if i > 0:
-                    prev_pos = dog_positions[i - 1]
-                    prev_lat = get_row_value(prev_pos, "position_lat")
-                    prev_lng = get_row_value(prev_pos, "position_lng")
-                    distance_prev_1 = haversine_distance(orig_lat, orig_lng, prev_lat, prev_lng)
-                    
                     try:
-                        curr_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")) if timestamp_str else None
-                        prev_ts_str = _to_iso_str(get_row_value(prev_pos, "timestamp"))
-                        prev_time = datetime.fromisoformat(prev_ts_str.replace("Z", "+00:00")) if prev_ts_str else None
-                        time_diff = (curr_time - prev_time).total_seconds()
-                        if time_diff > 0:
-                            speed = distance_prev_1 / time_diff
+                        if timestamp_str:
+                            dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                            hour, weekday = dt.hour, dt.weekday()
+                            features.append(math.sin(2 * math.pi * hour / 24))
+                            features.append(math.cos(2 * math.pi * hour / 24))
+                            features.append(math.sin(2 * math.pi * weekday / 7))
+                            features.append(math.cos(2 * math.pi * weekday / 7))
+                        else:
+                            features.extend([0.0, 1.0, 0.0, 1.0])
                     except Exception:
-                        pass
+                        features.extend([0.0, 1.0, 0.0, 1.0])
 
-                    if i > 1:
-                        prev2_pos = dog_positions[i - 2]
-                        prev2_lat = get_row_value(prev2_pos, "position_lat")
-                        prev2_lng = get_row_value(prev2_pos, "position_lng")
-                        distance_prev_2 = haversine_distance(prev_lat, prev_lng, prev2_lat, prev2_lng)
-                        
-                        if i > 2:
-                            prev3_pos = dog_positions[i - 3]
-                            prev3_lat = get_row_value(prev3_pos, "position_lat")
-                            prev3_lng = get_row_value(prev3_pos, "position_lng")
-                            distance_prev_3 = haversine_distance(prev2_lat, prev2_lng, prev3_lat, prev3_lng)
+                    speed = 0.0
+                    dist_prev_1 = 0.0
+                    dist_prev_2 = 0.0
+                    dist_prev_3 = 0.0
+                    if i > 0:
+                        prev_pos = positions[i - 1]
+                        prev_lat = get_row_value(prev_pos, "position_lat")
+                        prev_lng = get_row_value(prev_pos, "position_lng")
+                        dist_prev_1 = haversine_distance(orig_lat, orig_lng, prev_lat, prev_lng)
+                        try:
+                            curr_t = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")) if timestamp_str else None
+                            prev_ts = _to_iso_str(get_row_value(prev_pos, "timestamp"))
+                            prev_t = datetime.fromisoformat(prev_ts.replace("Z", "+00:00")) if prev_ts else None
+                            if curr_t and prev_t and (curr_t - prev_t).total_seconds() > 0:
+                                speed = dist_prev_1 / (curr_t - prev_t).total_seconds()
+                        except Exception:
+                            pass
+                        if i > 1:
+                            p2 = positions[i - 2]
+                            p2_lat, p2_lng = get_row_value(p2, "position_lat"), get_row_value(p2, "position_lng")
+                            dist_prev_2 = haversine_distance(prev_lat, prev_lng, p2_lat, p2_lng)
+                            if i > 2:
+                                p3 = positions[i - 3]
+                                p3_lat, p3_lng = get_row_value(p3, "position_lat"), get_row_value(p3, "position_lng")
+                                dist_prev_3 = haversine_distance(p2_lat, p2_lng, p3_lat, p3_lng)
+                    features.extend([speed, 0.0, dist_prev_1, dist_prev_2, dist_prev_3, 0.0])
 
-                features.extend([speed, acceleration, distance_prev_1, distance_prev_2, distance_prev_3, bearing])
+                    if len(pred_history) >= 2:
+                        rm = float(np.mean(pred_history[-2:]))
+                        rs = float(np.std(pred_history[-2:])) if len(pred_history) > 1 else 0.0
+                    else:
+                        rm, rs = 0.0, 0.0
+                    features.extend([rm, rs])
+                    features.extend([accuracy * speed, accuracy * dist_prev_1, speed * dist_prev_1])
+                    features.extend([0.0] * 8)
+                    features.extend([0.0, 0.0, 0.0])
+                    features.extend([999.0, 0.0, 0.0, 0.0])  # human track features default
 
-                # Rolling statistics
-                if len(predicted_corrections_history) >= 2:
-                    recent_mean = float(np.mean(predicted_corrections_history[-2:]))
-                    recent_std = float(np.std(predicted_corrections_history[-2:])) if len(predicted_corrections_history) > 1 else 0.0
-                else:
-                    recent_mean = 0.0
-                    recent_std = 0.0
-                features.extend([recent_mean, recent_std])
+                    try:
+                        pred_dist = float(m.predict(scl.transform(np.array([features])))[0])
+                    except Exception:
+                        pred_dist = 0.0
+                    pred_history.append(pred_dist)
 
-                # Interaktioner
-                features.extend([accuracy * speed, accuracy * distance_prev_1, speed * distance_prev_1])
-
-                # Environment (alla 0 för kundspår)
-                features.extend([0.0] * 8)
-
-                # Smoothing features (förenklad)
-                features.extend([0.0, 0.0, 0.0])
-
-                # Human track features (förenklad - sätt default)
-                features.extend([999.0, 0.0, 0.0, 0.0])
-
-                # Förutsäg korrigering
-                try:
-                    features_array = np.array([features])
-                    features_scaled = scaler.transform(features_array)
-                    predicted_distance = float(model.predict(features_scaled)[0])
-                    predicted_corrections_history.append(predicted_distance)
-                except Exception:
-                    predicted_distance = 0.0
-
-                # Beräkna korrigerad position
-                corrected_lat = orig_lat
-                corrected_lng = orig_lng
-
-                if predicted_distance > 0.1:
+                    corr_lat, corr_lng = orig_lat, orig_lng
                     target_lat, target_lng = None, None
 
-                    if human_track_id:
-                        # Flytta mot människaspår om det finns
-                        execute_query(
-                            cursor,
-                            """
-                            SELECT position_lat, position_lng, timestamp
-                            FROM track_positions
-                            WHERE track_id = %s
-                            ORDER BY timestamp ASC
-                            """,
-                            (human_track_id,)
-                        )
-                        human_positions = cursor.fetchall()
-                        
-                        if human_positions:
-                            min_time_diff = float('inf')
-                            nearest_human_lat = None
-                            nearest_human_lng = None
+                    if pred_dist > 0.1 and len(positions) > 1:
+                        if track_type_int == 0 and human_pos_for_target:
                             try:
-                                dog_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")) if timestamp_str else None
-                                if dog_time:
-                                    for hp in human_positions:
+                                curr_t = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")) if timestamp_str else None
+                                if curr_t:
+                                    min_td = float('inf')
+                                    for hp in human_pos_for_target:
                                         h_ts = _to_iso_str(get_row_value(hp, "timestamp"))
                                         if h_ts:
-                                            h_time = datetime.fromisoformat(h_ts.replace("Z", "+00:00"))
-                                            time_diff = abs((dog_time - h_time).total_seconds())
-                                            if time_diff < min_time_diff:
-                                                min_time_diff = time_diff
-                                                nearest_human_lat = get_row_value(hp, "position_lat")
-                                                nearest_human_lng = get_row_value(hp, "position_lng")
+                                            h_t = datetime.fromisoformat(h_ts.replace("Z", "+00:00"))
+                                            td = abs((curr_t - h_t).total_seconds())
+                                            if td < min_td:
+                                                min_td = td
+                                                target_lat = get_row_value(hp, "position_lat")
+                                                target_lng = get_row_value(hp, "position_lng")
                             except Exception:
                                 pass
-                            if nearest_human_lat is not None and nearest_human_lng is not None:
-                                target_lat, target_lng = nearest_human_lat, nearest_human_lng
+                        if target_lat is None:
+                            prev_lat = get_row_value(positions[i - 1], "position_lat") if i > 0 else None
+                            prev_lng = get_row_value(positions[i - 1], "position_lng") if i > 0 else None
+                            next_lat = get_row_value(positions[i + 1], "position_lat") if i < len(positions) - 1 else None
+                            next_lng = get_row_value(positions[i + 1], "position_lng") if i < len(positions) - 1 else None
+                            if prev_lat is not None and next_lat is not None:
+                                target_lat = (prev_lat + next_lat) / 2
+                                target_lng = (prev_lng + next_lng) / 2
+                            elif prev_lat is not None:
+                                target_lat, target_lng = prev_lat, prev_lng
+                            elif next_lat is not None:
+                                target_lat, target_lng = next_lat, next_lng
+                        if target_lat is not None and target_lng is not None:
+                            d = haversine_distance(orig_lat, orig_lng, target_lat, target_lng)
+                            if d > 0.001:
+                                frac = min(1.0, pred_dist / d)
+                                corr_lat = orig_lat + frac * (target_lat - orig_lat)
+                                corr_lng = orig_lng + frac * (target_lng - orig_lng)
 
-                    if target_lat is None and target_lng is None and len(dog_positions) > 1:
-                        # Fallback för kundspår utan människaspår: flytta mot "slätat" riktning (mitt mellan grannar)
-                        prev_lat = get_row_value(dog_positions[i - 1], "position_lat") if i > 0 else None
-                        prev_lng = get_row_value(dog_positions[i - 1], "position_lng") if i > 0 else None
-                        next_lat = get_row_value(dog_positions[i + 1], "position_lat") if i < len(dog_positions) - 1 else None
-                        next_lng = get_row_value(dog_positions[i + 1], "position_lng") if i < len(dog_positions) - 1 else None
-                        if prev_lat is not None and next_lat is not None:
-                            target_lat = (prev_lat + next_lat) / 2
-                            target_lng = (prev_lng + next_lng) / 2
-                        elif prev_lat is not None:
-                            target_lat, target_lng = prev_lat, prev_lng
-                        elif next_lat is not None:
-                            target_lat, target_lng = next_lat, next_lng
-
-                    if target_lat is not None and target_lng is not None:
-                        # Flytta orig mot target med predicted_distance meter
-                        dist_orig = haversine_distance(orig_lat, orig_lng, target_lat, target_lng)
-                        if dist_orig > 0.001:
-                            frac = min(1.0, predicted_distance / dist_orig)
-                            corrected_lat = orig_lat + frac * (target_lat - orig_lat)
-                            corrected_lng = orig_lng + frac * (target_lng - orig_lng)
-
-                corrected_positions.append({
-                    "id": get_row_value(pos, "id"),
-                    "lat": float(corrected_lat),
-                    "lng": float(corrected_lng),
-                    "timestamp": timestamp_str,
-                    "predicted_correction_distance": float(predicted_distance)
-                })
-
-            # Hämta människaspår om det finns (för visning - "så här ska det vara")
-            human_track_positions = []
-            if human_track_id:
-                execute_query(
-                    cursor,
-                    """
-                    SELECT position_lat, position_lng, timestamp
-                    FROM track_positions
-                    WHERE track_id = %s
-                    ORDER BY timestamp ASC
-                    """,
-                    (human_track_id,),
-                )
-                for hp in cursor.fetchall():
-                    human_track_positions.append({
-                        "lat": float(get_row_value(hp, "position_lat")),
-                        "lng": float(get_row_value(hp, "position_lng")),
-                        "timestamp": _to_iso_str(get_row_value(hp, "timestamp")),
+                    corrected.append({
+                        "id": get_row_value(pos, "id"),
+                        "lat": float(corr_lat),
+                        "lng": float(corr_lng),
+                        "timestamp": timestamp_str,
+                        "predicted_correction_distance": float(pred_dist)
                     })
+                return corrected
 
-            # Bygg corrected track JSON (inkl. human_track för visning)
-            corrected_track = {
-                "track_id": track_id,
+            dog_corrected = _run_ml_correction(dog_positions, 0, human_positions_db, model, scaler)
+            human_corrected = _run_ml_correction(human_positions_db, 1, None, model, scaler) if human_positions_db else []
+
+            human_original = {"positions": _positions_to_json(human_positions_db)} if human_positions_db else None
+            dog_original = {"positions": _positions_to_json(dog_positions)}
+            original_track = {
                 "track_name": track_name,
-                "track_type": "dog",
-                "positions": corrected_positions,
-                "human_track": {"positions": human_track_positions} if human_track_positions else None
+                "human": human_original,
+                "dog": dog_original
+            }
+            corrected_track = {
+                "track_name": track_name,
+                "human": {"positions": human_corrected} if human_corrected else None,
+                "dog": {"positions": dog_corrected}
             }
 
             # Spara experiment

@@ -81,49 +81,66 @@ def main():
     
     for exp in experiments:
         rating = exp["rating"]
+        track_id = exp["track_id"]
         original = exp["original_track_json"]
         corrected = exp["corrected_track_json"]
-        
-        # Endast använd experiment med tydliga betyg
+        track_name = original.get("track_name", f"Track_{track_id}")
+
+        # Ny struktur: original/corrected har .dog och .human med .positions
+        dog_orig = (original.get("dog") or {}).get("positions", [])
+        dog_corr = (corrected.get("dog") or {}).get("positions", [])
+        human_orig = (original.get("human") or {}).get("positions", [])
+        human_corr = (corrected.get("human") or {}).get("positions", [])
+
+        def add_dog_training(orig_pos, corr_pos, source, notes):
+            training_data.append({
+                "track_id": track_id,
+                "track_name": track_name,
+                "track_type": "dog",
+                "timestamp": orig_pos.get("timestamp"),
+                "verified_status": "correct",
+                "original_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},
+                "corrected_position": {"lat": corr_pos["lat"], "lng": corr_pos["lng"]},
+                "correction_distance_meters": corr_pos.get("predicted_correction_distance", 0.0),
+                "accuracy": orig_pos.get("accuracy"),
+                "annotation_notes": notes,
+                "environment": None,
+                "source": source
+            })
+
+        def add_human_training(orig_pos, corr_pos, source, notes):
+            training_data.append({
+                "track_id": track_id,
+                "track_name": track_name,
+                "track_type": "human",
+                "timestamp": orig_pos.get("timestamp"),
+                "verified_status": "correct",
+                "original_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},
+                "corrected_position": {"lat": corr_pos["lat"], "lng": corr_pos["lng"]},
+                "correction_distance_meters": corr_pos.get("predicted_correction_distance", 0.0),
+                "accuracy": orig_pos.get("accuracy"),
+                "annotation_notes": notes,
+                "environment": None,
+                "source": source
+            })
+
         if rating >= 7:
-            # Höga betyg: Använd korrigeringen som positiv träningsdata
             high_rating_count += 1
-            for i, orig_pos in enumerate(original["positions"]):
-                if i < len(corrected["positions"]):
-                    corr_pos = corrected["positions"][i]
-                    training_data.append({
-                        "track_id": original["track_id"],
-                        "track_name": original["track_name"],
-                        "track_type": "dog",
-                        "timestamp": orig_pos["timestamp"],
-                        "verified_status": "correct",
-                        "original_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},
-                        "corrected_position": {"lat": corr_pos["lat"], "lng": corr_pos["lng"]},
-                        "correction_distance_meters": corr_pos.get("predicted_correction_distance", 0.0),
-                        "accuracy": orig_pos.get("accuracy"),
-                        "annotation_notes": f"Experiment rating: {rating}",
-                        "environment": None,
-                        "source": "experiment_high_rating"
-                    })
-        
+            for i, orig_pos in enumerate(dog_orig):
+                if i < len(dog_corr):
+                    add_dog_training(orig_pos, dog_corr[i], "experiment_high_rating", f"Experiment rating: {rating}")
+            for i, orig_pos in enumerate(human_orig):
+                if i < len(human_corr):
+                    add_human_training(orig_pos, human_corr[i], "experiment_high_rating", f"Experiment rating: {rating}")
+
         elif rating <= 3:
-            # Låga betyg: Lär modellen att original var bättre (minimal korrigering)
             low_rating_count += 1
-            for i, orig_pos in enumerate(original["positions"]):
-                training_data.append({
-                    "track_id": original["track_id"],
-                    "track_name": original["track_name"],
-                    "track_type": "dog",
-                    "timestamp": orig_pos["timestamp"],
-                    "verified_status": "correct",
-                    "original_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},
-                    "corrected_position": {"lat": orig_pos["lat"], "lng": orig_pos["lng"]},  # Ingen korrigering
-                    "correction_distance_meters": 0.0,
-                    "accuracy": orig_pos.get("accuracy"),
-                    "annotation_notes": f"Experiment rating: {rating} (low - no correction better)",
-                    "environment": None,
-                    "source": "experiment_low_rating"
-                })
+            for orig_pos in dog_orig:
+                add_dog_training(orig_pos, orig_pos, "experiment_low_rating",
+                    f"Experiment rating: {rating} (low - no correction better)")
+            for orig_pos in human_orig:
+                add_human_training(orig_pos, orig_pos, "experiment_low_rating",
+                    f"Experiment rating: {rating} (low - no correction better)")
 
     print(f"\nKonverterade till träningsdata:")
     print(f"  Höga betyg (>= 7): {high_rating_count} experiment → {sum(1 for d in training_data if d['source'] == 'experiment_high_rating')} positioner")

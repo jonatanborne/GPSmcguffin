@@ -12,14 +12,23 @@ L.Icon.Default.mergeOptions({
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 
+// 1=Människaspår, 2=Hundspår, 3=Korrigerad människa, 4=Korrigerad hund
+const TRACK_CONFIG = [
+    { key: 'humanOriginal', label: '1. Människaspår (original)', color: '#059669', dash: false },
+    { key: 'dogOriginal', label: '2. Hundspår (original)', color: '#2563eb', dash: true },
+    { key: 'humanCorrected', label: '3. Korrigerad människa', color: '#8b5cf6', dash: false },
+    { key: 'dogCorrected', label: '4. Korrigerad hund', color: '#dc2626', dash: false },
+]
+
 function ExperimentMode() {
     const mapRef = useRef(null)
     const mapInstanceRef = useRef(null)
-    const originalLayerRef = useRef(null)
-    const correctedLayerRef = useRef(null)
-    const humanLayerRef = useRef(null)
-    
+    const layerRefs = useRef({})
+
     const [experiment, setExperiment] = useState(null)
+    const [trackVisibility, setTrackVisibility] = useState(
+        Object.fromEntries(TRACK_CONFIG.map(t => [t.key, true]))
+    )
     const [progress, setProgress] = useState(null)
     const [loading, setLoading] = useState(false)
     const [rating, setRating] = useState(5)
@@ -84,6 +93,7 @@ function ExperimentMode() {
                 setProgress(data.progress)
                 setRating(5)
                 setNotes('')
+                setTrackVisibility(Object.fromEntries(TRACK_CONFIG.map(t => [t.key, true])))
             }
         } catch (err) {
             alert('Fel vid laddning: ' + err.message)
@@ -92,7 +102,26 @@ function ExperimentMode() {
         }
     }
 
-    // Rita kartan när experiment ändras (kartan skapas här eftersom mapRef bara finns när experiment visas)
+    const getLatLng = (p) => [p.lat ?? p.position_lat, p.lng ?? p.position_lng]
+    const toPositions = (arr) => (arr || []).map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
+
+    // Ny struktur: original_track/corrected_track har .human och .dog med .positions
+    const humanOrig = experiment?.original_track?.human?.positions || []
+    const dogOrig = experiment?.original_track?.dog?.positions || []
+    const humanCorr = experiment?.corrected_track?.human?.positions || []
+    const dogCorr = experiment?.corrected_track?.dog?.positions || []
+
+    const trackData = [
+        { key: 'humanOriginal', positions: toPositions(humanOrig), raw: humanOrig },
+        { key: 'dogOriginal', positions: toPositions(dogOrig), raw: dogOrig },
+        { key: 'humanCorrected', positions: toPositions(humanCorr), raw: humanCorr },
+        { key: 'dogCorrected', positions: toPositions(dogCorr), raw: dogCorr },
+    ]
+
+    const toggleTrack = (key) => {
+        setTrackVisibility(prev => ({ ...prev, [key]: !prev[key] }))
+    }
+
     useEffect(() => {
         if (!experiment) return
         if (!mapRef.current) return
@@ -102,123 +131,54 @@ function ExperimentMode() {
             map = L.map(mapRef.current, {
                 center: [59.334, 18.066],
                 zoom: 13,
-                zoomControl: true
+                zoomControl: true,
+                maxZoom: 22
             })
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 22
             }).addTo(map)
             mapInstanceRef.current = map
         }
 
-        // Ta bort gamla lager
-        if (originalLayerRef.current) {
-            map.removeLayer(originalLayerRef.current)
-        }
-        if (correctedLayerRef.current) {
-            map.removeLayer(correctedLayerRef.current)
-        }
-        if (humanLayerRef.current) {
-            map.removeLayer(humanLayerRef.current)
-        }
+        TRACK_CONFIG.forEach(({ key }) => {
+            if (layerRefs.current[key]) {
+                map.removeLayer(layerRefs.current[key])
+            }
+        })
 
-        // Skapa layer group för original track
-        const originalGroup = L.layerGroup()
-        
-        // Hjälp: hämta lat/lng oavsett om API ger lat eller position_lat
-        const getLatLng = (p) => [p.lat ?? p.position_lat, p.lng ?? p.position_lng]
-        const origPos = experiment.original_track?.positions || []
-        const corrPos = experiment.corrected_track?.positions || []
-        const originalPositions = origPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
-        // Offset korrigerat spår ~5m åt sidan så det syns bredvid original när de överlappar
-        const offsetMeters = 5
-        const meterToDegLng = 1 / (111320 * Math.cos((originalPositions[0]?.[0] ?? 59) * Math.PI / 180))
-        const offset = [offsetMeters / 111320, offsetMeters * meterToDegLng]
-        const correctedPositionsRaw = corrPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
-        const correctedPositions = correctedPositionsRaw.map(([lat, lng], i) => [lat + offset[0], lng + offset[1]])
-        if (originalPositions.length > 0) {
-            L.polyline(originalPositions, {
-                color: '#2563eb',
+        trackData.forEach(({ key, positions, raw }, idx) => {
+            const cfg = TRACK_CONFIG[idx]
+            if (!cfg || positions.length === 0) return
+            const group = L.layerGroup()
+            L.polyline(positions, {
+                color: cfg.color,
                 weight: 4,
                 opacity: 0.9,
-                dashArray: '10, 10'
-            }).addTo(originalGroup)
-
-            origPos.forEach((p, idx) => {
+                dashArray: cfg.dash ? '10, 10' : null
+            }).addTo(group)
+            raw.slice(0, 50).forEach((p, i) => {
                 const [lat, lng] = getLatLng(p)
                 if (lat == null || lng == null) return
                 L.circleMarker([lat, lng], {
-                    radius: 4,
-                    fillColor: '#2563eb',
+                    radius: 3,
+                    fillColor: cfg.color,
                     color: 'white',
                     weight: 1,
                     fillOpacity: 0.8
                 })
-            .bindPopup(`
-                <div style="font-size: 12px;">
-                    <strong>Original (kundspår)</strong><br/>
-                    Punkt ${idx + 1}<br/>
-                    ${p.timestamp || ''}
-                </div>
-            `)
-            .addTo(originalGroup)
+                    .bindPopup(`<div style="font-size:11px"><strong>${cfg.label}</strong><br/>Punkt ${i + 1}</div>`)
+                    .addTo(group)
             })
-        }
+            if (trackVisibility[key]) {
+                group.addTo(map)
+            }
+            layerRefs.current[key] = group
+        })
 
-        // Skapa layer group för corrected track (ritas först = under)
-        const correctedGroup = L.layerGroup()
-        
-        if (correctedPositions.length > 0) {
-            L.polyline(correctedPositions, {
-                color: '#dc2626',
-                weight: 3,
-                opacity: 0.9
-            }).addTo(correctedGroup)
-
-            corrPos.forEach((p, idx) => {
-                const [lat, lng] = correctedPositions[idx]
-                if (lat == null || lng == null) return
-                L.circleMarker([lat, lng], {
-                radius: 5,
-                fillColor: 'red',
-                color: 'white',
-                weight: 1,
-                fillOpacity: 0.8
-            })
-            .bindPopup(`
-                <div style="font-size: 12px;">
-                    <strong>Korrigerad (ML)</strong><br/>
-                    Punkt ${idx + 1}<br/>
-                    Korrigering: ${p.predicted_correction_distance?.toFixed(2) || '?'} m
-                </div>
-            `)
-            .addTo(correctedGroup)
-            })
-        }
-
-        correctedGroup.addTo(map)
-        correctedLayerRef.current = correctedGroup
-        originalGroup.addTo(map)
-        originalLayerRef.current = originalGroup
-
-        // Rita människaspår (referens - "så här ska det vara") om det finns
-        const humanPos = experiment.corrected_track?.human_track?.positions || []
-        const humanPositions = humanPos.map(p => getLatLng(p)).filter(([lat, lng]) => lat != null && lng != null)
-        if (humanPositions.length > 0) {
-            const humanGroup = L.layerGroup()
-            L.polyline(humanPositions, {
-                color: '#16a34a',
-                weight: 3,
-                opacity: 0.9
-            }).addTo(humanGroup)
-            humanGroup.addTo(map)
-            humanLayerRef.current = humanGroup
-        }
-
-        // Anpassa zoom för att visa alla spår
-        const allPositions = [...originalPositions, ...correctedPositions, ...humanPositions]
-        if (allPositions.length > 0) {
-            const bounds = L.latLngBounds(allPositions)
-            map.fitBounds(bounds, { padding: [50, 50] })
+        const allPos = trackData.flatMap(t => t.positions)
+        if (allPos.length > 0) {
+            map.fitBounds(L.latLngBounds(allPos), { padding: [40, 40] })
         }
 
         return () => {
@@ -228,6 +188,20 @@ function ExperimentMode() {
             }
         }
     }, [experiment])
+
+    useEffect(() => {
+        if (!mapInstanceRef.current) return
+        TRACK_CONFIG.forEach(({ key }) => {
+            const layer = layerRefs.current[key]
+            if (layer) {
+                if (trackVisibility[key]) {
+                    mapInstanceRef.current.addLayer(layer)
+                } else {
+                    mapInstanceRef.current.removeLayer(layer)
+                }
+            }
+        })
+    }, [trackVisibility])
 
     const saveRating = async () => {
         if (!experiment) return
@@ -280,8 +254,8 @@ function ExperimentMode() {
 
     return (
         <div className="h-full flex flex-col bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b px-6 py-4">
+            {/* Header - kompakt */}
+            <div className="bg-white border-b px-4 py-2">
                 <h2 className="text-2xl font-bold text-gray-800">Experiment Mode</h2>
                 <p className="text-gray-600 mt-1">
                     Bedöm modellens korrigeringar av kundspår (1-10)
@@ -337,9 +311,9 @@ function ExperimentMode() {
             {/* Main content */}
             {experiment ? (
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Progress bar */}
+                    {/* Progress bar - slimmare */}
                     {progress && (
-                        <div className="bg-white border-b px-6 py-3">
+                        <div className="bg-white border-b px-4 py-2">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-medium text-gray-700">
                                     Experiment {progress.current} / {progress.total}
@@ -357,40 +331,41 @@ function ExperimentMode() {
                         </div>
                     )}
 
-                    {/* Map */}
-                    <div className="flex-1 relative">
+                    {/* Map - tar mer plats */}
+                    <div className="flex-1 relative min-h-0">
                         <div ref={mapRef} className="h-full w-full" />
 
-                        {/* Track info overlay */}
+                        {/* Track info + växlare */}
                         {experiment && (
                             <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs z-[1000]">
                                 <h3 className="font-semibold text-gray-800 mb-2">
-                                    {experiment.original_track.track_name}
+                                    {experiment.original_track?.track_name || 'Experiment'}
                                 </h3>
                                 <div className="text-sm text-gray-600 space-y-1">
                                     <div>
-                                        <span className="font-medium">Positioner:</span>{' '}
-                                        {experiment.original_track.positions.length}
+                                        <span className="font-medium">Modell:</span> {experiment.model_version}
                                     </div>
-                                    <div>
-                                        <span className="font-medium">Modell:</span>{' '}
-                                        {experiment.model_version}
-                                    </div>
-                                    <div className="mt-2 pt-2 border-t">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-4 h-0.5 border-t-2 border-dashed border-blue-500"></div>
-                                            <span className="text-xs">Original (hund)</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-4 h-0.5 bg-red-500"></div>
-                                            <span className="text-xs">Korrigerad (ML)</span>
-                                        </div>
-                                        {experiment.corrected_track?.human_track?.positions?.length > 0 && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-4 h-0.5 bg-green-600"></div>
-                                                <span className="text-xs">Människaspår (referens)</span>
-                                            </div>
-                                        )}
+                                    <div className="mt-2 pt-2 border-t space-y-1">
+                                        {TRACK_CONFIG.map((cfg) => {
+                                            const count = trackData.find(t => t.key === cfg.key)?.positions?.length ?? 0
+                                            if (count === 0) return null
+                                            return (
+                                                <label key={cfg.key} className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!trackVisibility[cfg.key]}
+                                                        onChange={() => toggleTrack(cfg.key)}
+                                                        className="rounded"
+                                                    />
+                                                    <div
+                                                        className="w-4 h-0.5 flex-shrink-0"
+                                                        style={{ backgroundColor: cfg.color }}
+                                                    />
+                                                    <span className="text-xs">{cfg.label}</span>
+                                                    <span className="text-gray-400 text-xs">({count})</span>
+                                                </label>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             </div>
