@@ -1490,14 +1490,6 @@ def rename_generic_tracks():
     }
 
 
-@app.post("/tracks/rename-generic")
-def rename_generic_tracks_endpoint():
-    """
-    API-endpoint för att döpa om spår med generiska namn till unika namn
-    """
-    return rename_generic_tracks()
-
-
 @app.post("/tracks/{track_id}/smooth")
 def smooth_track(
     track_id: int,
