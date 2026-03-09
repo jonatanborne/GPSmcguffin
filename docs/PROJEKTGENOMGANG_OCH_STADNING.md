@@ -65,12 +65,11 @@ MASTER_PLAN.md, IMPROVEMENT_PLAN.md, SESSION_STATUS.md
 | Ta bort dubbel `rename-generic`-route | ✅ |
 | Arkivera FAS1_* och RAILWAY_* till archive/fas1 och archive/railway | ✅ |
 
-### Fas 2: Dokumentationsstädning (≈ 2 timmar)
+### Fas 2: Dokumentationsstädning ✅ (klar)
 
-- Samla alla FAS1_* i `docs/fas1/`
-- Samla Railway-relaterade i `docs/railway/`
-- Uppdatera `docs/CONTEXT.md` – fortfarande SQLite, ska vara Postgres
-- En huvudREADME som länkar till docs
+- FAS1_* och RAILWAY_* redan i archive/ (Fas 1)
+- Uppdatera `docs/CONTEXT.md` – SQLite → Postgres ✅
+- HuvudREADME uppdaterad med länkar till docs ✅
 
 ### Fas 3: Kodstruktur (större jobb)
 

@@ -41,7 +41,7 @@ The system is used for both **training** and **competitions**. In competition se
 ## Project Structure
 
 - `backend/`  
-  FastAPI service (see `main.py`) with a local SQLite database (`data.db`). Handles geofences, tracks (human/dog), GPS positions, hiding spots, and comparison endpoints. `requirements.txt` lists Python dependencies; `run.py` provides an entry point when deploying.
+  FastAPI service (see `main.py`) with PostgreSQL (Railway eller lokalt via `DATABASE_URL`). Hanterar geofences, tracks (human/dog), GPS-positioner, hiding spots, jämförelse och ML-experiment. `requirements.txt` för dependencies; `run.py` som entry point.
 
 - `frontend/`  
   React/Vite app. `src/App.jsx` toggles between the existing geofence editor (`components/GeofenceEditor.jsx`) and the new annotation-focused test lab (`components/TestLab.jsx`). The test lab visualises track positions, supports manual verification/correction, and integrates with the backend annotation endpoints. Configure backend URL via `VITE_API_URL`.

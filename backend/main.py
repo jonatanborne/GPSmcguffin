@@ -3380,7 +3380,7 @@ def _load_ml_pkl(path: Path):
         ):
             raise HTTPException(
                 status_code=503,
-                detail="Modellfilen är en Git LFS-pekare, inte den riktiga filen. På Railway: lägg till 'git lfs install' och 'git lfs pull' i build-steget (t.ex. i en Dockerfile eller pre-deploy), så att .pkl-filerna hämtas. Se RAILWAY_ML_FIX.md.",
+                detail="Modellfilen är en Git LFS-pekare, inte den riktiga filen. På Railway: lägg till 'git lfs install' och 'git lfs pull' i build-steget (t.ex. i en Dockerfile eller pre-deploy), så att .pkl-filerna hämtas. Se archive/railway/RAILWAY_ML_FIX.md.",
             )
         if head.lstrip().startswith(b"{"):
             raise HTTPException(
