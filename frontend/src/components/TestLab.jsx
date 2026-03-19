@@ -324,6 +324,32 @@ const TestLab = () => {
         fetchTrack(dogTrackId, 'dog')
     }, [dogTrackId])
 
+    // Centrera kartan på spåren när människaspår eller hundspår laddas
+    useEffect(() => {
+        if (!mapInstanceRef.current || loading) return
+        const valid = []
+        const addPoint = (lat, lng) => {
+            if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) valid.push([lat, lng])
+        }
+        humanPositions.forEach(p => {
+            if (p.position) addPoint(p.position.lat, p.position.lng)
+            if (p.corrected_position) addPoint(p.corrected_position.lat, p.corrected_position.lng)
+        })
+        dogPositions.forEach(p => {
+            if (p.position) addPoint(p.position.lat, p.position.lng)
+            if (p.corrected_position) addPoint(p.corrected_position.lat, p.corrected_position.lng)
+        })
+        if (valid.length === 0) return
+        try {
+            if (valid.length === 1) {
+                mapInstanceRef.current.setView(valid[0], 16, { animate: true })
+            } else {
+                const bounds = L.latLngBounds(valid)
+                mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 18, animate: true })
+            }
+        } catch { /* ignorerar */ }
+    }, [humanPositions, dogPositions, loading])
+
     // Visualisera ML-förutsägelser på kartan - Jämför med ML-läge (INGA ändringar sparas)
     useEffect(() => {
         if (!mapInstanceRef.current) return

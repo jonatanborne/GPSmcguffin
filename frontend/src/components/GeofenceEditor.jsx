@@ -1079,10 +1079,12 @@ const GeofenceEditor = () => {
 
         const newLayers = []
 
+        const allCoords = []
         tracksData.forEach(track => {
             if (!track.positions || track.positions.length < 2) return
 
             const coords = track.positions.map(p => [p.position.lat, p.position.lng])
+            allCoords.push(...coords)
 
             // Välj färg baserat på typ
             const color = track.track_type === 'human' ? '#ef4444' : '#8b5cf6' // Röd för människa, lila för hund
@@ -1117,6 +1119,18 @@ const GeofenceEditor = () => {
         })
 
         setTrackLayers(newLayers)
+
+        // Centrera kartan på spåren om vi har koordinater
+        if (allCoords.length > 0) {
+            try {
+                if (allCoords.length === 1) {
+                    mapInstanceRef.current.setView(allCoords[0], 16, { animate: true })
+                } else {
+                    const bounds = L.latLngBounds(allCoords)
+                    mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 18, animate: true })
+                }
+            } catch { /* ignorerar */ }
+        }
     }
 
     // Ladda om och rita tracks
