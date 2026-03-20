@@ -182,8 +182,13 @@ function ExperimentMode() {
         }
 
         return () => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove()
+            try {
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.off()
+                    mapInstanceRef.current.remove()
+                    mapInstanceRef.current = null
+                }
+            } catch {
                 mapInstanceRef.current = null
             }
         }
@@ -232,16 +237,22 @@ function ExperimentMode() {
     }
 
     const clearView = () => {
+        try {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.off()
+                mapInstanceRef.current.remove()
+                mapInstanceRef.current = null
+            }
+        } catch (e) {
+            console.warn('ExperimentMode clearView map cleanup:', e)
+            mapInstanceRef.current = null
+        }
+        layerRefs.current = {}
         setExperiment(null)
         setProgress(null)
         setRating(5)
         setNotes('')
         setTrackVisibility(Object.fromEntries(TRACK_CONFIG.map(t => [t.key, true])))
-        if (mapInstanceRef.current) {
-            mapInstanceRef.current.remove()
-            mapInstanceRef.current = null
-        }
-        layerRefs.current = {}
         loadStats()
     }
 
@@ -267,9 +278,9 @@ function ExperimentMode() {
     }
 
     return (
-        <div className="h-full flex flex-col bg-gray-50">
-            {/* Header - kompakt */}
-            <div className="bg-white border-b px-4 py-2">
+        <div className="h-full flex flex-col bg-gray-50 min-h-0">
+            {/* Header: flex-shrink-0 + z över Leaflet (leaflet-controls z-index 1000) */}
+            <div className="flex-shrink-0 relative z-[1100] bg-white border-b px-4 py-2 shadow-sm">
                 <h2 className="text-2xl font-bold text-gray-800">Experiment Mode</h2>
                 <p className="text-gray-600 mt-1">
                     Bedöm modellens korrigeringar av kundspår (1-10)
@@ -303,7 +314,8 @@ function ExperimentMode() {
                 <div className="mt-3 flex gap-2 flex-wrap">
                     {experiment && (
                         <button
-                            onClick={clearView}
+                            type="button"
+                            onClick={() => clearView()}
                             className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600"
                         >
                             Rensa vy
@@ -311,6 +323,7 @@ function ExperimentMode() {
                     )}
                     {!experiment && stats?.by_status?.pending === 0 && (
                         <button
+                            type="button"
                             onClick={generateBatch}
                             disabled={generating}
                             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
@@ -320,6 +333,7 @@ function ExperimentMode() {
                     )}
                     {!experiment && stats?.by_status?.pending > 0 && (
                         <button
+                            type="button"
                             onClick={loadNextExperiment}
                             disabled={loading}
                             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
@@ -329,7 +343,8 @@ function ExperimentMode() {
                     )}
                     {!experiment && (stats?.total > 0 || stats?.by_status?.pending > 0) && (
                         <button
-                            onClick={clearView}
+                            type="button"
+                            onClick={() => clearView()}
                             className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                         >
                             Rensa vy
@@ -361,9 +376,9 @@ function ExperimentMode() {
                         </div>
                     )}
 
-                    {/* Map - tar mer plats */}
-                    <div className="flex-1 relative min-h-0">
-                        <div ref={mapRef} className="h-full w-full" />
+                    {/* Map - z-0 så header (z-1100) alltid får klick */}
+                    <div className="flex-1 relative min-h-0 z-0 isolate">
+                        <div ref={mapRef} className="h-full w-full z-0" />
 
                         {/* Track info + växlare */}
                         {experiment && (
@@ -403,7 +418,7 @@ function ExperimentMode() {
                     </div>
 
                     {/* Rating panel */}
-                    <div className="bg-white border-t px-6 py-4">
+                    <div className="flex-shrink-0 bg-white border-t px-6 py-4 relative z-[1100]">
                         <div className="max-w-4xl mx-auto">
                             {/* Rating buttons */}
                             <div className="mb-4">
@@ -414,6 +429,7 @@ function ExperimentMode() {
                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                         <button
                                             key={num}
+                                            type="button"
                                             onClick={() => setRating(num)}
                                             className={`flex-1 py-3 rounded font-semibold transition ${
                                                 rating === num
@@ -442,8 +458,16 @@ function ExperimentMode() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="flex gap-3">
+                            <div className="flex flex-wrap gap-3 items-center relative z-[1100]">
                                 <button
+                                    type="button"
+                                    onClick={clearView}
+                                    className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+                                >
+                                    Rensa vy
+                                </button>
+                                <button
+                                    type="button"
                                     onClick={skipExperiment}
                                     disabled={loading}
                                     className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50"
@@ -451,9 +475,10 @@ function ExperimentMode() {
                                     Hoppa över
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={saveRating}
                                     disabled={loading}
-                                    className="flex-1 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
+                                    className="flex-1 min-w-[200px] px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
                                 >
                                     {loading ? 'Sparar...' : 'Spara & Nästa'}
                                 </button>
@@ -470,6 +495,7 @@ function ExperimentMode() {
                                     {stats.by_status.pending} experiment redo att bedömas
                                 </h3>
                                 <button
+                                    type="button"
                                     onClick={loadNextExperiment}
                                     disabled={loading}
                                     className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
@@ -487,6 +513,7 @@ function ExperimentMode() {
                                     {stats.average_rating && ` (snitt: ${stats.average_rating.toFixed(1)})`}
                                 </p>
                                 <button
+                                    type="button"
                                     onClick={generateBatch}
                                     disabled={generating}
                                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
@@ -503,6 +530,7 @@ function ExperimentMode() {
                                     Generera experiment från dina kundspår för att börja träna modellen med feedback.
                                 </p>
                                 <button
+                                    type="button"
                                     onClick={generateBatch}
                                     disabled={generating}
                                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
