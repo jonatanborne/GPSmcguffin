@@ -231,6 +231,20 @@ function ExperimentMode() {
         }
     }
 
+    const clearView = () => {
+        setExperiment(null)
+        setProgress(null)
+        setRating(5)
+        setNotes('')
+        setTrackVisibility(Object.fromEntries(TRACK_CONFIG.map(t => [t.key, true])))
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.remove()
+            mapInstanceRef.current = null
+        }
+        layerRefs.current = {}
+        loadStats()
+    }
+
     const skipExperiment = async () => {
         if (!experiment) return
 
@@ -286,7 +300,15 @@ function ExperimentMode() {
                 )}
 
                 {/* Actions */}
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex gap-2 flex-wrap">
+                    {experiment && (
+                        <button
+                            onClick={clearView}
+                            className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600"
+                        >
+                            Rensa vy
+                        </button>
+                    )}
                     {!experiment && stats?.by_status?.pending === 0 && (
                         <button
                             onClick={generateBatch}
@@ -303,6 +325,14 @@ function ExperimentMode() {
                             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                         >
                             Starta bedömning
+                        </button>
+                    )}
+                    {!experiment && (stats?.total > 0 || stats?.by_status?.pending > 0) && (
+                        <button
+                            onClick={clearView}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        >
+                            Rensa vy
                         </button>
                     )}
                 </div>
