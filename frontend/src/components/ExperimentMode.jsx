@@ -12,12 +12,33 @@ L.Icon.Default.mergeOptions({
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 
-// 1=Människaspår, 2=Hundspår, 3=Korrigerad människa, 4=Korrigerad hund
+// Original: heldragna linjer. Modell/korrigerade: andra färger + korta streck (lättare att skilja från original).
+// dashArray i px-längd i Leaflet (kort streck, liten lucka)
 const TRACK_CONFIG = [
-    { key: 'humanOriginal', label: '1. Människaspår (original)', color: '#059669', dash: false },
-    { key: 'dogOriginal', label: '2. Hundspår (original)', color: '#2563eb', dash: true },
-    { key: 'humanCorrected', label: '3. Korrigerad människa', color: '#8b5cf6', dash: false },
-    { key: 'dogCorrected', label: '4. Korrigerad hund', color: '#dc2626', dash: false },
+    {
+        key: 'humanOriginal',
+        label: '1. Människaspår (original, heldraget)',
+        color: '#047857',
+        dashArray: null,
+    },
+    {
+        key: 'dogOriginal',
+        label: '2. Hundspår (original, heldraget)',
+        color: '#1d4ed8',
+        dashArray: null,
+    },
+    {
+        key: 'humanCorrected',
+        label: '3. Korr. människa (modell, streckad)',
+        color: '#ea580c',
+        dashArray: '4, 7',
+    },
+    {
+        key: 'dogCorrected',
+        label: '4. Korr. hund (modell, streckad)',
+        color: '#a21caf',
+        dashArray: '4, 7',
+    },
 ]
 
 function ExperimentMode() {
@@ -166,8 +187,8 @@ function ExperimentMode() {
             L.polyline(positions, {
                 color: cfg.color,
                 weight: 4,
-                opacity: 0.9,
-                dashArray: cfg.dash ? '10, 10' : null
+                opacity: 0.92,
+                dashArray: cfg.dashArray ?? null,
             }).addTo(group)
             raw.slice(0, 50).forEach((p, i) => {
                 const [lat, lng] = getLatLng(p)
@@ -617,8 +638,13 @@ function ExperimentMode() {
                                                         className="rounded"
                                                     />
                                                     <div
-                                                        className="w-4 h-0.5 flex-shrink-0"
-                                                        style={{ backgroundColor: cfg.color }}
+                                                        className="w-10 flex-shrink-0 self-center"
+                                                        style={{
+                                                            borderTopWidth: 3,
+                                                            borderTopStyle: cfg.dashArray ? 'dashed' : 'solid',
+                                                            borderTopColor: cfg.color,
+                                                        }}
+                                                        title={cfg.dashArray ? 'Streckad linje på kartan' : 'Heldragen linje'}
                                                     />
                                                     <span className="text-xs">{cfg.label}</span>
                                                     <span className="text-gray-400 text-xs">({count})</span>
