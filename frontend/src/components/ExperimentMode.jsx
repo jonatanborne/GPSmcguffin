@@ -37,6 +37,8 @@ function ExperimentMode() {
     const [stats, setStats] = useState(null)
     const [notice, setNotice] = useState(null)
     const [purgePendingLoading, setPurgePendingLoading] = useState(false)
+    const [mapFullscreen, setMapFullscreen] = useState(false)
+    const [ratingPanelOpen, setRatingPanelOpen] = useState(false)
 
     useEffect(() => {
         loadStats()
@@ -96,6 +98,8 @@ function ExperimentMode() {
                 setRating(5)
                 setNotes('')
                 setTrackVisibility(Object.fromEntries(TRACK_CONFIG.map(t => [t.key, true])))
+                setMapFullscreen(false)
+                setRatingPanelOpen(false)
             }
         } catch (err) {
             alert('Fel vid laddning: ' + err.message)
@@ -134,7 +138,13 @@ function ExperimentMode() {
                 center: [59.334, 18.066],
                 zoom: 13,
                 zoomControl: true,
-                maxZoom: 22
+                maxZoom: 22,
+                dragging: true,
+                scrollWheelZoom: true,
+                touchZoom: true,
+                doubleClickZoom: true,
+                boxZoom: true,
+                keyboard: true,
             })
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap',
@@ -214,6 +224,15 @@ function ExperimentMode() {
             }
         })
     }, [trackVisibility])
+
+    useEffect(() => {
+        const id = requestAnimationFrame(() => {
+            try {
+                mapInstanceRef.current?.invalidateSize()
+            } catch { /* ignorerar */ }
+        })
+        return () => cancelAnimationFrame(id)
+    }, [mapFullscreen, ratingPanelOpen])
 
     const saveRating = async () => {
         if (!experiment) return
@@ -359,17 +378,50 @@ function ExperimentMode() {
     }
 
     return (
-        <div className="h-full flex flex-col bg-gray-50 min-h-0">
-            {/* Header: flex-shrink-0 + z över Leaflet (leaflet-controls z-index 1000) */}
-            <div className="flex-shrink-0 relative z-[1100] bg-white border-b px-4 py-2 shadow-sm">
-                <h2 className="text-2xl font-bold text-gray-800">Experiment Mode</h2>
-                <p className="text-gray-600 mt-1">
-                    Bedöm modellens korrigeringar av kundspår (1-10)
-                </p>
+        <div className="flex-1 min-h-0 flex flex-col bg-gray-50 relative overflow-hidden">
+            {!mapFullscreen && (
+            <>
+            <div
+                className={`flex-shrink-0 relative z-[1100] bg-white border-b shadow-sm ${
+                    experiment ? 'px-3 py-2' : 'px-4 py-2'
+                }`}
+            >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                        <h2 className={experiment ? 'text-lg font-bold text-gray-800' : 'text-2xl font-bold text-gray-800'}>
+                            Experiment Mode
+                        </h2>
+                        {!experiment && (
+                            <p className="text-gray-600 mt-1 text-sm">
+                                Bedöm modellens korrigeringar av kundspår (1-10)
+                            </p>
+                        )}
+                        {experiment && progress && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                Experiment {progress.current} / {progress.total} · {progress.remaining} kvar
+                            </p>
+                        )}
+                    </div>
+                    {experiment && progress && (
+                        <div className="hidden sm:block w-40 flex-shrink-0 pt-1">
+                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-blue-600 rounded-full transition-all"
+                                    style={{
+                                        width: `${Math.min(100, (progress.rated / Math.max(1, progress.total)) * 100)}%`,
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-                {/* Stats */}
                 {stats && (
-                    <div className="mt-3 flex gap-4 text-sm">
+                    <div
+                        className={`flex gap-3 flex-wrap items-center ${
+                            experiment ? 'mt-2 text-xs' : 'mt-3 text-sm'
+                        }`}
+                    >
                         <div>
                             <span className="text-gray-600">Totalt:</span>{' '}
                             <span className="font-semibold">{stats.total}</span>
@@ -384,23 +436,50 @@ function ExperimentMode() {
                         </div>
                         {stats.average_rating && (
                             <div>
-                                <span className="text-gray-600">Snittbetyg:</span>{' '}
-                                <span className="font-semibold text-purple-600">{stats.average_rating.toFixed(1)}</span>
+                                <span className="text-gray-600">Snitt:</span>{' '}
+                                <span className="font-semibold text-purple-600">
+                                    {stats.average_rating.toFixed(1)}
+                                </span>
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Actions */}
-                <div className="mt-3 flex gap-2 flex-wrap">
+                <div className={`flex gap-2 flex-wrap ${experiment ? 'mt-2' : 'mt-3'}`}>
                     {experiment && (
-                        <button
-                            type="button"
-                            onClick={() => clearView()}
-                            className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600"
-                        >
-                            Rensa vy
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMapFullscreen(true)
+                                    setTimeout(() => {
+                                        try {
+                                            mapInstanceRef.current?.invalidateSize()
+                                        } catch { /* */ }
+                                    }, 200)
+                                }}
+                                className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            >
+                                Helskärmskarta
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setRatingPanelOpen((o) => !o)
+                                    setTimeout(() => mapInstanceRef.current?.invalidateSize(), 150)
+                                }}
+                                className="px-3 py-1.5 text-sm bg-slate-600 text-white rounded hover:bg-slate-700"
+                            >
+                                {ratingPanelOpen ? 'Dölj bedömning' : 'Visa bedömning'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => clearView()}
+                                className="px-3 py-1.5 text-sm bg-amber-500 text-white rounded hover:bg-amber-600"
+                            >
+                                Rensa vy
+                            </button>
+                        </>
                     )}
                     {!experiment && stats?.by_status?.pending === 0 && (
                         <button
@@ -454,37 +533,70 @@ function ExperimentMode() {
                     {notice}
                 </div>
             )}
+            </>
+            )}
 
             {/* Main content */}
             {experiment ? (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Progress bar - slimmare */}
-                    {progress && (
-                        <div className="bg-white border-b px-4 py-2">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-700">
-                                    Experiment {progress.current} / {progress.total}
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                    {progress.remaining} kvar
-                                </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                    className={
+                        mapFullscreen
+                            ? 'fixed inset-0 z-[5000] flex flex-col bg-white min-h-0'
+                            : 'flex-1 flex flex-col overflow-hidden min-h-0'
+                    }
+                >
+                    {mapFullscreen && (
+                        <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 border-b bg-white shadow-md z-[5001]">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMapFullscreen(false)
+                                    setTimeout(() => mapInstanceRef.current?.invalidateSize(), 150)
+                                }}
+                                className="px-3 py-1.5 text-sm font-medium bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                                ← Avsluta helskärm
+                            </button>
+                            <span className="text-sm font-medium text-gray-800 truncate flex-1 min-w-0">
+                                {experiment.original_track?.track_name || 'Experiment'}
+                                {progress
+                                    ? ` · ${progress.current}/${progress.total}`
+                                    : ''}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMapFullscreen(false)
+                                    setRatingPanelOpen(true)
+                                    setTimeout(() => mapInstanceRef.current?.invalidateSize(), 150)
+                                }}
+                                className="px-3 py-1.5 text-sm font-semibold bg-green-600 text-white rounded hover:bg-green-700 flex-shrink-0"
+                            >
+                                Bedöm
+                            </button>
+                        </div>
+                    )}
+
+                    {!mapFullscreen && progress && (
+                        <div className="flex-shrink-0 bg-white border-b px-3 py-1.5 sm:hidden">
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all"
-                                    style={{ width: `${(progress.rated / progress.total) * 100}%` }}
+                                    className="h-full bg-blue-600 rounded-full transition-all"
+                                    style={{
+                                        width: `${Math.min(100, (progress.rated / Math.max(1, progress.total)) * 100)}%`,
+                                    }}
                                 />
                             </div>
                         </div>
                     )}
 
-                    {/* Map - z-0 så header (z-1100) alltid får klick */}
+                    {/* Karta: fyller all kvarvarande yta; absolute inset-0 = Leaflet får alltid höjd */}
                     <div className="flex-1 relative min-h-0 z-0 isolate">
-                        <div ref={mapRef} className="h-full w-full z-0" />
+                        <div ref={mapRef} className="absolute inset-0 w-full h-full z-0" />
 
                         {/* Track info + växlare */}
                         {experiment && (
-                            <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs z-[1000]">
+                            <div className="absolute top-3 left-3 max-w-[min(20rem,calc(100%-1.5rem))] max-h-[50vh] overflow-y-auto bg-white rounded-lg shadow-lg p-3 z-[1000] pointer-events-auto">
                                 <h3 className="font-semibold text-gray-800 mb-2">
                                     {experiment.original_track?.track_name || 'Experiment'}
                                 </h3>
@@ -517,76 +629,100 @@ function ExperimentMode() {
                                 </div>
                             </div>
                         )}
+                        {!ratingPanelOpen && !mapFullscreen && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setRatingPanelOpen(true)
+                                    setTimeout(() => mapInstanceRef.current?.invalidateSize(), 150)
+                                }}
+                                className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] px-4 py-2 rounded-full shadow-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 pointer-events-auto"
+                            >
+                                ↑ Visa bedömning
+                            </button>
+                        )}
                     </div>
 
-                    {/* Rating panel */}
-                    <div className="flex-shrink-0 bg-white border-t px-6 py-4 relative z-[1100]">
-                        <div className="max-w-4xl mx-auto">
-                            {/* Rating buttons */}
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Hur bra är korrigeringen? (1 = dålig, 10 = perfekt)
-                                </label>
-                                <div className="flex gap-2">
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                        <button
-                                            key={num}
-                                            type="button"
-                                            onClick={() => setRating(num)}
-                                            className={`flex-1 py-3 rounded font-semibold transition ${
-                                                rating === num
-                                                    ? 'bg-blue-600 text-white shadow-lg scale-105'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
-                                        >
-                                            {num}
-                                        </button>
-                                    ))}
+                    {/* Rating panel (vikbar = mer kartutrymme) */}
+                    {ratingPanelOpen && !mapFullscreen && (
+                        <div className="flex-shrink-0 bg-white border-t px-4 py-3 sm:px-6 sm:py-4 relative z-[1100] max-h-[45vh] overflow-y-auto">
+                            <div className="max-w-4xl mx-auto">
+                                <div className="flex justify-end mb-2 sm:hidden">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setRatingPanelOpen(false)
+                                            setTimeout(() => mapInstanceRef.current?.invalidateSize(), 150)
+                                        }}
+                                        className="text-sm text-gray-600 underline"
+                                    >
+                                        Stäng (större karta)
+                                    </button>
+                                </div>
+                                {/* Rating buttons */}
+                                <div className="mb-3 sm:mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Hur bra är korrigeringen? (1 = dålig, 10 = perfekt)
+                                    </label>
+                                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                                            <button
+                                                key={num}
+                                                type="button"
+                                                onClick={() => setRating(num)}
+                                                className={`flex-1 min-w-[2rem] py-2 sm:py-3 rounded font-semibold text-sm sm:text-base transition ${
+                                                    rating === num
+                                                        ? 'bg-blue-600 text-white shadow-lg scale-105'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                {num}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-3 sm:mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Kommentar (valfritt)
+                                    </label>
+                                    <textarea
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        placeholder="T.ex. 'För mycket korrigering i kurvor' eller 'Bra jämnhet'"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        rows={2}
+                                    />
+                                </div>
+
+                                <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative z-[1100]">
+                                    <button
+                                        type="button"
+                                        onClick={clearView}
+                                        className="px-4 py-2 sm:px-6 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm sm:text-base"
+                                    >
+                                        Rensa vy
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={skipExperiment}
+                                        disabled={loading}
+                                        className="px-4 py-2 sm:px-6 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50 text-sm sm:text-base"
+                                    >
+                                        Hoppa över
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={saveRating}
+                                        disabled={loading}
+                                        className="flex-1 min-w-[160px] sm:min-w-[200px] px-4 sm:px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold text-sm sm:text-base"
+                                    >
+                                        {loading ? 'Sparar...' : 'Spara & Nästa'}
+                                    </button>
                                 </div>
                             </div>
-
-                            {/* Notes */}
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Kommentar (valfritt)
-                                </label>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="T.ex. 'För mycket korrigering i kurvor' eller 'Bra jämnhet'"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    rows={2}
-                                />
-                            </div>
-
-                            {/* Action buttons */}
-                            <div className="flex flex-wrap gap-3 items-center relative z-[1100]">
-                                <button
-                                    type="button"
-                                    onClick={clearView}
-                                    className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
-                                >
-                                    Rensa vy
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={skipExperiment}
-                                    disabled={loading}
-                                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50"
-                                >
-                                    Hoppa över
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={saveRating}
-                                    disabled={loading}
-                                    className="flex-1 min-w-[200px] px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
-                                >
-                                    {loading ? 'Sparar...' : 'Spara & Nästa'}
-                                </button>
-                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             ) : (
                 <div className="flex-1 flex items-center justify-center">
