@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -11,6 +11,81 @@ L.Icon.Default.mergeOptions({
 })
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
+
+/** Haversine-avstånd i meter */
+function haversineMeters(lat1, lng1, lat2, lng2) {
+    const R = 6371000
+    const toRad = (d) => (d * Math.PI) / 180
+    const φ1 = toRad(lat1)
+    const φ2 = toRad(lat2)
+    const Δφ = toRad(lat2 - lat1)
+    const Δλ = toRad(lng2 - lng1)
+    const a =
+        Math.sin(Δφ / 2) ** 2 +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function timeMs(p) {
+    if (!p?.timestamp) return NaN
+    const t = new Date(p.timestamp).getTime()
+    return Number.isFinite(t) ? t : NaN
+}
+
+function pointLatLng(p) {
+    const lat = p.lat ?? p.position_lat
+    const lng = p.lng ?? p.position_lng
+    if (lat == null || lng == null) return null
+    return { lat: Number(lat), lng: Number(lng) }
+}
+
+/**
+ * Per hundpunkt: avstånd till människapunkten närmast i tid (samma idé som backend vid ML-mål mot människa).
+ */
+function dogToHumanDistancesMeters(dogPositions, humanPositions) {
+    if (!dogPositions?.length || !humanPositions?.length) return []
+
+    const humans = humanPositions
+        .map((p) => {
+            const ll = pointLatLng(p)
+            const t = timeMs(p)
+            if (!ll || !Number.isFinite(t)) return null
+            return { ...ll, t }
+        })
+        .filter(Boolean)
+
+    if (!humans.length) return []
+
+    const out = []
+    for (const d of dogPositions) {
+        const dll = pointLatLng(d)
+        const t = timeMs(d)
+        if (!dll || !Number.isFinite(t)) continue
+        let best = null
+        let bestDt = Infinity
+        for (const h of humans) {
+            const dt = Math.abs(h.t - t)
+            if (dt < bestDt) {
+                bestDt = dt
+                best = h
+            }
+        }
+        if (best) {
+            out.push(haversineMeters(dll.lat, dll.lng, best.lat, best.lng))
+        }
+    }
+    return out
+}
+
+function summarizeDistances(arr) {
+    if (!arr.length) return null
+    const sorted = [...arr].sort((a, b) => a - b)
+    const mean = arr.reduce((a, b) => a + b, 0) / arr.length
+    const median = sorted[Math.floor((sorted.length - 1) / 2)]
+    const p90 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.9))]
+    const max = sorted[sorted.length - 1]
+    return { mean, median, p90, max, n: arr.length }
+}
 
 // Original: heldragna linjer. Modell/korrigerade: andra färger + korta streck (lättare att skilja från original).
 // dashArray i px-längd i Leaflet (kort streck, liten lucka)
@@ -92,7 +167,7 @@ function ExperimentMode() {
             if (data.status === 'success') {
                 alert(data.message || `Genererade ${data.generated} experiment`)
                 loadStats()
-                loadNextExperiment()
+                await loadNextExperiment()
             } else {
                 alert('Fel vid generering: ' + data.message)
             }
@@ -144,6 +219,22 @@ function ExperimentMode() {
         { key: 'humanCorrected', positions: toPositions(humanCorr), raw: humanCorr },
         { key: 'dogCorrected', positions: toPositions(dogCorr), raw: dogCorr },
     ]
+
+    /** Hund→människa vid närmaste tidpunkt (underlag för bedömning / framtida avstånds-betyg) */
+    const dogHumanGapStats = useMemo(() => {
+        if (!experiment) return null
+        const h = experiment.original_track?.human?.positions
+        if (!h?.length) return { missingHuman: true }
+        const dOrig = experiment.original_track?.dog?.positions
+        const dCorr = experiment.corrected_track?.dog?.positions
+        const origDist = dogToHumanDistancesMeters(dOrig, h)
+        const corrDist = dogToHumanDistancesMeters(dCorr, h)
+        return {
+            missingHuman: false,
+            original: summarizeDistances(origDist),
+            correctedDogVsHumanOrig: summarizeDistances(corrDist),
+        }
+    }, [experiment])
 
     const toggleTrack = (key) => {
         setTrackVisibility(prev => ({ ...prev, [key]: !prev[key] }))
@@ -625,6 +716,75 @@ function ExperimentMode() {
                                     <div>
                                         <span className="font-medium">Modell:</span> {experiment.model_version}
                                     </div>
+                                    {dogHumanGapStats?.missingHuman && (
+                                        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-2">
+                                            Inget människaspår i experimentet – avstånd hund↔människa kan inte beräknas.
+                                        </p>
+                                    )}
+                                    {dogHumanGapStats &&
+                                        !dogHumanGapStats.missingHuman &&
+                                        !dogHumanGapStats.original && (
+                                            <p className="text-xs text-gray-500 mt-2">
+                                                Avstånd kunde inte beräknas (kontrollera att hund- och människapunkter har
+                                                tidsstämplar).
+                                            </p>
+                                        )}
+                                    {dogHumanGapStats &&
+                                        !dogHumanGapStats.missingHuman &&
+                                        dogHumanGapStats.original && (
+                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                            <p className="text-xs font-semibold text-gray-800 mb-1">
+                                                Avstånd hund → människa
+                                            </p>
+                                            <p className="text-[11px] text-gray-500 mb-1.5 leading-snug">
+                                                Vid varje hundpunkt: närmaste människapunkt i <strong>tid</strong> (samma princip som modellen ofta siktar mot).
+                                            </p>
+                                            <ul className="text-xs space-y-1 font-mono tabular-nums">
+                                                <li>
+                                                    <span className="text-gray-600">Original hund:</span>{' '}
+                                                    medel {dogHumanGapStats.original.mean.toFixed(1)} m · median{' '}
+                                                    {dogHumanGapStats.original.median.toFixed(1)} m · 90% under{' '}
+                                                    {dogHumanGapStats.original.p90.toFixed(1)} m
+                                                    <span className="text-gray-400"> (n={dogHumanGapStats.original.n})</span>
+                                                </li>
+                                                {dogHumanGapStats.correctedDogVsHumanOrig && (
+                                                    <li>
+                                                        <span className="text-gray-600">ML-korr. hund → samma människa:</span>{' '}
+                                                        medel {dogHumanGapStats.correctedDogVsHumanOrig.mean.toFixed(1)} m · median{' '}
+                                                        {dogHumanGapStats.correctedDogVsHumanOrig.median.toFixed(1)} m
+                                                        <span className="text-gray-400">
+                                                            {' '}
+                                                            (n={dogHumanGapStats.correctedDogVsHumanOrig.n})
+                                                        </span>
+                                                        {(() => {
+                                                            const Δ =
+                                                                dogHumanGapStats.original.mean -
+                                                                dogHumanGapStats.correctedDogVsHumanOrig.mean
+                                                            if (!Number.isFinite(Δ)) return null
+                                                            const better = Δ > 0.5
+                                                            const worse = Δ < -0.5
+                                                            return (
+                                                                <span
+                                                                    className={
+                                                                        better
+                                                                            ? ' text-green-700 font-medium'
+                                                                            : worse
+                                                                              ? ' text-red-700 font-medium'
+                                                                              : ' text-gray-600'
+                                                                    }
+                                                                >
+                                                                    {' '}
+                                                                    → medel {better ? '−' : worse ? '+' : '±'}
+                                                                    {Math.abs(Δ).toFixed(1)} m
+                                                                    {better ? ' närmare' : worse ? ' längre bort' : ''}
+                                                                </span>
+                                                            )
+                                                        })()}
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                        )}
                                     <div className="mt-2 pt-2 border-t space-y-1">
                                         {TRACK_CONFIG.map((cfg) => {
                                             const count = trackData.find(t => t.key === cfg.key)?.positions?.length ?? 0
@@ -805,6 +965,28 @@ function ExperimentMode() {
                                 </button>
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Täcker hela Experiment-vyn (även helskärmskarta) medan batch-generering körs */}
+            {generating && (
+                <div
+                    className="absolute inset-0 z-[6000] flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4"
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                >
+                    <div className="bg-white rounded-xl shadow-2xl px-8 py-7 max-w-md w-full text-center border border-slate-200">
+                        <div
+                            className="h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-5"
+                            aria-hidden
+                        />
+                        <p className="text-lg font-semibold text-gray-900">Genererar experiment…</p>
+                        <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+                            ML-modellen körs på importerade kundspår och skriver nya rader till databasen. Det kan ta en
+                            stund – låt sidan vara öppen.
+                        </p>
                     </div>
                 </div>
             )}
