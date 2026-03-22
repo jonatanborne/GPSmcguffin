@@ -37,7 +37,12 @@ python backend/scripts/migrate_ml_experiments.py
 I appen:
 1. Gå till fliken **"Experiment"**
 2. Klicka **"Generera experiment"**
-3. Modellen korrigerar alla kundspår och sparar som experiment
+3. Modellen korrigerar upp till **15** importerade hundspår per klick och sparar som experiment
+
+**Hur spår väljs (batch):**
+- Endast spår som **inte** redan har ett experiment med status **pending** (inga dubblettpending).
+- Spår med **färre** historiska rader i `ml_experiments` prioriteras (nya spår först).
+- Inom samma prioritet används **slump** (`RANDOM()`), så att du efter t.ex. purge inte alltid får exakt samma 15 lägsta `track_id`.
 
 ### 3. Bedöm experiment
 

@@ -6097,6 +6097,10 @@ def generate_experiments_batch():
     Generera experiment för kundspår (track_source='imported').
     Begränsar till MAX_PER_BATCH per anrop för att undvika timeout (503).
     Klicka flera gånger om du har många spår.
+
+    Väljer spår som **inte** redan har ett pending-experiment, prioriterar spår med
+    färre historiska experiment-rader, och **slumpar** inom samma prioritet så att
+    man efter t.ex. purge inte alltid får exakt samma 15 lägsta track_id.
     """
     MAX_PER_BATCH = 15  # Max antal spår per anrop (undviker proxy timeout)
     try:
@@ -6127,37 +6131,75 @@ def generate_experiments_batch():
         conn = get_db()
         cursor = get_cursor(conn)
 
-        # Hämta alla importerade hundspår
+        # Importerade hundspår med positioner, utan redan *pending* experiment.
+        # ORDER BY: färre tidigare rader i ml_experiments först, sedan slump → varierad batch.
+        lim = int(MAX_PER_BATCH)
         execute_query(
             cursor,
-            """
-            SELECT id, name, human_track_id
-            FROM tracks
-            WHERE track_source = 'imported' AND track_type = 'dog'
-            ORDER BY id
+            f"""
+            SELECT t.id, t.name, t.human_track_id
+            FROM tracks t
+            WHERE t.track_source = 'imported' AND t.track_type = 'dog'
+              AND EXISTS (SELECT 1 FROM track_positions p WHERE p.track_id = t.id)
+              AND NOT EXISTS (
+                  SELECT 1 FROM ml_experiments e
+                  WHERE e.track_id = t.id
+                    AND LOWER(TRIM(COALESCE(e.status, ''))) = 'pending'
+              )
+            ORDER BY (
+                SELECT COUNT(*) FROM ml_experiments e2 WHERE e2.track_id = t.id
+            ) ASC,
+            RANDOM()
+            LIMIT {lim}
             """,
         )
         dog_tracks = cursor.fetchall()
+
+        execute_query(
+            cursor,
+            """
+            SELECT COUNT(*) AS cnt
+            FROM tracks t
+            WHERE t.track_source = 'imported' AND t.track_type = 'dog'
+              AND EXISTS (SELECT 1 FROM track_positions p WHERE p.track_id = t.id)
+              AND NOT EXISTS (
+                  SELECT 1 FROM ml_experiments e
+                  WHERE e.track_id = t.id
+                    AND LOWER(TRIM(COALESCE(e.status, ''))) = 'pending'
+              )
+            """,
+        )
+        eligible_row = cursor.fetchone()
+        eligible_total = int(get_row_value(eligible_row, "cnt") or 0)
+
+        execute_query(
+            cursor,
+            """
+            SELECT COUNT(*) AS cnt FROM tracks
+            WHERE track_source = 'imported' AND track_type = 'dog'
+            """,
+        )
+        all_dog_row = cursor.fetchone()
+        total_imported_dog = int(get_row_value(all_dog_row, "cnt") or 0)
 
         if not dog_tracks:
             conn.close()
             return {
                 "status": "success",
-                "message": "Inga kundspår hittades",
-                "generated": 0
+                "message": "Inga kundspår att generera för (saknar positioner, eller alla har redan väntande experiment).",
+                "generated": 0,
+                "total_tracks": total_imported_dog,
+                "eligible_tracks": eligible_total,
+                "remaining": max(0, eligible_total),
             }
 
         experiments_created = 0
-        skipped_existing = 0
 
         for track_row in dog_tracks:
-            if experiments_created >= MAX_PER_BATCH:
-                break
             track_id = get_row_value(track_row, "id")
             track_name = get_row_value(track_row, "name") or f"Track_{track_id}"
             human_track_id = get_row_value(track_row, "human_track_id")
 
-            # Kontrollera om experiment redan finns
             execute_query(
                 cursor,
                 """
@@ -6395,17 +6437,18 @@ def generate_experiments_batch():
         conn.commit()
         conn.close()
 
-        remaining = len(dog_tracks) - experiments_created - skipped_existing
-        msg = f"Genererade {experiments_created} experiment"
-        if remaining > 0:
-            msg += f". {remaining} kundspår kvar – klicka igen för att generera fler (max 15 per gång för att undvika timeout)."
+        remaining_after = max(0, eligible_total - experiments_created)
+        msg = f"Genererade {experiments_created} experiment (slumpat bland spår utan väntande pending)."
+        if remaining_after > 0:
+            msg += f" {remaining_after} kundspår kan fortfarande få nya experiment – klicka igen (max {MAX_PER_BATCH} per gång)."
 
         return {
             "status": "success",
             "message": msg,
             "generated": experiments_created,
-            "total_tracks": len(dog_tracks),
-            "remaining": remaining
+            "total_tracks": total_imported_dog,
+            "eligible_tracks": eligible_total,
+            "remaining": remaining_after,
         }
 
     except Exception as e:
