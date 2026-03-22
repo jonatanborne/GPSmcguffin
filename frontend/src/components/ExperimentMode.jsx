@@ -638,12 +638,14 @@ function ExperimentMode() {
                                                         className="rounded"
                                                     />
                                                     <div
-                                                        className="w-10 flex-shrink-0 self-center"
-                                                        style={{
-                                                            borderTopWidth: 3,
-                                                            borderTopStyle: cfg.dashArray ? 'dashed' : 'solid',
-                                                            borderTopColor: cfg.color,
-                                                        }}
+                                                        className="w-10 h-1 flex-shrink-0 rounded-sm overflow-hidden"
+                                                        style={
+                                                            cfg.dashArray
+                                                                ? {
+                                                                      background: `repeating-linear-gradient(90deg, ${cfg.color} 0px, ${cfg.color} 5px, transparent 5px, transparent 10px)`,
+                                                                  }
+                                                                : { backgroundColor: cfg.color }
+                                                        }
                                                         title={cfg.dashArray ? 'Streckad linje på kartan' : 'Heldragen linje'}
                                                     />
                                                     <span className="text-xs">{cfg.label}</span>
