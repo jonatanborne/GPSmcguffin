@@ -6434,7 +6434,7 @@ def get_next_experiment():
             SELECT id, track_id, original_track_json, corrected_track_json, 
                    model_version, created_at
             FROM ml_experiments
-            WHERE status = 'pending'
+            WHERE LOWER(TRIM(COALESCE(status, ''))) = 'pending'
             ORDER BY id ASC
             LIMIT 1
             """,
@@ -6504,6 +6504,29 @@ def get_next_experiment():
         )
 
 
+def _purge_pending_experiments_impl():
+    """Räkna pending, radera dem, returnera hur många som fanns (samma som raderade vid normal körning)."""
+    conn = get_db()
+    cursor = get_cursor(conn)
+    # Normalisera status (mellanslag/case) så radering matchar det stats visar
+    where_pending = "LOWER(TRIM(COALESCE(status, ''))) = ?"
+    execute_query(
+        cursor,
+        f"SELECT COUNT(*) AS cnt FROM ml_experiments WHERE {where_pending}",
+        ("pending",),
+    )
+    row = cursor.fetchone()
+    pending_before = int(get_row_value(row, "cnt") or 0)
+    execute_query(
+        cursor,
+        f"DELETE FROM ml_experiments WHERE {where_pending}",
+        ("pending",),
+    )
+    conn.commit()
+    conn.close()
+    return pending_before
+
+
 @app.delete("/ml/experiments/pending")
 @app.delete("/api/ml/experiments/pending")
 def delete_pending_experiments():
@@ -6512,16 +6535,28 @@ def delete_pending_experiments():
     Bedömda (rated) och överhoppade (skipped) behålls.
     """
     try:
-        conn = get_db()
-        cursor = get_cursor(conn)
-        execute_query(
-            cursor,
-            "DELETE FROM ml_experiments WHERE status = ?",
-            ("pending",),
+        deleted = _purge_pending_experiments_impl()
+        return {
+            "status": "success",
+            "deleted": deleted,
+            "message": f"Raderade {deleted} obedömda experiment.",
+        }
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid radering av experiment: {str(e)}\n\n{traceback.format_exc()}",
         )
-        deleted = cursor.rowcount if cursor.rowcount is not None else 0
-        conn.commit()
-        conn.close()
+
+
+@app.post("/ml/experiments/purge-pending")
+@app.post("/api/ml/experiments/purge-pending")
+def post_purge_pending_experiments():
+    """
+    Samma som DELETE /ml/experiments/pending – POST för miljöer där DELETE blockas (proxy/CDN).
+    """
+    try:
+        deleted = _purge_pending_experiments_impl()
         return {
             "status": "success",
             "deleted": deleted,

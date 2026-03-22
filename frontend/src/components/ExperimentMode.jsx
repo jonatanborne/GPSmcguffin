@@ -290,17 +290,41 @@ function ExperimentMode() {
         setPurgePendingLoading(true)
         setNotice(null)
         try {
-            const res = await fetch(`${API_BASE}/ml/experiments/pending`, { method: 'DELETE' })
+            // POST används först – vissa proxys/CDN blockerar DELETE mot backend
+            let res = await fetch(`${API_BASE}/ml/experiments/purge-pending`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                body: '{}',
+                cache: 'no-store',
+            })
+            if (res.status === 404) {
+                res = await fetch(`${API_BASE}/ml/experiments/pending`, {
+                    method: 'DELETE',
+                    headers: { Accept: 'application/json' },
+                    cache: 'no-store',
+                })
+            }
             const data = await res.json().catch(() => ({}))
+            console.log('[ExperimentMode] purge response', res.status, data)
             if (!res.ok) {
                 const d = data.detail
                 const detailStr = typeof d === 'string' ? d : Array.isArray(d) ? d.map((x) => x.msg || x).join(' ') : JSON.stringify(d)
                 throw new Error(detailStr || data.message || res.statusText)
             }
             if (data.status === 'success') {
+                const deleted = typeof data.deleted === 'number' ? data.deleted : 0
+                if (deleted === 0 && n > 0) {
+                    alert(
+                        'Backend raderade 0 rader trots att statistik visade pending. Kontrollera att senaste backend är deployad (purge-pending) och fliken Nätverk i devtools.'
+                    )
+                }
                 disposeMapAndResetForm()
                 await loadStats()
-                setNotice(data.message || `Raderade ${data.deleted ?? n} experiment.`)
+                setNotice(
+                    deleted > 0
+                        ? data.message || `Raderade ${deleted} experiment.`
+                        : 'Inga obedömda experiment fanns att radera (kördes redan eller tom tabell).'
+                )
                 window.setTimeout(() => setNotice(null), 6000)
             } else {
                 throw new Error(data.message || 'Okänt fel')

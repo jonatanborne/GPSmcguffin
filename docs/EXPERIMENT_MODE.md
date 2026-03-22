@@ -123,14 +123,21 @@ POST /api/ml/experiments/{id}/skip
 ```
 
 ### Radera alla obedömda (pending)
-Tar bort alla rader med `status = 'pending'`. Bedömda (`rated`) och överhoppade (`skipped`) behålls.
+Tar bort alla rader som räknas som pending (normaliserat med `LOWER(TRIM(status))`). Bedömda (`rated`) och överhoppade (`skipped`) behålls.
 
+**Rekommenderat (fungerar om DELETE blockas av proxy):**
 ```
-DELETE /api/ml/experiments/pending
+POST /api/ml/experiments/purge-pending
+Body: {}
 Response: { status: "success", deleted: 15, message: "..." }
 ```
 
-I UI: knappen **"Radera alla obedömda (N)"** i Experiment-läget.
+**Alternativ:**
+```
+DELETE /api/ml/experiments/pending
+```
+
+I UI: knappen **"Radera alla obedömda (N)"** anropar POST `purge-pending` först.
 
 ### Statistik
 ```
