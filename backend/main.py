@@ -3746,7 +3746,9 @@ def apply_ml_correction(track_id: int):
                     curr_time = datetime.fromisoformat(
                         timestamp_str.replace("Z", "+00:00")
                     )
-                    prev_timestamp = get_row_value(prev_pos, "timestamp")
+                    prev_timestamp = _to_iso_str(
+                        get_row_value(prev_pos, "timestamp")
+                    )
                     prev_time = datetime.fromisoformat(
                         prev_timestamp.replace("Z", "+00:00")
                     )
@@ -3961,7 +3963,7 @@ def predict_ml_corrections(track_id: int):
             orig_lat = get_row_value(pos, "position_lat")
             orig_lng = get_row_value(pos, "position_lng")
             accuracy = get_row_value(pos, "accuracy") or 0.0
-            timestamp_str = get_row_value(pos, "timestamp")
+            timestamp_str = _to_iso_str(get_row_value(pos, "timestamp"))
             actual_corr_lat = get_row_value(pos, "corrected_lat")
             actual_corr_lng = get_row_value(pos, "corrected_lng")
             verified_status = get_row_value(pos, "verified_status") or "pending"
@@ -4031,7 +4033,9 @@ def predict_ml_corrections(track_id: int):
                     curr_time = datetime.fromisoformat(
                         timestamp_str.replace("Z", "+00:00")
                     )
-                    prev_timestamp = get_row_value(prev_pos, "timestamp")
+                    prev_timestamp = _to_iso_str(
+                        get_row_value(prev_pos, "timestamp")
+                    )
                     prev_time = datetime.fromisoformat(
                         prev_timestamp.replace("Z", "+00:00")
                     )
@@ -4527,7 +4531,7 @@ def predict_ml_corrections(track_id: int):
             predictions.append(
                 {
                     "position_id": pos_id,
-                    "timestamp": timestamp_str,
+                    "timestamp": _to_iso_str(timestamp_str),
                     "original_position": {"lat": orig_lat, "lng": orig_lng},
                     "predicted_correction_distance_meters": float(
                         predicted_correction_distance
@@ -4619,7 +4623,13 @@ def predict_ml_corrections(track_id: int):
         }
 
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2, ensure_ascii=False)
+            json.dump(
+                result,
+                f,
+                indent=2,
+                ensure_ascii=False,
+                default=lambda o: o.isoformat() if hasattr(o, "isoformat") else str(o),
+            )
 
         return {
             "status": "success",
@@ -4751,7 +4761,8 @@ def predict_ml_corrections_multiple(
                 orig_lat = get_row_value(pos, "position_lat")
                 orig_lng = get_row_value(pos, "position_lng")
                 accuracy = get_row_value(pos, "accuracy") or 0.0
-                timestamp_str = get_row_value(pos, "timestamp")
+                # Postgres ger datetime-objekt; normalisera till ISO-sträng för JSON + fromisoformat
+                timestamp_str = _to_iso_str(get_row_value(pos, "timestamp"))
                 actual_corr_lat = get_row_value(pos, "corrected_lat")
                 actual_corr_lng = get_row_value(pos, "corrected_lng")
                 verified_status = get_row_value(pos, "verified_status") or "pending"
@@ -4822,7 +4833,9 @@ def predict_ml_corrections_multiple(
                         curr_time = datetime.fromisoformat(
                             timestamp_str.replace("Z", "+00:00")
                         )
-                        prev_timestamp = get_row_value(prev_pos, "timestamp")
+                        prev_timestamp = _to_iso_str(
+                            get_row_value(prev_pos, "timestamp")
+                        )
                         prev_time = datetime.fromisoformat(
                             prev_timestamp.replace("Z", "+00:00")
                         )
@@ -5323,7 +5336,7 @@ def predict_ml_corrections_multiple(
                         "track_id": track_id,
                         "track_name": track_name,
                         "track_type": track_type,
-                        "timestamp": timestamp_str,
+                        "timestamp": _to_iso_str(timestamp_str),
                         "original_position": {"lat": orig_lat, "lng": orig_lng},
                         "predicted_correction_distance_meters": float(
                             predicted_correction_distance
@@ -5421,7 +5434,13 @@ def predict_ml_corrections_multiple(
         }
 
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2, ensure_ascii=False)
+            json.dump(
+                result,
+                f,
+                indent=2,
+                ensure_ascii=False,
+                default=lambda o: o.isoformat() if hasattr(o, "isoformat") else str(o),
+            )
 
         return {
             "status": "success",
