@@ -6076,6 +6076,20 @@ class ExperimentRating(BaseModel):
     feedback_notes: Optional[str] = None
 
 
+def _parse_experiment_track_json(val):
+    """JSONB kan komma som dict (Postgres) eller str (SQLite/serialisering)."""
+    if val is None:
+        return None
+    if isinstance(val, dict):
+        return val
+    if isinstance(val, str):
+        try:
+            return json.loads(val)
+        except (json.JSONDecodeError, TypeError):
+            return None
+    return val
+
+
 @app.post("/ml/experiments/batch/generate")
 @app.post("/api/ml/experiments/batch/generate")
 def generate_experiments_batch():
@@ -6469,8 +6483,8 @@ def get_next_experiment():
             "experiment": {
                 "id": experiment_id,
                 "track_id": get_row_value(experiment, "track_id"),
-                "original_track": original_json,
-                "corrected_track": corrected_json,
+                "original_track": _parse_experiment_track_json(original_json),
+                "corrected_track": _parse_experiment_track_json(corrected_json),
                 "model_version": get_row_value(experiment, "model_version"),
                 "created_at": get_row_value(experiment, "created_at")
             },
@@ -6487,6 +6501,37 @@ def get_next_experiment():
         raise HTTPException(
             status_code=500,
             detail=f"Fel vid hämtning av experiment: {str(e)}\n\n{traceback.format_exc()}"
+        )
+
+
+@app.delete("/ml/experiments/pending")
+@app.delete("/api/ml/experiments/pending")
+def delete_pending_experiments():
+    """
+    Radera alla obedömda experiment (status = pending).
+    Bedömda (rated) och överhoppade (skipped) behålls.
+    """
+    try:
+        conn = get_db()
+        cursor = get_cursor(conn)
+        execute_query(
+            cursor,
+            "DELETE FROM ml_experiments WHERE status = ?",
+            ("pending",),
+        )
+        deleted = cursor.rowcount if cursor.rowcount is not None else 0
+        conn.commit()
+        conn.close()
+        return {
+            "status": "success",
+            "deleted": deleted,
+            "message": f"Raderade {deleted} obedömda experiment.",
+        }
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fel vid radering av experiment: {str(e)}\n\n{traceback.format_exc()}",
         )
 
 

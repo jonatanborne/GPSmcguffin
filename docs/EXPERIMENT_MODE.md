@@ -122,6 +122,16 @@ Body: { rating: 8, feedback_notes: "Bra jämnhet" }
 POST /api/ml/experiments/{id}/skip
 ```
 
+### Radera alla obedömda (pending)
+Tar bort alla rader med `status = 'pending'`. Bedömda (`rated`) och överhoppade (`skipped`) behålls.
+
+```
+DELETE /api/ml/experiments/pending
+Response: { status: "success", deleted: 15, message: "..." }
+```
+
+I UI: knappen **"Radera alla obedömda (N)"** i Experiment-läget.
+
 ### Statistik
 ```
 GET /api/ml/experiments/stats

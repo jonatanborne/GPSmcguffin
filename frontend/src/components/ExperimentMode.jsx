@@ -35,6 +35,8 @@ function ExperimentMode() {
     const [notes, setNotes] = useState('')
     const [generating, setGenerating] = useState(false)
     const [stats, setStats] = useState(null)
+    const [notice, setNotice] = useState(null)
+    const [purgePendingLoading, setPurgePendingLoading] = useState(false)
 
     useEffect(() => {
         loadStats()
@@ -179,6 +181,11 @@ function ExperimentMode() {
         const allPos = trackData.flatMap(t => t.positions)
         if (allPos.length > 0) {
             map.fitBounds(L.latLngBounds(allPos), { padding: [40, 40] })
+            requestAnimationFrame(() => {
+                try {
+                    map.invalidateSize()
+                } catch { /* ignorerar */ }
+            })
         }
 
         return () => {
@@ -236,7 +243,7 @@ function ExperimentMode() {
         }
     }
 
-    const clearView = () => {
+    const disposeMapAndResetForm = () => {
         try {
             if (mapInstanceRef.current) {
                 mapInstanceRef.current.off()
@@ -244,7 +251,7 @@ function ExperimentMode() {
                 mapInstanceRef.current = null
             }
         } catch (e) {
-            console.warn('ExperimentMode clearView map cleanup:', e)
+            console.warn('ExperimentMode map cleanup:', e)
             mapInstanceRef.current = null
         }
         layerRefs.current = {}
@@ -253,7 +260,57 @@ function ExperimentMode() {
         setRating(5)
         setNotes('')
         setTrackVisibility(Object.fromEntries(TRACK_CONFIG.map(t => [t.key, true])))
-        loadStats()
+    }
+
+    const clearView = () => {
+        const hadExperiment = experiment != null
+        console.log('[ExperimentMode] Rensa vy', { hadExperiment })
+        disposeMapAndResetForm()
+
+        void loadStats().then(() => {
+            if (hadExperiment) {
+                setNotice('Experiment stängt. Välj "Börja bedöma" när du vill fortsätta.')
+            } else {
+                setNotice('Inget aktivt experiment var öppet. Statistik uppdaterad från servern.')
+            }
+            window.setTimeout(() => setNotice(null), 5000)
+        })
+    }
+
+    const deleteAllPendingExperiments = async () => {
+        const n = stats?.by_status?.pending ?? 0
+        if (n <= 0) return
+        if (
+            !confirm(
+                `Radera alla ${n} obedömda experiment från databasen?\n\nBedömda och överhoppade experiment behålls.\nDetta går inte att ångra.`
+            )
+        ) {
+            return
+        }
+        setPurgePendingLoading(true)
+        setNotice(null)
+        try {
+            const res = await fetch(`${API_BASE}/ml/experiments/pending`, { method: 'DELETE' })
+            const data = await res.json().catch(() => ({}))
+            if (!res.ok) {
+                const d = data.detail
+                const detailStr = typeof d === 'string' ? d : Array.isArray(d) ? d.map((x) => x.msg || x).join(' ') : JSON.stringify(d)
+                throw new Error(detailStr || data.message || res.statusText)
+            }
+            if (data.status === 'success') {
+                disposeMapAndResetForm()
+                await loadStats()
+                setNotice(data.message || `Raderade ${data.deleted ?? n} experiment.`)
+                window.setTimeout(() => setNotice(null), 6000)
+            } else {
+                throw new Error(data.message || 'Okänt fel')
+            }
+        } catch (err) {
+            console.error(err)
+            alert('Kunde inte radera experiment: ' + (err.message || String(err)))
+        } finally {
+            setPurgePendingLoading(false)
+        }
     }
 
     const skipExperiment = async () => {
@@ -341,17 +398,38 @@ function ExperimentMode() {
                             Starta bedömning
                         </button>
                     )}
+                    {(stats?.by_status?.pending ?? 0) > 0 && (
+                        <button
+                            type="button"
+                            onClick={deleteAllPendingExperiments}
+                            disabled={purgePendingLoading || loading}
+                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                            title="Tar bort alla obedömda experiment permanent. Bedömda behålls."
+                        >
+                            {purgePendingLoading ? 'Raderar…' : `Radera alla obedömda (${stats.by_status.pending})`}
+                        </button>
+                    )}
                     {!experiment && (stats?.total > 0 || stats?.by_status?.pending > 0) && (
                         <button
                             type="button"
                             onClick={() => clearView()}
                             className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                            title="Uppdaterar statistik. Om inget experiment är öppet ändras inte skärmen – du får en bekräftelse här under."
                         >
-                            Rensa vy
+                            Uppdatera / rensa vy
                         </button>
                     )}
                 </div>
             </div>
+
+            {notice && (
+                <div
+                    className="flex-shrink-0 mx-4 my-2 px-4 py-2 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-900"
+                    role="status"
+                >
+                    {notice}
+                </div>
+            )}
 
             {/* Main content */}
             {experiment ? (
