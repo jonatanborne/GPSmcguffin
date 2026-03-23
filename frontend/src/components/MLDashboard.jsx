@@ -14,7 +14,26 @@ const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.rep
 
 // FAS 1: Truth levels (samma som TestLab)
 const TRUTH_LEVEL_LABELS = { T0: 'Manuellt flyttad', T1: 'Verifierad', T2: 'ML-korrigerad', T3: 'Rå GPS' }
-const TRUTH_LEVEL_COLORS = { T0: '#22c55e', T1: '#3b82f6', T2: '#a855f7', T3: '#6b7280' }
+const TRUTH_LEVEL_COLORS = { T0: '#15803d', T1: '#0369a1', T2: '#9333ea', T3: '#57534e' }
+
+/** ML-karta: tydligt åtskilda spår (samma princip som Experiment-läge) */
+const ML_MAP = {
+    original: '#047857',
+    ml: '#ea580c',
+    actual: '#1d4ed8',
+    dashMl: '6, 10',
+    dashActual: '10, 6',
+    /** Kopplingslinjer original→ML efter korrigeringsstorlek (inte samma som huvudspårens färger) */
+    corrSmall: '#6d28d9',
+    corrMid: '#b45309',
+    corrLarge: '#991b1b',
+}
+
+function mlConnectorColor(meters) {
+    if (meters > 3) return ML_MAP.corrLarge
+    if (meters > 1.5) return ML_MAP.corrMid
+    return ML_MAP.corrSmall
+}
 
 const MLDashboard = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -315,39 +334,38 @@ const MLDashboard = () => {
                 p.actual_corrected_position.lng
             ])
 
-        // Rita original spår (grå, streckad linje) - om filter är aktiverat
+        // Original: mörkgrön, heldragen (rå GPS)
         if (showOriginalTrack) {
             const originalPolyline = L.polyline(originalCoords, {
-                color: '#6b7280', // Grå
-                weight: 3,
-                opacity: 0.7,
-                dashArray: '8, 4'
+                color: ML_MAP.original,
+                weight: 4,
+                opacity: 0.92,
             }).addTo(mapInstanceRef.current)
-            originalPolyline.bindTooltip('🔘 Original spår (GPS-positionsdata)', { sticky: true })
+            originalPolyline.bindTooltip('Original spår (rå GPS)', { sticky: true })
             predictionLayersRef.current.push(originalPolyline)
         }
 
-        // Rita faktiska korrigeringar om de finns (grön, streckad) - om filter är aktiverat
-        // Viktigt: Faktiskt korrigerat spår ritas FÖRE ML-korrigerat så det syns tydligare
+        // Faktiskt korrigerat: blå, streckad (facit / manuellt) – ritas under ML så orange syns väl
         if (showActualCorrectedTrack && actualCorrectedCoords.length > 0) {
             const actualPolyline = L.polyline(actualCorrectedCoords, {
-                color: '#10b981', // Grön
+                color: ML_MAP.actual,
                 weight: 5,
-                opacity: 0.9,
-                dashArray: '12, 6'
+                opacity: 0.95,
+                dashArray: ML_MAP.dashActual,
             }).addTo(mapInstanceRef.current)
-            actualPolyline.bindTooltip('✅ Faktiskt korrigerat spår (manuellt korrigerat)', { sticky: true })
+            actualPolyline.bindTooltip('Faktiskt korrigerat (manuellt / facit)', { sticky: true })
             predictionLayersRef.current.push(actualPolyline)
         }
 
-        // Rita ML-korrigerade spår (blå, hel linje) - om filter är aktiverat
+        // ML-förutsägelse: orange, streckad
         if (showMLCorrectedTrack) {
             const mlPolyline = L.polyline(mlCorrectedCoords, {
-                color: '#3b82f6', // Blå
+                color: ML_MAP.ml,
                 weight: 4,
-                opacity: 0.9
+                opacity: 0.95,
+                dashArray: ML_MAP.dashMl,
             }).addTo(mapInstanceRef.current)
-            mlPolyline.bindTooltip('🔮 ML-korrigerat spår (förutsägelse)', { sticky: true })
+            mlPolyline.bindTooltip('ML-korrigerat spår (förutsägelse)', { sticky: true })
             predictionLayersRef.current.push(mlPolyline)
         }
 
@@ -361,13 +379,7 @@ const MLDashboard = () => {
                     const from = [pred.original_position.lat, pred.original_position.lng]
                     const to = [pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng]
 
-                    // Färg baserat på korrigeringsstorlek
-                    let color = '#3b82f6' // Blå för små korrigeringar
-                    if (correctionDistance > 3) {
-                        color = '#ef4444' // Röd för stora korrigeringar
-                    } else if (correctionDistance > 1.5) {
-                        color = '#f59e0b' // Orange för medelstora korrigeringar
-                    }
+                    const color = mlConnectorColor(correctionDistance)
 
                     const correctionLine = L.polyline([from, to], {
                         color: color,
@@ -393,9 +405,9 @@ const MLDashboard = () => {
             predictions.forEach((pred, idx) => {
                 const marker = L.circleMarker([pred.original_position.lat, pred.original_position.lng], {
                     radius: 3,
-                    color: '#6b7280',
-                    fillColor: '#6b7280',
-                    fillOpacity: 0.5,
+                    color: ML_MAP.original,
+                    fillColor: ML_MAP.original,
+                    fillOpacity: 0.55,
                     weight: 1
                 }).addTo(mapInstanceRef.current)
                 predictionLayersRef.current.push(marker)
@@ -408,12 +420,7 @@ const MLDashboard = () => {
                 const correctionDistance = pred.predicted_correction_distance_meters
                 if (correctionDistance > 0.5) {
                     const radius = Math.min(8, 3 + correctionDistance * 2) // Större markör för större korrigeringar
-                    let color = '#3b82f6'
-                    if (correctionDistance > 3) {
-                        color = '#ef4444'
-                    } else if (correctionDistance > 1.5) {
-                        color = '#f59e0b'
-                    }
+                    const color = mlConnectorColor(correctionDistance)
 
                     const marker = L.circleMarker([pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng], {
                         radius: radius,
@@ -439,9 +446,9 @@ const MLDashboard = () => {
                 if (pred.actual_corrected_position) {
                     const marker = L.circleMarker([pred.actual_corrected_position.lat, pred.actual_corrected_position.lng], {
                         radius: 5,
-                        color: '#10b981',
-                        fillColor: '#10b981',
-                        fillOpacity: 0.7,
+                        color: ML_MAP.actual,
+                        fillColor: ML_MAP.actual,
+                        fillOpacity: 0.75,
                         weight: 2
                     }).addTo(mapInstanceRef.current)
 
@@ -503,62 +510,56 @@ const MLDashboard = () => {
             }
         }
 
-        // Skapa highlight-marker för original position (grå/orange)
         const originalMarker = L.circleMarker([pred.original_position.lat, pred.original_position.lng], {
             radius: 12,
-            color: '#6b7280', // Grå för original
-            fillColor: '#6b7280',
+            color: ML_MAP.original,
+            fillColor: ML_MAP.original,
             fillOpacity: 0.9,
             weight: 4,
             className: 'feedback-highlight'
         }).addTo(mapInstanceRef.current)
 
-        // Skapa highlight-marker för faktisk korrigerad position (om den finns) - GRÖN
         let actualMarker = null
         if (pred.actual_corrected_position) {
             actualMarker = L.circleMarker([pred.actual_corrected_position.lat, pred.actual_corrected_position.lng], {
                 radius: 12,
-                color: '#10b981', // Grön för faktiskt korrigerat
-                fillColor: '#10b981',
+                color: ML_MAP.actual,
+                fillColor: ML_MAP.actual,
                 fillOpacity: 0.9,
                 weight: 4,
                 className: 'feedback-highlight'
             }).addTo(mapInstanceRef.current)
         }
 
-        // Skapa highlight-marker för ML-korrigerad position - BLÅ
         const mlMarker = L.circleMarker([pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng], {
             radius: 12,
-            color: '#3b82f6', // Blå för ML-korrigerat
-            fillColor: '#3b82f6',
+            color: ML_MAP.ml,
+            fillColor: ML_MAP.ml,
             fillOpacity: 0.9,
             weight: 4,
             className: 'feedback-highlight'
         }).addTo(mapInstanceRef.current)
 
-        // Rita linjer mellan positionerna för tydlighet
-        // Linje från original till ML-korrigerat (blå)
         const line1 = L.polyline([
             [pred.original_position.lat, pred.original_position.lng],
             [pred.predicted_corrected_position.lat, pred.predicted_corrected_position.lng]
         ], {
-            color: '#3b82f6', // Blå för ML-korrigering
+            color: ML_MAP.ml,
             weight: 3,
-            opacity: 0.8,
-            dashArray: '5, 5'
+            opacity: 0.85,
+            dashArray: ML_MAP.dashMl
         }).addTo(mapInstanceRef.current)
 
-        // Linje från original till faktiskt korrigerat (grön) - om den finns
         let line2 = null
         if (pred.actual_corrected_position) {
             line2 = L.polyline([
                 [pred.original_position.lat, pred.original_position.lng],
                 [pred.actual_corrected_position.lat, pred.actual_corrected_position.lng]
             ], {
-                color: '#10b981', // Grön för faktisk korrigering
+                color: ML_MAP.actual,
                 weight: 3,
-                opacity: 0.8,
-                dashArray: '5, 5'
+                opacity: 0.85,
+                dashArray: ML_MAP.dashActual
             }).addTo(mapInstanceRef.current)
         }
 
@@ -1294,7 +1295,9 @@ const MLDashboard = () => {
                                         </div>
                                     </div>
                                     <div className="text-xs text-gray-600">
-                                        💡 Titta på kartan: 🔘 Grå = Original, ✅ Grön = Faktiskt korrigerat, 🔮 Blå = ML-korrigerat
+                                        💡 Karta: <span className="font-medium text-emerald-800">grön</span> = original GPS,{' '}
+                                        <span className="font-medium text-blue-800">blå streckad</span> = facit/manuellt,{' '}
+                                        <span className="font-medium text-orange-800">orange streckad</span> = ML-förutsägelse
                                     </div>
                                 </div>
                             )}
@@ -1311,8 +1314,11 @@ const MLDashboard = () => {
                                             className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                                         />
                                         <div className="flex items-center gap-1">
-                                            <div className="w-4 h-0.5 bg-gray-500" style={{ borderTop: '2px dashed #6b7280' }}></div>
-                                            <span className="text-sm">Original spår</span>
+                                            <div
+                                                className="w-8 h-1 rounded-sm"
+                                                style={{ backgroundColor: ML_MAP.original }}
+                                            />
+                                            <span className="text-sm">Original (GPS)</span>
                                         </div>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
@@ -1320,11 +1326,16 @@ const MLDashboard = () => {
                                             type="checkbox"
                                             checked={showMLCorrectedTrack}
                                             onChange={(e) => setShowMLCorrectedTrack(e.target.checked)}
-                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                            className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                                         />
                                         <div className="flex items-center gap-1">
-                                            <div className="w-4 h-1 bg-blue-600"></div>
-                                            <span className="text-sm">ML-korrigerat spår</span>
+                                            <div
+                                                className="w-8 h-1 rounded-sm"
+                                                style={{
+                                                    background: `repeating-linear-gradient(90deg, ${ML_MAP.ml} 0px, ${ML_MAP.ml} 5px, transparent 5px, transparent 10px)`,
+                                                }}
+                                            />
+                                            <span className="text-sm">ML-korrigerat</span>
                                         </div>
                                     </label>
                                     {predictionDetails.predictions?.some(p => p.actual_corrected_position) && (
@@ -1336,7 +1347,12 @@ const MLDashboard = () => {
                                                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                                             />
                                             <div className="flex items-center gap-1">
-                                                <div className="w-4 h-0.5 bg-green-600" style={{ borderTop: '2px dashed #10b981' }}></div>
+                                                <div
+                                                    className="w-8 h-1 rounded-sm"
+                                                    style={{
+                                                        background: `repeating-linear-gradient(90deg, ${ML_MAP.actual} 0px, ${ML_MAP.actual} 4px, transparent 4px, transparent 9px)`,
+                                                    }}
+                                                />
                                                 <span className="text-sm">Faktiskt korrigerat</span>
                                             </div>
                                         </label>
@@ -1346,18 +1362,19 @@ const MLDashboard = () => {
 
                             {/* Förklaring av färger */}
                             <div className="bg-gray-100 rounded-lg p-2 mb-2 text-xs">
+                                <div className="text-gray-600 mb-1 font-medium">Punkter / hjälplinjer (storlek på ML-korrigering)</div>
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-1">
-                                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                        <span>Stor korrigering (&gt;3m)</span>
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ML_MAP.corrLarge }} />
+                                        <span>Stor (&gt;3 m)</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                                        <span>Medelstor (1.5-3m)</span>
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ML_MAP.corrMid }} />
+                                        <span>Medel (1,5–3 m)</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                        <span>Liten (0.5-1.5m)</span>
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ML_MAP.corrSmall }} />
+                                        <span>Liten (0,5–1,5 m)</span>
                                     </div>
                                 </div>
                             </div>
