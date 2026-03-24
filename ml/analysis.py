@@ -753,6 +753,34 @@ def find_nearest_human_position(
         return (None, 999.0, 0.0)
 
 
+def training_source_norm_from_row(d: Dict) -> float:
+    """Diskret källa kodad 0–1 för trädbaserade modeller."""
+    s = (d.get("source") or "").lower()
+    lt = (d.get("label_type") or "").lower()
+    dl = (d.get("data_lineage") or "").lower()
+    if s == "ml_feedback_correct" or dl == "ml_prediction_feedback_correct":
+        return 0.25
+    if (
+        s == "ml_feedback_incorrect"
+        or lt == "reject_ml_prediction"
+        or dl == "ml_prediction_feedback_incorrect"
+    ):
+        return 0.5
+    if lt == "accept_ml_correction" or s == "experiment_high_rating":
+        return 0.75
+    if lt == "reject_ml_correction" or s == "experiment_low_rating":
+        return 1.0
+    return 0.0
+
+
+def is_ml_feedback_training_row(d: Dict) -> float:
+    s = (d.get("source") or "").lower()
+    dl = (d.get("data_lineage") or "").lower()
+    if "ml_feedback" in s or "ml_prediction_feedback" in dl:
+        return 1.0
+    return 0.0
+
+
 def prepare_features_advanced(
     data: List[Dict],
 ) -> Tuple[np.ndarray, np.ndarray, List[str]]:
@@ -770,6 +798,7 @@ def prepare_features_advanced(
     - Riktning (bearing) i grader
     - Rolling statistics (medelvärde och std dev för senaste 3 positioner)
     - Interaktioner: accuracy * speed, accuracy * distance
+    - training_source_norm, is_ml_feedback_row (data_lineage/source från export)
 
     Target:
     - Korrigeringsavstånd (correction_distance_meters)
@@ -803,7 +832,8 @@ def prepare_features_advanced(
             #    (Feedback "felaktig" betyder bara att ML-förutsägelsen var fel, inte att den faktiska korrigeringen är fel)
             # 2. Om det INTE finns en faktisk korrigering:
             #    - Om feedback är "correct" → Använd ML-förutsägelsen som träningsdata
-            #    - Om feedback är "incorrect" → Hoppa över (vi vet inte vad rätt svar är)
+            #    - Om feedback är "incorrect" → Hoppa över om ingen corrected_position
+            #      (export-feedback lägger incorrect som corrected=original → target 0 m)
             
             if corrected_pos is None:
                 # Ingen faktisk korrigering finns
@@ -1179,6 +1209,13 @@ def prepare_features_advanced(
                     "human_track_speed",
                     "human_track_exists"
                 ])
+
+            feature_row.append(training_source_norm_from_row(d))
+            feature_row.append(is_ml_feedback_training_row(d))
+            if len(feature_names) == 37:
+                feature_names.extend(
+                    ["training_source_norm", "is_ml_feedback_row"]
+                )
 
             w = d.get("training_weight_suggested", 1.0)
             try:

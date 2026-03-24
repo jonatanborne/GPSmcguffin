@@ -999,6 +999,20 @@ def _to_iso_str(val):
     return str(val)
 
 
+def _export_feedback_json_default(obj):
+    """datetime/Decimal/UUID från Postgres (psycopg2) är inte JSON-serialiserbara som standard."""
+    from decimal import Decimal
+    import uuid
+
+    if isinstance(obj, Decimal):
+        return float(obj)
+    if isinstance(obj, uuid.UUID):
+        return str(obj)
+    if hasattr(obj, "isoformat") and callable(getattr(obj, "isoformat")):
+        return obj.isoformat()
+    return str(obj)
+
+
 def row_to_track_position(row):
     """Konvertera databas-rad till TrackPosition-objekt"""
     corrected_position = None
@@ -5895,6 +5909,8 @@ def export_feedback_data(
         from datetime import datetime
         import json
 
+        export_batch_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+
         conn = get_db()
         cursor = get_cursor(conn)
 
@@ -5903,7 +5919,7 @@ def export_feedback_data(
         # - Alla positioner med faktisk korrigering (corrected_lat/lng) → Inkludera ALLTID
         #   (Feedback "felaktig" betyder bara att ML-förutsägelsen var fel, inte att den faktiska korrigeringen är fel)
         # - Positioner utan faktisk korrigering men med feedback "correct" → Inkludera (använd ML-förutsägelsen)
-        # - Positioner utan faktisk korrigering och feedback "incorrect" → Hoppa över (vi vet inte vad rätt svar är)
+        # - ML-feedback "incorrect" i predictions-JSON → exporteras som corrected=original, target 0 m (lägre vikt)
         execute_query(
             cursor,
             """
@@ -5936,12 +5952,16 @@ def export_feedback_data(
 
         # Konvertera till JSON-format
         export_data = []
+        db_position_ids = set()
         for row in rows:
             orig_lat = get_row_value(row, "original_lat")
             orig_lng = get_row_value(row, "original_lng")
             corr_lat = get_row_value(row, "corrected_lat")
             corr_lng = get_row_value(row, "corrected_lng")
             verified_status = get_row_value(row, "verified_status") or "pending"
+            pid = get_row_value(row, "id")
+            if pid is not None:
+                db_position_ids.add(pid)
 
             # Beräkna correction_distance om korrigering finns
             correction_distance = None
@@ -5951,13 +5971,14 @@ def export_feedback_data(
                     LatLng(lat=corr_lat, lng=corr_lng),
                 )
 
+            has_human_corr = bool(corr_lat and corr_lng)
             export_data.append(
                 {
-                    "id": get_row_value(row, "id"),
+                    "id": pid,
                     "track_id": get_row_value(row, "track_id"),
                     "track_name": get_row_value(row, "track_name"),
                     "track_type": get_row_value(row, "track_type"),
-                    "timestamp": get_row_value(row, "timestamp"),
+                    "timestamp": _to_iso_str(get_row_value(row, "timestamp")),
                     "verified_status": verified_status,
                     "original_position": {"lat": orig_lat, "lng": orig_lng},
                     "corrected_position": (
@@ -5969,6 +5990,18 @@ def export_feedback_data(
                     "accuracy": get_row_value(row, "accuracy"),
                     "annotation_notes": get_row_value(row, "annotation_notes") or "",
                     "environment": get_row_value(row, "environment"),
+                    "source": (
+                        "manual_track_correction"
+                        if has_human_corr
+                        else "db_verified_correct"
+                    ),
+                    "data_lineage": (
+                        "testlab_or_manual_correction"
+                        if has_human_corr
+                        else "db_verified_correct_no_human_correction"
+                    ),
+                    "training_weight_suggested": 1.0 if has_human_corr else 0.9,
+                    "export_batch_id": export_batch_id,
                 }
             )
 
@@ -6012,8 +6045,24 @@ def export_feedback_data(
                                 if pid in feedback_map[pred_file.name]:
                                     verified_status = feedback_map[pred_file.name][pid]
 
-                            # Bara inkludera positioner markerade som "correct" som saknar human corrected_position
-                            # Då används ML-förutsägelsen som träningsdata – modellen lär sig av sina bra gissningar
+                            pred_pid = pred.get("position_id")
+                            if pred_pid is not None and pred_pid in db_position_ids:
+                                continue
+
+                            tid = pred.get("track_id")
+                            if tid is None:
+                                tid = pred_data.get("track_id")
+                            tname = pred.get("track_name") or pred_data.get(
+                                "track_name"
+                            )
+                            ttype = pred.get("track_type") or pred_data.get(
+                                "track_type"
+                            )
+                            producer_ver = pred_data.get("model_version") or pred.get(
+                                "model_version"
+                            )
+
+                            # "correct": ML-förutsägelse som mål när ingen human-corrected i grunddata
                             if (
                                 verified_status == "correct"
                                 and pred.get("predicted_corrected_position")
@@ -6021,10 +6070,10 @@ def export_feedback_data(
                             ):
                                 export_data.append(
                                     {
-                                        "id": pred.get("position_id"),
-                                        "track_id": pred_data.get("track_id"),
-                                        "track_name": pred_data.get("track_name"),
-                                        "track_type": pred_data.get("track_type"),
+                                        "id": pred_pid,
+                                        "track_id": tid,
+                                        "track_name": tname,
+                                        "track_type": ttype,
                                         "timestamp": pred.get("timestamp"),
                                         "verified_status": "correct",
                                         "original_position": pred.get(
@@ -6039,41 +6088,100 @@ def export_feedback_data(
                                         "accuracy": pred.get("gps_accuracy"),
                                         "annotation_notes": "ML-förutsägelse markerad som korrekt (ej i grunddata)",
                                         "environment": None,
+                                        "source": "ml_feedback_correct",
+                                        "data_lineage": "ml_prediction_feedback_correct",
+                                        "label_type": "accept_ml_prediction",
+                                        "training_weight_suggested": 0.85,
+                                        "export_batch_id": export_batch_id,
+                                        "prediction_source_file": pred_file.name,
+                                        "producer_model_version": producer_ver,
+                                    }
+                                )
+                            # "incorrect": ingen flytt önskas → träna target 0 m (svagare vikt)
+                            elif (
+                                verified_status == "incorrect"
+                                and pred.get("predicted_corrected_position")
+                                and pred.get("original_position")
+                            ):
+                                op = pred["original_position"]
+                                export_data.append(
+                                    {
+                                        "id": pred_pid,
+                                        "track_id": tid,
+                                        "track_name": tname,
+                                        "track_type": ttype,
+                                        "timestamp": pred.get("timestamp"),
+                                        "verified_status": "incorrect",
+                                        "original_position": op,
+                                        "corrected_position": {
+                                            "lat": op.get("lat"),
+                                            "lng": op.get("lng"),
+                                        },
+                                        "correction_distance_meters": 0.0,
+                                        "accuracy": pred.get("gps_accuracy"),
+                                        "annotation_notes": (
+                                            "ML-förutsägelse underkänd: ingen korrigering som mål (0 m)"
+                                        ),
+                                        "environment": None,
+                                        "source": "ml_feedback_incorrect",
+                                        "data_lineage": "ml_prediction_feedback_incorrect",
+                                        "label_type": "reject_ml_prediction",
+                                        "training_weight_suggested": 0.35,
+                                        "export_batch_id": export_batch_id,
+                                        "prediction_source_file": pred_file.name,
+                                        "producer_model_version": producer_ver,
                                     }
                                 )
                 except Exception as e:
                     print(f"Kunde inte läsa predictions-fil {pred_file.name}: {e}")
                     continue
 
-        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"ml_feedback_export_{timestamp_str}.json"
-        filepath = Path(__file__).parent.parent / "ml" / "data" / filename
+        filename = f"ml_feedback_export_{export_batch_id}.json"
+        repo_root = Path(__file__).parent.parent
+        filepath = repo_root / "ml" / "data" / filename
 
-        # Skapa data-mappen om den inte finns
-        filepath.parent.mkdir(parents=True, exist_ok=True)
+        persist_path = None
+        persist_error = None
+        try:
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(
+                    export_data,
+                    f,
+                    indent=2,
+                    ensure_ascii=False,
+                    default=_export_feedback_json_default,
+                )
+            persist_path = str(filepath.relative_to(repo_root))
+        except OSError as e:
+            # Railway m.fl.: skrivskyddat eller effemärt filsystem — nedladdning ska ändå fungera
+            persist_error = str(e)
 
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(export_data, f, indent=2, ensure_ascii=False)
+        dump_kw = dict(indent=2, ensure_ascii=False, default=_export_feedback_json_default)
 
         if download:
-            body = json.dumps(export_data, indent=2, ensure_ascii=False).encode("utf-8")
-            return Response(
-                content=body,
-                media_type="application/json",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{filename}"',
-                    "X-Export-Filename": filename,
-                    "X-Export-Count": str(len(export_data)),
-                },
-            )
+            body = json.dumps(export_data, **dump_kw).encode("utf-8")
+            headers = {
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "X-Export-Filename": filename,
+                "X-Export-Count": str(len(export_data)),
+            }
+            if persist_error:
+                headers["X-Export-Persist-Error"] = persist_error[:500]
+            return Response(content=body, media_type="application/json", headers=headers)
 
-        return {
+        payload = {
             "status": "success",
             "message": f"Exporterade {len(export_data)} positioner med feedback",
-            "filepath": str(filepath.relative_to(Path(__file__).parent.parent)),
             "count": len(export_data),
             "filename": filename,
         }
+        if persist_path:
+            payload["filepath"] = persist_path
+        if persist_error:
+            payload["persist_skipped"] = True
+            payload["persist_error"] = persist_error
+        return payload
 
     except Exception as e:
         import traceback
