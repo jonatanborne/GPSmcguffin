@@ -1013,6 +1013,36 @@ def _export_feedback_json_default(obj):
     return str(obj)
 
 
+def _sanitize_ml_export_tree(obj):
+    """
+    Gör export JSON-säker: NaN/Inf är ogiltiga i standard-JSON och ger ValueError i json.dumps.
+    numpy-skalarar förekommer ibland i ML/prediction-data.
+    """
+    import math
+
+    try:
+        import numpy as np
+
+        if isinstance(obj, np.generic):
+            return _sanitize_ml_export_tree(obj.item())
+    except ImportError:
+        pass
+    if isinstance(obj, dict):
+        return {k: _sanitize_ml_export_tree(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_ml_export_tree(v) for v in obj]
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    return obj
+
+
+def _ascii_header_value(text: str, max_len: int = 500) -> str:
+    """HTTP-svarshuvuden måste vara latin-1; undvik crash på t.ex. svenska felmeddelanden."""
+    if not text:
+        return ""
+    return text.encode("ascii", errors="replace").decode("ascii")[:max_len]
+
+
 def row_to_track_position(row):
     """Konvertera databas-rad till TrackPosition-objekt"""
     corrected_position = None
@@ -5963,15 +5993,18 @@ def export_feedback_data(
             if pid is not None:
                 db_position_ids.add(pid)
 
-            # Beräkna correction_distance om korrigering finns
+            # Beräkna correction_distance om korrigering finns (is not None: 0.0 är giltig lat/lng)
             correction_distance = None
-            if corr_lat and corr_lng:
-                correction_distance = haversine_meters(
-                    LatLng(lat=orig_lat, lng=orig_lng),
-                    LatLng(lat=corr_lat, lng=corr_lng),
-                )
+            has_human_corr = corr_lat is not None and corr_lng is not None
+            if has_human_corr:
+                try:
+                    correction_distance = haversine_meters(
+                        LatLng(lat=orig_lat, lng=orig_lng),
+                        LatLng(lat=corr_lat, lng=corr_lng),
+                    )
+                except Exception:
+                    correction_distance = None
 
-            has_human_corr = bool(corr_lat and corr_lng)
             export_data.append(
                 {
                     "id": pid,
@@ -5983,7 +6016,7 @@ def export_feedback_data(
                     "original_position": {"lat": orig_lat, "lng": orig_lng},
                     "corrected_position": (
                         {"lat": corr_lat, "lng": corr_lng}
-                        if corr_lat and corr_lng
+                        if has_human_corr
                         else None
                     ),
                     "correction_distance_meters": correction_distance,
@@ -6136,6 +6169,8 @@ def export_feedback_data(
                     print(f"Kunde inte läsa predictions-fil {pred_file.name}: {e}")
                     continue
 
+        export_data = _sanitize_ml_export_tree(export_data)
+
         filename = f"ml_feedback_export_{export_batch_id}.json"
         repo_root = Path(__file__).parent.parent
         filepath = repo_root / "ml" / "data" / filename
@@ -6167,7 +6202,9 @@ def export_feedback_data(
                 "X-Export-Count": str(len(export_data)),
             }
             if persist_error:
-                headers["X-Export-Persist-Error"] = persist_error[:500]
+                headers["X-Export-Persist-Error"] = _ascii_header_value(
+                    persist_error, 500
+                )
             return Response(content=body, media_type="application/json", headers=headers)
 
         payload = {
