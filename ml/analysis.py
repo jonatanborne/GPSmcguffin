@@ -788,6 +788,7 @@ def prepare_features_advanced(
 
     features = []
     targets = []
+    sample_weights = []
     feature_names = []
 
     for track_id, track_data in tracks.items():
@@ -1179,10 +1180,24 @@ def prepare_features_advanced(
                     "human_track_exists"
                 ])
 
+            w = d.get("training_weight_suggested", 1.0)
+            try:
+                w = float(w)
+            except (TypeError, ValueError):
+                w = 1.0
+            if w <= 0 or w > 10:
+                w = 1.0
+
             features.append(feature_row)
             targets.append(d["correction_distance_meters"])
+            sample_weights.append(w)
 
-    return np.array(features), np.array(targets), feature_names
+    return (
+        np.array(features),
+        np.array(targets),
+        feature_names,
+        np.array(sample_weights, dtype=np.float64),
+    )
 
 
 def train_ml_model(data: List[Dict]):
@@ -1197,13 +1212,17 @@ def train_ml_model(data: List[Dict]):
     5. Välj bästa modellen baserat på test performance
     """
     print("\nForbereder avancerade features...")
-    X, y, feature_names = prepare_features_advanced(data)
+    X, y, feature_names, sw = prepare_features_advanced(data)
 
     if len(X) == 0:
         print("  Ingen data att trana pa!")
         return
 
     print(f"  {len(X)} positioner med {len(feature_names)} features")
+    print(
+        f"  Sample weights: min={sw.min():.3f}, max={sw.max():.3f}, medel={sw.mean():.3f} "
+        "(1.0 om training_weight_suggested saknas)"
+    )
     print(
         f"  Features: {', '.join(feature_names[:5])}... (+ {len(feature_names) - 5} fler)"
     )
@@ -1214,13 +1233,14 @@ def train_ml_model(data: List[Dict]):
     mask = y <= outlier_threshold
     X = X[mask]
     y = y[mask]
+    sw = sw[mask]
     print(
         f"  Efter outlier removal: {len(X)} positioner (removed {np.sum(~mask)} outliers)"
     )
 
-    # Dela upp i train/test (stratified per track om möjligt)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+    # Dela upp i train/test (samma split för sample_weight)
+    X_train, X_test, y_train, y_test, sw_train, sw_test = train_test_split(
+        X, y, sw, test_size=0.2, random_state=42
     )
 
     print(f"\nTrain set: {len(X_train)} positioner")
@@ -1255,7 +1275,7 @@ def train_ml_model(data: List[Dict]):
         n_jobs=-1,
         verbose=1,
     )
-    rf_search.fit(X_train_scaled, y_train)
+    rf_search.fit(X_train_scaled, y_train, sample_weight=sw_train)
     models["Random Forest"] = {
         "model": rf_search.best_estimator_,
         "best_params": rf_search.best_params_,
@@ -1283,7 +1303,7 @@ def train_ml_model(data: List[Dict]):
         n_jobs=-1,
         verbose=1,
     )
-    gb_search.fit(X_train_scaled, y_train)
+    gb_search.fit(X_train_scaled, y_train, sample_weight=sw_train)
     models["Gradient Boosting"] = {
         "model": gb_search.best_estimator_,
         "best_params": gb_search.best_params_,
@@ -1310,7 +1330,7 @@ def train_ml_model(data: List[Dict]):
         n_jobs=-1,
         verbose=1,
     )
-    et_search.fit(X_train_scaled, y_train)
+    et_search.fit(X_train_scaled, y_train, sample_weight=sw_train)
     models["Extra Trees"] = {
         "model": et_search.best_estimator_,
         "best_params": et_search.best_params_,
@@ -1340,7 +1360,7 @@ def train_ml_model(data: List[Dict]):
             n_jobs=-1,
             verbose=1,
         )
-        xgb_search.fit(X_train_scaled, y_train)
+        xgb_search.fit(X_train_scaled, y_train, sample_weight=sw_train)
         models["XGBoost"] = {
             "model": xgb_search.best_estimator_,
             "best_params": xgb_search.best_params_,

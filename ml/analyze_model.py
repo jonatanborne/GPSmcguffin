@@ -73,7 +73,7 @@ def prepare_features_for_analysis(data: List[Dict], feature_names: List[str]):
 
     from analysis import prepare_features_advanced
 
-    X, y, _ = prepare_features_advanced(data)
+    X, y, _, _ = prepare_features_advanced(data)
     return X, y
 
 
@@ -238,7 +238,7 @@ def analyze_per_track_performance(
 
     for track_name, track_data in sorted(tracks_dict.items()):
         # Förbered features för detta spår
-        X, y, _ = prepare_features_advanced(track_data)
+        X, y, _, _ = prepare_features_advanced(track_data)
 
         if len(X) == 0:
             continue
