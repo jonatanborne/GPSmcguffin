@@ -14,6 +14,12 @@ L.Icon.Default.mergeOptions({
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 const OFFLINE_QUEUE_STORAGE_KEY = 'offline_queue'
 
+/** Förslag till namn på nytt människaspår (användaren kan ändra) */
+function defaultHumanTrackNameSuggestion() {
+    const d = new Date()
+    return `Pass ${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`
+}
+
 const GeofenceEditor = () => {
     const mapRef = useRef(null)
     const mapInstanceRef = useRef(null)
@@ -54,6 +60,11 @@ const GeofenceEditor = () => {
     const [isSyncingOfflineData, setIsSyncingOfflineData] = useState(false) // Om synkning pågår
     const [forceSyncMessage, setForceSyncMessage] = useState(null) // Statusmeddelande för tvångssynk
     const [trackSourceFilter, setTrackSourceFilter] = useState('all') // 'all' | 'own' | 'imported'
+    /** Namn för nästa människaspår (förhandsifylls när man byter till människa) */
+    const [sessionHumanTrackName, setSessionHumanTrackName] = useState(() => defaultHumanTrackNameSuggestion())
+    const prevTrackTypeForNameRef = useRef(trackType)
+    const [renamingTrackId, setRenamingTrackId] = useState(null)
+    const [renameDraft, setRenameDraft] = useState('')
 
     const filteredTracks = useMemo(() => {
         if (trackSourceFilter === 'all') return tracks
@@ -63,6 +74,105 @@ const GeofenceEditor = () => {
         // 'own' – allt som inte är importerade (inkl. lokala/offline-spår)
         return tracks.filter(t => t.track_source !== 'imported')
     }, [tracks, trackSourceFilter])
+
+    // Nytt förslag på namn när användaren byter till människaspår (inte vid varje render)
+    useEffect(() => {
+        if (trackType === 'human' && prevTrackTypeForNameRef.current !== 'human') {
+            setSessionHumanTrackName(defaultHumanTrackNameSuggestion())
+        }
+        prevTrackTypeForNameRef.current = trackType
+    }, [trackType])
+
+    const startRenamingTrack = (track) => {
+        setRenamingTrackId(track.id)
+        setRenameDraft(track.name || '')
+    }
+
+    const cancelRenamingTrack = () => {
+        setRenamingTrackId(null)
+        setRenameDraft('')
+    }
+
+    const commitTrackRename = async (track) => {
+        const name = renameDraft.trim()
+        if (!name) {
+            alert('Ange ett namn.')
+            return
+        }
+        const key = `track_${track.id}`
+
+        const applyLocalName = () => {
+            const raw = localStorage.getItem(key)
+            if (raw) {
+                try {
+                    const t = JSON.parse(raw)
+                    t.name = name
+                    localStorage.setItem(key, JSON.stringify(t))
+                } catch (e) {
+                    console.warn(e)
+                }
+            }
+            if (currentTrack && currentTrack.id === track.id) {
+                setCurrentTrack((prev) => (prev ? { ...prev, name } : null))
+            }
+            if (humanTrackForDog && humanTrackForDog.id === track.id) {
+                setHumanTrackForDog((prev) => (prev ? { ...prev, name } : null))
+            }
+            setRenamingTrackId(null)
+            setRenameDraft('')
+            loadTracks()
+            refreshTrackLayers()
+        }
+
+        const online = isOnline || navigator.onLine
+        if (online) {
+            try {
+                const { data } = await axios.patch(`${API_BASE}/tracks/${track.id}`, { name }, { timeout: 15000 })
+                const raw = localStorage.getItem(key)
+                if (raw && data?.name) {
+                    try {
+                        const t = JSON.parse(raw)
+                        t.name = data.name
+                        localStorage.setItem(key, JSON.stringify(t))
+                    } catch (_) { /* noop */ }
+                }
+                const finalName = data?.name ?? name
+                if (currentTrack && currentTrack.id === track.id) {
+                    setCurrentTrack((prev) => (prev ? { ...prev, name: finalName } : null))
+                }
+                if (humanTrackForDog && humanTrackForDog.id === track.id) {
+                    setHumanTrackForDog((prev) => (prev ? { ...prev, name: finalName } : null))
+                }
+                setRenamingTrackId(null)
+                setRenameDraft('')
+                await loadTracks()
+                refreshTrackLayers()
+                return
+            } catch (err) {
+                if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || !err.response) {
+                    if (localStorage.getItem(key)) {
+                        applyLocalName()
+                        return
+                    }
+                    if (err.response?.status === 404) {
+                        alert('Spåret finns inte på servern. Kontrollera att det synkats.')
+                    } else {
+                        alert('Ingen kontakt med servern och inget lokalt spår att uppdatera.')
+                    }
+                    return
+                }
+                console.error(err)
+                const det = err.response?.data?.detail
+                alert(typeof det === 'string' ? det : 'Kunde inte byta namn')
+            }
+        } else {
+            if (localStorage.getItem(key)) {
+                applyLocalName()
+            } else {
+                alert('Namn på server-spår kan bara ändras när du är online.')
+            }
+        }
+    }
 
     // Ladda geofences från API
     const loadGeofences = async () => {
@@ -132,13 +242,28 @@ const GeofenceEditor = () => {
 
     // Skapa nytt track (fungerar alltid - sparar lokalt om API misslyckas)
     // skipQueue: om true, lägg inte till i offline queue (används vid synkning)
-    const createTrack = async (type, skipQueue = false, humanTrackId = null) => {
-        // Skapa track lokalt först (fungerar alltid)
+    // explicitName: valfritt beskrivande namn; annars fallback (tidigare "Människa/Hund - klockslag")
+    const createTrack = async (type, skipQueue = false, humanTrackId = null, explicitName = null) => {
         const localId = Date.now()
+        let resolvedName
+        const trimmed = explicitName != null && String(explicitName).trim() ? String(explicitName).trim() : ''
+        if (trimmed) {
+            resolvedName = trimmed
+        } else if (type === 'dog' && humanTrackId != null) {
+            const human = tracks.find(
+                (t) => Number(t.id) === Number(humanTrackId) && t.track_type === 'human'
+            )
+            const humanName = human?.name || 'Människaspår'
+            const tShort = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+            resolvedName = `${humanName} · hund (${tShort})`
+        } else {
+            resolvedName = `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`
+        }
+
         const tempTrack = {
             id: localId,
             track_type: type,
-            name: `${type === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
+            name: resolvedName,
             created_at: new Date().toISOString(),
             positions: [],
             human_track_id: humanTrackId,
@@ -154,7 +279,7 @@ const GeofenceEditor = () => {
             try {
                 const response = await axios.post(`${API_BASE}/tracks`, {
                     track_type: type,
-                    name: tempTrack.name,
+                    name: resolvedName,
                     human_track_id: humanTrackId
                 }, { timeout: 10000 })
                 // Om det lyckades, uppdatera med serverns ID
@@ -375,7 +500,12 @@ const GeofenceEditor = () => {
         for (const item of trackCreations) {
             try {
                 // Använd skipQueue=true för att undvika rekursiv loop
-                const created = await createTrack(item.track.track_type, true, item.track.human_track_id)
+                const created = await createTrack(
+                    item.track.track_type,
+                    true,
+                    item.track.human_track_id,
+                    item.track.name
+                )
                 if (created) {
                     // Uppdatera alla positioner med nytt track ID
                     const oldId = item.track.id
@@ -907,7 +1037,21 @@ const GeofenceEditor = () => {
         // createTrack sparar alltid lokalt först, så vi kan alltid spåra
         // Om hundspår, skicka human_track_id
         const humanTrackId = trackType === 'dog' && humanTrackForDog ? humanTrackForDog.id : null
-        let track = await createTrack(trackType, false, humanTrackId)
+
+        let explicitName = null
+        if (trackType === 'human') {
+            const n = sessionHumanTrackName.trim()
+            if (!n) {
+                alert('Ange ett namn på människaspåret (t.ex. plats eller syfte) så du hittar det i listan.')
+                return
+            }
+            explicitName = n
+        } else if (trackType === 'dog' && humanTrackForDog) {
+            const tShort = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+            explicitName = `${humanTrackForDog.name} · hund (${tShort})`
+        }
+
+        let track = await createTrack(trackType, false, humanTrackId, explicitName)
 
         // Om createTrack misslyckades helt (mycket ovanligt), skapa lokalt ändå
         if (!track) {
@@ -915,7 +1059,7 @@ const GeofenceEditor = () => {
             const localId = Date.now()
             track = {
                 id: localId,
-                name: `${trackType === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
+                name: explicitName || `${trackType === 'human' ? 'Människa' : 'Hund'} - ${new Date().toLocaleTimeString()}`,
                 track_type: trackType,
                 created_at: new Date().toISOString(),
                 positions: [],
@@ -1772,10 +1916,30 @@ const GeofenceEditor = () => {
                             </select>
                         </div>
 
+                        {trackType === 'human' && !isTracking && (
+                            <div className="mb-3">
+                                <label className="block text-sm font-medium mb-1">
+                                    Namn på människaspåret
+                                </label>
+                                <input
+                                    type="text"
+                                    value={sessionHumanTrackName}
+                                    onChange={(e) => setSessionHumanTrackName(e.target.value)}
+                                    placeholder="t.ex. Skogspromenad, Kund A, Testlab"
+                                    className="w-full px-3 py-2 border rounded"
+                                    maxLength={120}
+                                    autoComplete="off"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Syns i listan och när du väljer människaspår för hund – unikt namn underlättar.
+                                </p>
+                            </div>
+                        )}
+
                         {trackType === 'dog' && !isTracking && (
                             <div className="mb-3">
                                 <label className="block text-sm font-medium mb-1">
-                                    Välj människaspår att följa:
+                                    Välj vilket människaspår hunden följer:
                                     <span className="text-xs text-gray-500 ml-2">Krävs för jämförelse</span>
                                 </label>
                                 <select
@@ -1840,6 +2004,11 @@ const GeofenceEditor = () => {
                                 )}
                                 <p className="text-sm text-gray-600">
                                     Spårar: {trackType === 'human' ? 'Människa' : 'Hund'}
+                                    {currentTrack?.name && (
+                                        <span className="block text-xs font-medium text-gray-800 mt-0.5 truncate" title={currentTrack.name}>
+                                            {currentTrack.name}
+                                        </span>
+                                    )}
                                 </p>
                                 {currentTrack && (
                                     <p className="text-xs text-gray-500">
@@ -1903,24 +2072,70 @@ const GeofenceEditor = () => {
                                         >
                                             <div className="flex items-center gap-2">
                                                 <span>{track.track_type === 'human' ? '🚶' : '🐕'}</span>
-                                                <div className="flex-1">
-                                                    <div className="font-medium flex items-center gap-1">
-                                                        {track.name}
-                                                        {isActiveTrack && (
-                                                            <span className="text-xs bg-green-500 text-white px-1 rounded">Aktiv</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 flex items-center gap-2">
-                                                        <span>{track.positions?.length || 0} positioner</span>
-                                                        {track.track_source === 'imported' && (
-                                                            <span className="px-1 py-0.5 rounded bg-yellow-100 text-yellow-700">
-                                                                Kundspår
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                <div className="flex-1 min-w-0">
+                                                    {renamingTrackId === track.id ? (
+                                                        <div className="flex flex-col gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={renameDraft}
+                                                                onChange={(e) => setRenameDraft(e.target.value)}
+                                                                className="w-full text-sm px-2 py-1 border rounded"
+                                                                maxLength={200}
+                                                                autoFocus
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') commitTrackRename(track)
+                                                                    if (e.key === 'Escape') cancelRenamingTrack()
+                                                                }}
+                                                            />
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => commitTrackRename(track)}
+                                                                    className="text-xs px-2 py-0.5 bg-green-600 text-white rounded"
+                                                                >
+                                                                    Spara
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={cancelRenamingTrack}
+                                                                    className="text-xs px-2 py-0.5 bg-gray-200 rounded"
+                                                                >
+                                                                    Avbryt
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="font-medium flex items-center gap-1 flex-wrap">
+                                                                <span className="truncate" title={track.name}>{track.name}</span>
+                                                                {isActiveTrack && (
+                                                                    <span className="text-xs bg-green-500 text-white px-1 rounded shrink-0">Aktiv</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+                                                                <span>{track.positions?.length || 0} positioner</span>
+                                                                {track.track_source === 'imported' && (
+                                                                    <span className="px-1 py-0.5 rounded bg-yellow-100 text-yellow-700">
+                                                                        Kundspår
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
-                                                <div className="flex gap-1">
-                                                    {track.track_type === 'dog' && track.human_track_id && (
+                                                <div className="flex gap-1 shrink-0">
+                                                    {renamingTrackId !== track.id && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => startRenamingTrack(track)}
+                                                            className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                                                            title="Byt namn"
+                                                            disabled={isActiveTrack}
+                                                        >
+                                                            ✎
+                                                        </button>
+                                                    )}
+                                                    {track.track_type === 'dog' && track.human_track_id && renamingTrackId !== track.id && (
                                                         <button
                                                             onClick={() => loadComparisonData(track.id)}
                                                             className="text-xs px-2 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"

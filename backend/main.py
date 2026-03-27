@@ -810,6 +810,12 @@ class TrackCreate(BaseModel):
     human_track_id: Optional[int] = None  # För hundspår: vilket människaspår den går
 
 
+class TrackPatch(BaseModel):
+    """Uppdatera spår (t.ex. visningsnamn)."""
+
+    name: str = Field(..., min_length=1, max_length=200)
+
+
 class Track(TrackCreate):
     id: int
     created_at: str
@@ -1717,6 +1723,41 @@ def get_track(track_id: int):
         if "human_track_id" in row.keys()
         else None,
     )
+
+
+@app.patch("/tracks/{track_id}", response_model=Track)
+@app.patch("/api/tracks/{track_id}", response_model=Track)
+def patch_track(track_id: int, payload: TrackPatch):
+    """Byt namn på ett spår."""
+    try:
+        init_db()
+        conn = get_db()
+        cursor = get_cursor(conn)
+        ph = "%s" if DATABASE_URL else "?"
+        new_name = payload.name.strip()
+        if not new_name:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Namnet får inte vara tomt")
+        execute_query(
+            cursor,
+            f"UPDATE tracks SET name = {ph} WHERE id = {ph}",
+            (new_name, track_id),
+        )
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Track not found")
+        conn.commit()
+        conn.close()
+        return get_track(track_id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Kunde inte uppdatera spår: {str(e)}\n{traceback.format_exc()}",
+        )
 
 
 @app.delete("/tracks/{track_id}")
