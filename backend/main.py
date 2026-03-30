@@ -816,6 +816,56 @@ class TrackPatch(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
 
 
+def _safe_int_db(v: Any, default: int = 0) -> int:
+    """Koercera DB-värden till int utan att krascha (tom sträng, Decimal, osv.)."""
+    if v is None:
+        return default
+    if isinstance(v, bool):
+        return int(v)
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        if math.isnan(v) or math.isinf(v):
+            return default
+        return int(v)
+    s = str(v).strip()
+    if s == "":
+        return default
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return int(float(s))
+        except (ValueError, OverflowError):
+            return default
+
+
+def _safe_optional_int_db(v: Any) -> Optional[int]:
+    """human_track_id: None om tomt eller oparsbart (undvik Pydantic 422 på '')."""
+    if v is None:
+        return None
+    if isinstance(v, str) and v.strip() == "":
+        return None
+    if isinstance(v, bool):
+        return int(v)
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        if math.isnan(v) or math.isinf(v):
+            return None
+        return int(v)
+    s = str(v).strip()
+    if s == "":
+        return None
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return int(float(s))
+        except (ValueError, OverflowError):
+            return None
+
+
 class TrackCleanupRow(BaseModel):
     """Spår med metadata för städning (Testmiljö) — position_count från SQL, inte full lista."""
 
@@ -826,6 +876,16 @@ class TrackCleanupRow(BaseModel):
     human_track_id: Optional[int] = None
     created_at: Optional[str] = None
     position_count: int = 0
+
+    @field_validator("id", "position_count", mode="before")
+    @classmethod
+    def _coerce_cleanup_ints(cls, v: Any) -> int:
+        return _safe_int_db(v, 0)
+
+    @field_validator("human_track_id", mode="before")
+    @classmethod
+    def _coerce_cleanup_human_id(cls, v: Any) -> Optional[int]:
+        return _safe_optional_int_db(v)
 
 
 class DuplicateTrackGroup(BaseModel):
@@ -847,24 +907,19 @@ def _normalize_track_type_for_cleanup(raw) -> str:
     return tt if tt in ("human", "dog") else "human"
 
 
-def _track_cleanup_row_from_db(row, position_count: int) -> TrackCleanupRow:
-    """Bygg TrackCleanupRow med int-koercion — Postgres/SQLite kan ge annat än Literal-strängar."""
-    tid = get_row_value(row, "id")
-    tid = int(tid) if tid is not None else 0
+def _track_cleanup_row_from_db(row, position_count: Any) -> TrackCleanupRow:
+    """Bygg TrackCleanupRow — råvärden valideras/koerceras i TrackCleanupRow."""
     tt = _normalize_track_type_for_cleanup(get_row_value(row, "track_type"))
     ts = get_row_value(row, "track_source") or "own"
-    hid = get_row_value(row, "human_track_id")
-    hid = int(hid) if hid is not None else None
     ca = get_row_value(row, "created_at")
-    pc = int(position_count)
     return TrackCleanupRow(
-        id=tid,
+        id=get_row_value(row, "id"),
         name=get_row_value(row, "name") or "",
         track_type=tt,
         track_source=ts,
-        human_track_id=hid,
+        human_track_id=get_row_value(row, "human_track_id"),
         created_at=_to_iso_str(ca) if ca else None,
-        position_count=pc,
+        position_count=position_count,
     )
 
 
@@ -1498,7 +1553,7 @@ def get_tracks_cleanup_candidates():
             if key not in groups_map:
                 groups_map[key] = []
                 order_keys.append(key)
-            pc = int(get_row_value(row, "position_count") or 0)
+            pc = _safe_int_db(get_row_value(row, "position_count"), 0)
             groups_map[key].append(_track_cleanup_row_from_db(row, pc))
 
         duplicate_groups = [
