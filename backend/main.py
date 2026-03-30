@@ -1904,62 +1904,6 @@ def smooth_track(
     }
 
 
-@app.get("/tracks/{track_id}", response_model=Track)
-def get_track(track_id: int):
-    conn = get_db()
-    cursor = get_cursor(conn)
-    placeholder = "%s" if DATABASE_URL else "?"
-    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
-    row = cursor.fetchone()
-
-    if row is None:
-        conn.close()
-        raise HTTPException(status_code=404, detail="Track not found")
-
-    # Hämta positioner
-    execute_query(
-        cursor,
-        f"""
-        SELECT
-            id,
-            track_id,
-            position_lat,
-            position_lng,
-            timestamp,
-            accuracy,
-            verified_status,
-            corrected_lat,
-            corrected_lng,
-            corrected_at,
-            annotation_notes,
-            environment,
-            truth_level,
-            ml_confidence,
-            ml_model_version,
-            correction_source
-        FROM track_positions
-        WHERE track_id = {placeholder}
-        ORDER BY timestamp
-    """,
-        (track_id,),
-    )
-    position_rows = cursor.fetchall()
-    conn.close()
-
-    positions = [row_to_track_position(p) for p in position_rows]
-
-    return Track(
-        id=row["id"],
-        name=row["name"],
-        track_type=row["track_type"],
-        created_at=_to_iso_str(row["created_at"]),
-        positions=positions,
-        human_track_id=row["human_track_id"]
-        if "human_track_id" in row.keys()
-        else None,
-    )
-
-
 @app.patch("/tracks/{track_id}", response_model=Track)
 @app.patch("/api/tracks/{track_id}", response_model=Track)
 def patch_track(track_id: int, payload: TrackPatch):
@@ -2250,6 +2194,62 @@ def compare_tracks_custom(human_track_id: int, dog_track_id: int):
             "unchecked": unchecked_spots,
         },
     }
+
+
+@app.get("/tracks/{track_id}", response_model=Track)
+def get_track(track_id: int):
+    conn = get_db()
+    cursor = get_cursor(conn)
+    placeholder = "%s" if DATABASE_URL else "?"
+    execute_query(cursor, f"SELECT * FROM tracks WHERE id = {placeholder}", (track_id,))
+    row = cursor.fetchone()
+
+    if row is None:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    # Hämta positioner
+    execute_query(
+        cursor,
+        f"""
+        SELECT
+            id,
+            track_id,
+            position_lat,
+            position_lng,
+            timestamp,
+            accuracy,
+            verified_status,
+            corrected_lat,
+            corrected_lng,
+            corrected_at,
+            annotation_notes,
+            environment,
+            truth_level,
+            ml_confidence,
+            ml_model_version,
+            correction_source
+        FROM track_positions
+        WHERE track_id = {placeholder}
+        ORDER BY timestamp
+    """,
+        (track_id,),
+    )
+    position_rows = cursor.fetchall()
+    conn.close()
+
+    positions = [row_to_track_position(p) for p in position_rows]
+
+    return Track(
+        id=row["id"],
+        name=row["name"],
+        track_type=row["track_type"],
+        created_at=_to_iso_str(row["created_at"]),
+        positions=positions,
+        human_track_id=row["human_track_id"]
+        if "human_track_id" in row.keys()
+        else None,
+    )
 
 
 @app.get("/tracks/{track_id}/compare-segments")
