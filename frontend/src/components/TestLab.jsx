@@ -13,6 +13,21 @@ L.Icon.Default.mergeOptions({
 
 const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : '/api'
 
+/** FastAPI `detail` kan vara str eller valideringslista — React #31 om objekt renderas som barn. */
+function formatAxiosDetail(detail, fallback) {
+    if (detail == null) return fallback
+    if (typeof detail === 'string') return detail
+    if (Array.isArray(detail)) {
+        return detail
+            .map((x) =>
+                x && typeof x === 'object' && x.msg != null ? String(x.msg) : JSON.stringify(x)
+            )
+            .join('; ')
+    }
+    if (typeof detail === 'object') return JSON.stringify(detail)
+    return String(detail)
+}
+
 const STATUS_LABELS = {
     pending: 'Ej märkt',
     correct: 'Korrekt',
@@ -787,8 +802,10 @@ const TestLab = () => {
         } catch (err) {
             console.error(err)
             setError(
-                err.response?.data?.detail ||
+                formatAxiosDetail(
+                    err.response?.data?.detail,
                     'Kunde inte hämta städningskandidater.'
+                )
             )
         } finally {
             setCleanupLoading(false)
@@ -835,7 +852,12 @@ const TestLab = () => {
             setTimeout(() => setMessage(null), 5000)
         } catch (err) {
             console.error(err)
-            setError(err.response?.data?.detail || 'Batch-delete misslyckades.')
+            setError(
+                formatAxiosDetail(
+                    err.response?.data?.detail,
+                    'Batch-delete misslyckades.'
+                )
+            )
         } finally {
             setCleanupLoading(false)
         }
@@ -3382,7 +3404,21 @@ const TestLab = () => {
                             className={`text-xs rounded px-3 py-2 ${error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
                                 }`}
                         >
-                            {error || message}
+                            {(() => {
+                                const errText =
+                                    error == null
+                                        ? ''
+                                        : typeof error === 'string'
+                                          ? error
+                                          : JSON.stringify(error)
+                                const msgText =
+                                    typeof message === 'string'
+                                        ? message
+                                        : message != null
+                                          ? String(message)
+                                          : ''
+                                return errText || msgText
+                            })()}
                         </div>
                     )}
                 </div>

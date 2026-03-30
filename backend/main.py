@@ -821,7 +821,7 @@ class TrackCleanupRow(BaseModel):
 
     id: int
     name: str
-    track_type: Literal["human", "dog"]
+    track_type: str
     track_source: str = "own"
     human_track_id: Optional[int] = None
     created_at: Optional[str] = None
@@ -840,6 +840,32 @@ class DuplicateTrackGroup(BaseModel):
 class CleanupCandidatesResponse(BaseModel):
     empty_tracks: List[TrackCleanupRow]
     duplicate_groups: List[DuplicateTrackGroup]
+
+
+def _normalize_track_type_for_cleanup(raw) -> str:
+    tt = str(raw or "human").strip().lower()
+    return tt if tt in ("human", "dog") else "human"
+
+
+def _track_cleanup_row_from_db(row, position_count: int) -> TrackCleanupRow:
+    """Bygg TrackCleanupRow med int-koercion — Postgres/SQLite kan ge annat än Literal-strängar."""
+    tid = get_row_value(row, "id")
+    tid = int(tid) if tid is not None else 0
+    tt = _normalize_track_type_for_cleanup(get_row_value(row, "track_type"))
+    ts = get_row_value(row, "track_source") or "own"
+    hid = get_row_value(row, "human_track_id")
+    hid = int(hid) if hid is not None else None
+    ca = get_row_value(row, "created_at")
+    pc = int(position_count)
+    return TrackCleanupRow(
+        id=tid,
+        name=get_row_value(row, "name") or "",
+        track_type=tt,
+        track_source=ts,
+        human_track_id=hid,
+        created_at=_to_iso_str(ca) if ca else None,
+        position_count=pc,
+    )
 
 
 class BatchDeleteTracksPayload(BaseModel):
@@ -1435,21 +1461,9 @@ def get_tracks_cleanup_candidates():
             None,
         )
         empty_rows = cursor.fetchall()
-        empty_tracks: List[TrackCleanupRow] = []
-        for row in empty_rows:
-            empty_tracks.append(
-                TrackCleanupRow(
-                    id=get_row_value(row, "id"),
-                    name=get_row_value(row, "name") or "",
-                    track_type=get_row_value(row, "track_type"),
-                    track_source=get_row_value(row, "track_source") or "own",
-                    human_track_id=get_row_value(row, "human_track_id"),
-                    created_at=_to_iso_str(get_row_value(row, "created_at"))
-                    if get_row_value(row, "created_at")
-                    else None,
-                    position_count=0,
-                )
-            )
+        empty_tracks: List[TrackCleanupRow] = [
+            _track_cleanup_row_from_db(row, 0) for row in empty_rows
+        ]
 
         execute_query(
             cursor,
@@ -1485,24 +1499,12 @@ def get_tracks_cleanup_candidates():
                 groups_map[key] = []
                 order_keys.append(key)
             pc = int(get_row_value(row, "position_count") or 0)
-            groups_map[key].append(
-                TrackCleanupRow(
-                    id=get_row_value(row, "id"),
-                    name=get_row_value(row, "name") or "",
-                    track_type=tt,
-                    track_source=ts,
-                    human_track_id=get_row_value(row, "human_track_id"),
-                    created_at=_to_iso_str(get_row_value(row, "created_at"))
-                    if get_row_value(row, "created_at")
-                    else None,
-                    position_count=pc,
-                )
-            )
+            groups_map[key].append(_track_cleanup_row_from_db(row, pc))
 
         duplicate_groups = [
             DuplicateTrackGroup(
                 normalized_name=k[0],
-                track_type=k[1],
+                track_type=_normalize_track_type_for_cleanup(k[1]),
                 track_source=k[2],
                 tracks=groups_map[k],
             )
