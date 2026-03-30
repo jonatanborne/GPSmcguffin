@@ -19,14 +19,22 @@ Strategi:
 
 import argparse
 import csv
+import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
+# Tillåt `python scripts/import_dogtracks_csv.py` från backend-mappen (main.py ligger en nivå upp)
+_backend_root = Path(__file__).resolve().parent.parent
+if str(_backend_root) not in sys.path:
+    sys.path.insert(0, str(_backend_root))
+
 from main import (
-    get_db,
-    get_cursor,
     execute_query,
+    get_cursor,
+    get_db,
+    init_db,
 )
 
 
@@ -194,6 +202,14 @@ def main() -> None:
         raise SystemExit(f"Person-fil hittas inte: {args.person_csv}")
     if not args.dog_csv.exists():
         raise SystemExit(f"Dog-fil hittas inte: {args.dog_csv}")
+
+    if not os.environ.get("DATABASE_URL", "").strip():
+        print(
+            "Obs: DATABASE_URL är inte satt — använder lokal SQLite (data.db i arbetskatalogen). "
+            "För att importera till Railway/Postgres: export DATABASE_URL='postgresql://...'"
+        )
+
+    init_db()
 
     print("Importerar header (tracks)...")
     maps = import_header_tracks(args.header_csv)
