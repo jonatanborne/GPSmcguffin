@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import axios from 'axios'
+import { normalizeTracksListResponse } from '../utils/tracksApi'
 
 // Fix för Leaflet ikoner
 delete L.Icon.Default.prototype._getIconUrl
@@ -192,8 +193,12 @@ const GeofenceEditor = () => {
         if (isOnline || navigator.onLine) {
             try {
                 const response = await axios.get(`${API_BASE}/tracks`, { timeout: 10000 })
-                // Backend returnerar redan fullständiga tracks med positioner
-                apiTracks = Array.isArray(response.data) ? response.data : []
+                const { tracks: list, invalid, message } = normalizeTracksListResponse(
+                    response.data,
+                    response
+                )
+                apiTracks = list
+                if (invalid) console.warn(message)
             } catch (error) {
                 // Bara logga om det inte är timeout (för att undvika spam)
                 if (error.code !== 'ECONNABORTED') {
@@ -571,7 +576,10 @@ const GeofenceEditor = () => {
 
         try {
             const serverTracksResp = await axios.get(`${API_BASE}/tracks`, { timeout: 30000 })
-            const serverTracks = Array.isArray(serverTracksResp.data) ? serverTracksResp.data : []
+            const { tracks: serverTracks } = normalizeTracksListResponse(
+                serverTracksResp.data,
+                serverTracksResp
+            )
             const serverIds = new Set(serverTracks.map(track => track.id?.toString()).filter(Boolean))
             const serverTrackMap = new Map()
             const idMapping = new Map()

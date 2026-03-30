@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { normalizeTracksListResponse } from '../utils/tracksApi'
 import axios from 'axios'
 import L from 'leaflet'
 
@@ -159,7 +160,16 @@ const MLDashboard = () => {
     const loadTracks = async () => {
         try {
             const response = await axios.get(`${API_BASE}/tracks`)
-            setTracks(response.data)
+            const { tracks: list, invalid, message } = normalizeTracksListResponse(
+                response.data,
+                response
+            )
+            setTracks(list)
+            if (invalid) setError(message)
+            else
+                setError((prev) =>
+                    prev && String(prev).includes('Spårlistan') ? null : prev
+                )
         } catch (err) {
             console.error('Fel vid laddning av spår:', err)
         }

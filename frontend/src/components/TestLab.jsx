@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import axios from 'axios'
+import { normalizeTracksListResponse } from '../utils/tracksApi'
 
 // Säkerställ att Leaflet använder CDN-ikoner (samma som GeofenceEditor)
 delete L.Icon.Default.prototype._getIconUrl
@@ -754,8 +755,16 @@ const TestLab = () => {
     const loadTracks = async () => {
         try {
             const response = await axios.get(`${API_BASE}/tracks`)
-            const sortedTracks = Array.isArray(response.data) ? response.data : []
-            setTracks(sortedTracks)
+            const { tracks: list, invalid, message } = normalizeTracksListResponse(
+                response.data,
+                response
+            )
+            setTracks(list)
+            if (invalid) setError(message)
+            else
+                setError((prev) =>
+                    prev && String(prev).includes('Spårlistan') ? null : prev
+                )
         } catch (err) {
             console.error('Kunde inte hämta tracks:', err)
             setError('Kunde inte ladda spårlistan.')
