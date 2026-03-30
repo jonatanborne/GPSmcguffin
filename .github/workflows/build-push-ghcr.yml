@@ -1,5 +1,8 @@
-# Bygg Docker-image med Git LFS ( .pkl ), pusha till GHCR.
-# Railway stödjer inte LFS vid build – deploya från denna image istället.
+# Docker-image till GHCR. Vi checkar ut UTAN Git LFS – annars failar Actions ofta
+# ("failed to fetch .../info/lfs") pga stora .pkl i LFS, kvot eller timeout.
+# I imagen hamnar LFS-pekare för stora modeller; ML-endpoints kan svara 503 tills riktiga
+# filer finns (samma mönster som Railway utan LFS – se backend load_pkl).
+# Full ML-image: bygg Docker lokalt efter `git lfs pull`, eller lägg modell i Release och COPY/ARG.
 
 name: Build and push to GHCR
 
@@ -15,13 +18,10 @@ jobs:
       packages: write
 
     steps:
-      # checkout med lfs: true hämtar LFS-objekt; extra "git lfs pull" kan ge exit 2 / dubbel-fetch.
-      # Om detta steget misslyckas: kör lokalt `git lfs push --all origin main` och kontrollera LFS-kvot (Billing).
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: false
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
