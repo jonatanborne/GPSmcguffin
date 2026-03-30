@@ -121,6 +121,12 @@ const TestLab = () => {
     const [auditActionFilter, setAuditActionFilter] = useState('all') // 'all' | action-typer
     const [loadingAudit, setLoadingAudit] = useState(false)
 
+    // Städning: tomma spår + dubbletter (backend SQL, Postgres/SQLite)
+    const [cleanupOpen, setCleanupOpen] = useState(false)
+    const [cleanupData, setCleanupData] = useState(null)
+    const [cleanupLoading, setCleanupLoading] = useState(false)
+    const [cleanupSelectedIds, setCleanupSelectedIds] = useState([])
+
     // Tröskel för "liten korrigering" (meter) – batch godkänn som ML
     const SMALL_CORRECTION_THRESHOLD_M = 5
 
@@ -768,6 +774,70 @@ const TestLab = () => {
         } catch (err) {
             console.error('Kunde inte hämta tracks:', err)
             setError('Kunde inte ladda spårlistan.')
+        }
+    }
+
+    const fetchCleanupCandidates = async () => {
+        setCleanupLoading(true)
+        setError(null)
+        try {
+            const { data } = await axios.get(`${API_BASE}/tracks/cleanup-candidates`)
+            setCleanupData(data)
+            setCleanupSelectedIds([])
+        } catch (err) {
+            console.error(err)
+            setError(
+                err.response?.data?.detail ||
+                    'Kunde inte hämta städningskandidater.'
+            )
+        } finally {
+            setCleanupLoading(false)
+        }
+    }
+
+    const toggleCleanupId = (id) => {
+        setCleanupSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        )
+    }
+
+    const selectAllEmptyTracks = () => {
+        if (!cleanupData?.empty_tracks?.length) return
+        const ids = cleanupData.empty_tracks.map((t) => t.id)
+        setCleanupSelectedIds((prev) => {
+            const set = new Set([...prev, ...ids])
+            return [...set]
+        })
+    }
+
+    const deleteSelectedCleanupTracks = async () => {
+        if (cleanupSelectedIds.length === 0) {
+            alert('Välj minst ett spår att ta bort.')
+            return
+        }
+        if (
+            !window.confirm(
+                `Ta bort ${cleanupSelectedIds.length} spår permanent från databasen? Detta går inte att ångra.`
+            )
+        ) {
+            return
+        }
+        setCleanupLoading(true)
+        setError(null)
+        try {
+            await axios.post(`${API_BASE}/tracks/batch-delete`, {
+                track_ids: [...new Set(cleanupSelectedIds)],
+            })
+            setMessage(`Borttaget: ${cleanupSelectedIds.length} spår.`)
+            setCleanupSelectedIds([])
+            await loadTracks()
+            await fetchCleanupCandidates()
+            setTimeout(() => setMessage(null), 5000)
+        } catch (err) {
+            console.error(err)
+            setError(err.response?.data?.detail || 'Batch-delete misslyckades.')
+        } finally {
+            setCleanupLoading(false)
         }
     }
 
@@ -2435,6 +2505,135 @@ const TestLab = () => {
                                 ✨ Döp om generiska spår
                             </button>
                         )}
+
+                        <div className="border border-rose-200 rounded-lg p-3 bg-rose-50/80 space-y-2">
+                            <button
+                                type="button"
+                                onClick={() => setCleanupOpen((o) => !o)}
+                                className="w-full text-left text-xs font-semibold text-rose-900 flex items-center justify-between"
+                            >
+                                <span>🧹 Städa databas (tomma spår & dubbletter)</span>
+                                <span>{cleanupOpen ? '▼' : '▶'}</span>
+                            </button>
+                            {cleanupOpen && (
+                                <div className="space-y-3 text-xs text-slate-700">
+                                    <p className="text-[11px] text-slate-600">
+                                        Hämtar listor via SQL (<strong>PostgreSQL</strong> på Railway, samma logik som{' '}
+                                        <strong>SQLite</strong> lokalt). Dubbletter = samma normaliserade namn + typ +
+                                        källa. Granska innan du raderar.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={fetchCleanupCandidates}
+                                        disabled={cleanupLoading}
+                                        className="w-full px-2 py-1.5 rounded bg-rose-600 text-white font-medium hover:bg-rose-700 disabled:opacity-50"
+                                    >
+                                        {cleanupLoading ? 'Laddar…' : 'Hämta kandidater'}
+                                    </button>
+
+                                    {cleanupData && (
+                                        <>
+                                            <div>
+                                                <div className="font-medium text-slate-800 mb-1">
+                                                    Spår utan positioner ({cleanupData.empty_tracks?.length || 0})
+                                                </div>
+                                                {cleanupData.empty_tracks?.length > 0 ? (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={selectAllEmptyTracks}
+                                                            className="text-[10px] text-rose-700 underline mb-1"
+                                                        >
+                                                            Markera alla tomma
+                                                        </button>
+                                                        <ul className="max-h-28 overflow-y-auto border border-slate-200 rounded bg-white p-1 space-y-0.5">
+                                                            {cleanupData.empty_tracks.map((t) => (
+                                                                <li
+                                                                    key={t.id}
+                                                                    className="flex items-center gap-2 text-[11px]"
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={cleanupSelectedIds.includes(t.id)}
+                                                                        onChange={() => toggleCleanupId(t.id)}
+                                                                    />
+                                                                    <span className="font-mono text-slate-500">#{t.id}</span>
+                                                                    <span className="truncate flex-1" title={t.name}>
+                                                                        {t.name}
+                                                                    </span>
+                                                                    <span>{t.track_type}</span>
+                                                                    <span className="text-slate-400">
+                                                                        {t.track_source === 'imported' ? 'kund' : 'egen'}
+                                                                    </span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-slate-500 italic">Inga tomma spår.</p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <div className="font-medium text-slate-800 mb-1">
+                                                    Möjliga dubbletter ({cleanupData.duplicate_groups?.length || 0}{' '}
+                                                    grupper)
+                                                </div>
+                                                {cleanupData.duplicate_groups?.length > 0 ? (
+                                                    <div className="max-h-40 overflow-y-auto space-y-2 border border-slate-200 rounded bg-white p-2">
+                                                        {cleanupData.duplicate_groups.map((g, gi) => (
+                                                            <div
+                                                                key={`${g.normalized_name}-${g.track_type}-${g.track_source}-${gi}`}
+                                                                className="border-b border-slate-100 last:border-0 pb-2 last:pb-0"
+                                                            >
+                                                                <div className="text-[10px] text-slate-500 mb-1">
+                                                                    “{g.normalized_name || '(tomt)'}” · {g.track_type} ·{' '}
+                                                                    {g.track_source}
+                                                                </div>
+                                                                <ul className="space-y-0.5">
+                                                                    {g.tracks.map((t) => (
+                                                                        <li
+                                                                            key={t.id}
+                                                                            className="flex items-center gap-2 text-[11px]"
+                                                                        >
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={cleanupSelectedIds.includes(
+                                                                                    t.id
+                                                                                )}
+                                                                                onChange={() => toggleCleanupId(t.id)}
+                                                                            />
+                                                                            <span className="font-mono text-slate-500">
+                                                                                #{t.id}
+                                                                            </span>
+                                                                            <span className="truncate flex-1">
+                                                                                {t.name}
+                                                                            </span>
+                                                                            <span>{t.position_count} pos</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-slate-500 italic">Inga dubbletter hittades.</p>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={deleteSelectedCleanupTracks}
+                                                disabled={cleanupLoading || cleanupSelectedIds.length === 0}
+                                                className="w-full px-2 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            >
+                                                🗑 Ta bort valda ({cleanupSelectedIds.length})
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Spår-info */}

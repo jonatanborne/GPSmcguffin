@@ -816,6 +816,36 @@ class TrackPatch(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
 
 
+class TrackCleanupRow(BaseModel):
+    """Spår med metadata för städning (Testmiljö) — position_count från SQL, inte full lista."""
+
+    id: int
+    name: str
+    track_type: Literal["human", "dog"]
+    track_source: str = "own"
+    human_track_id: Optional[int] = None
+    created_at: Optional[str] = None
+    position_count: int = 0
+
+
+class DuplicateTrackGroup(BaseModel):
+    """Flera spår med samma normaliserade namn + typ + källa."""
+
+    normalized_name: str
+    track_type: str
+    track_source: str
+    tracks: List[TrackCleanupRow]
+
+
+class CleanupCandidatesResponse(BaseModel):
+    empty_tracks: List[TrackCleanupRow]
+    duplicate_groups: List[DuplicateTrackGroup]
+
+
+class BatchDeleteTracksPayload(BaseModel):
+    track_ids: List[int] = Field(..., min_length=1, max_length=500)
+
+
 class Track(TrackCreate):
     id: int
     created_at: str
@@ -1375,6 +1405,154 @@ def list_tracks():
         )
 
     return tracks
+
+
+@app.get("/tracks/cleanup-candidates", response_model=CleanupCandidatesResponse)
+@app.get("/api/tracks/cleanup-candidates", response_model=CleanupCandidatesResponse)
+def get_tracks_cleanup_candidates():
+    """
+    Testmiljö: spår utan positioner + grupper med flera spår som delar
+    normaliserat namn, track_type och track_source (dubbletter).
+    Samma SQL fungerar mot PostgreSQL och SQLite.
+    """
+    try:
+        init_db()
+        conn = get_db()
+        cursor = get_cursor(conn)
+
+        execute_query(
+            cursor,
+            """
+            SELECT t.id, t.name, t.track_type, COALESCE(t.track_source, 'own') AS track_source,
+                   t.human_track_id, t.created_at,
+                   0 AS position_count
+            FROM tracks t
+            WHERE NOT EXISTS (
+                SELECT 1 FROM track_positions p WHERE p.track_id = t.id
+            )
+            ORDER BY t.id
+            """,
+            None,
+        )
+        empty_rows = cursor.fetchall()
+        empty_tracks: List[TrackCleanupRow] = []
+        for row in empty_rows:
+            empty_tracks.append(
+                TrackCleanupRow(
+                    id=get_row_value(row, "id"),
+                    name=get_row_value(row, "name") or "",
+                    track_type=get_row_value(row, "track_type"),
+                    track_source=get_row_value(row, "track_source") or "own",
+                    human_track_id=get_row_value(row, "human_track_id"),
+                    created_at=_to_iso_str(get_row_value(row, "created_at"))
+                    if get_row_value(row, "created_at")
+                    else None,
+                    position_count=0,
+                )
+            )
+
+        execute_query(
+            cursor,
+            """
+            SELECT t.id, t.name, t.track_type, COALESCE(t.track_source, 'own') AS track_source,
+                   t.human_track_id, t.created_at,
+                   LOWER(TRIM(COALESCE(t.name, ''))) AS norm_name,
+                   (SELECT COUNT(*) FROM track_positions p WHERE p.track_id = t.id) AS position_count
+            FROM tracks t
+            INNER JOIN (
+                SELECT LOWER(TRIM(COALESCE(name, ''))) AS nk, track_type, COALESCE(track_source, 'own') AS ts
+                FROM tracks
+                GROUP BY LOWER(TRIM(COALESCE(name, ''))), track_type, COALESCE(track_source, 'own')
+                HAVING COUNT(*) > 1
+            ) d ON LOWER(TRIM(COALESCE(t.name, ''))) = d.nk
+                AND t.track_type = d.track_type
+                AND COALESCE(t.track_source, 'own') = d.ts
+            ORDER BY d.nk, t.track_type, t.id
+            """,
+            None,
+        )
+        dup_rows = cursor.fetchall()
+        conn.close()
+
+        groups_map: dict = {}
+        order_keys = []
+        for row in dup_rows:
+            nk = get_row_value(row, "norm_name") or ""
+            tt = get_row_value(row, "track_type")
+            ts = get_row_value(row, "track_source") or "own"
+            key = (nk, tt, ts)
+            if key not in groups_map:
+                groups_map[key] = []
+                order_keys.append(key)
+            pc = int(get_row_value(row, "position_count") or 0)
+            groups_map[key].append(
+                TrackCleanupRow(
+                    id=get_row_value(row, "id"),
+                    name=get_row_value(row, "name") or "",
+                    track_type=tt,
+                    track_source=ts,
+                    human_track_id=get_row_value(row, "human_track_id"),
+                    created_at=_to_iso_str(get_row_value(row, "created_at"))
+                    if get_row_value(row, "created_at")
+                    else None,
+                    position_count=pc,
+                )
+            )
+
+        duplicate_groups = [
+            DuplicateTrackGroup(
+                normalized_name=k[0],
+                track_type=k[1],
+                track_source=k[2],
+                tracks=groups_map[k],
+            )
+            for k in order_keys
+        ]
+
+        return CleanupCandidatesResponse(
+            empty_tracks=empty_tracks,
+            duplicate_groups=duplicate_groups,
+        )
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Kunde inte hämta städningskandidater: {str(e)}\n{traceback.format_exc()}",
+        )
+
+
+@app.post("/tracks/batch-delete")
+@app.post("/api/tracks/batch-delete")
+def batch_delete_tracks(payload: BatchDeleteTracksPayload):
+    """Ta bort flera spår i ett anrop (Testmiljö). CASCADE tar beroende rader."""
+    try:
+        init_db()
+        ids = sorted(set(payload.track_ids))
+        if not ids:
+            raise HTTPException(status_code=400, detail="Inga id angivna")
+        conn = get_db()
+        cursor = get_cursor(conn)
+        ph = "%s" if DATABASE_URL else "?"
+        placeholders = ", ".join([ph] * len(ids))
+        execute_query(
+            cursor,
+            f"DELETE FROM tracks WHERE id IN ({placeholders})",
+            tuple(ids),
+        )
+        deleted = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return {"deleted": deleted, "track_ids": ids}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Batch-delete misslyckades: {str(e)}\n{traceback.format_exc()}",
+        )
 
 
 @app.post("/tracks/rename-generic")
