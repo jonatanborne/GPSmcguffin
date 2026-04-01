@@ -273,10 +273,11 @@ const TestLab = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // Piltangenter + snabbkommandon C/F för annotering
+    // Piltangenter + snabbkommandon C/F/Space för annotering
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (!selectedPositionId || !selectedPositionTrackType) return
+            if (loading) return
             // Ignorera om användaren skriver i input/textarea
             const tag = (e.target?.tagName || '').toUpperCase()
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
@@ -293,6 +294,11 @@ const TestLab = () => {
                 const nextPosition = positions[currentIndex + 1]
                 handleSelectPosition(nextPosition.id, selectedPositionTrackType, batchAdjustMode)
             } else if ((e.key === 'c' || e.key === 'C' || e.key === '1') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault()
+                handleMarkCorrect()
+            } else if ((e.key === ' ' || e.code === 'Space') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                // Mellanslag = samma som "Markera som korrekt"; låt knappar/länkar hantera Space om fokus sitter där
+                if (e.target?.closest?.('button, [role="button"], a[href]')) return
                 e.preventDefault()
                 handleMarkCorrect()
             } else if ((e.key === 'f' || e.key === 'F' || e.key === '2') && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -326,7 +332,7 @@ const TestLab = () => {
             window.removeEventListener('keydown', handleKeyDown)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedPositionId, selectedPositionTrackType, humanPositions, dogPositions, batchAdjustMode])
+    }, [selectedPositionId, selectedPositionTrackType, humanPositions, dogPositions, batchAdjustMode, loading])
 
     // Ladda människaspår
     useEffect(() => {
@@ -3337,6 +3343,9 @@ const TestLab = () => {
                                     >
                                         ❌ Markera som fel
                                     </button>
+                                    <p className="text-[9px] text-slate-500">
+                                        Tangent: mellanslag eller C = korrekt · F = fel · pilar = föregående/nästa
+                                    </p>
                                     <button
                                         onClick={() => {
                                             if (!isAdjusting) {
