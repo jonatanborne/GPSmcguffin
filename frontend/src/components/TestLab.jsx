@@ -75,6 +75,8 @@ const TRUTH_LEVEL_BG_COLORS = {
 const TestLab = () => {
     const mapRef = useRef(null)
     const mapInstanceRef = useRef(null)
+    /** Senaste spårpar vi auto-fit:at kartan för — undvik fitBounds vid varje positionsuppdatering (t.ex. godkänn). */
+    const mapAutoFitBoundsKeyRef = useRef(null)
     const markersLayerRef = useRef(null)
     const draggableMarkerRef = useRef(null)
     const draggableMarkerPositionIdRef = useRef(null) // Spåra vilken position markören tillhör
@@ -346,9 +348,14 @@ const TestLab = () => {
         fetchTrack(dogTrackId, 'dog')
     }, [dogTrackId])
 
-    // Centrera kartan på spåren när människaspår eller hundspår laddas
+    // Centrera kartan på spåren när valt människa/hund-spår **byts**, inte vid varje uppdatering av positioner
+    // (annars zoomar fitBounds ut efter varje "godkänd" / refresh).
     useEffect(() => {
         if (!mapInstanceRef.current || loading) return
+        const fitKey = `${humanTrackId ?? ''}-${dogTrackId ?? ''}`
+        if (mapAutoFitBoundsKeyRef.current === fitKey) {
+            return
+        }
         const valid = []
         const addPoint = (lat, lng) => {
             if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) valid.push([lat, lng])
@@ -362,6 +369,7 @@ const TestLab = () => {
             if (p.corrected_position) addPoint(p.corrected_position.lat, p.corrected_position.lng)
         })
         if (valid.length === 0) return
+        mapAutoFitBoundsKeyRef.current = fitKey
         try {
             if (valid.length === 1) {
                 mapInstanceRef.current.setView(valid[0], 16, { animate: true })
@@ -370,7 +378,7 @@ const TestLab = () => {
                 mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 18, animate: true })
             }
         } catch { /* ignorerar */ }
-    }, [humanPositions, dogPositions, loading])
+    }, [humanTrackId, dogTrackId, humanPositions, dogPositions, loading])
 
     // Visualisera ML-förutsägelser på kartan - Jämför med ML-läge (INGA ändringar sparas)
     useEffect(() => {
