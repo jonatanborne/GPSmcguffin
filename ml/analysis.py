@@ -39,6 +39,7 @@ from sklearn.ensemble import (
 )
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.base import clone
 
 # XGBoost for advanced ML
 try:
@@ -1237,6 +1238,95 @@ def prepare_features_advanced(
     )
 
 
+def evaluate_kfold_final_estimator(
+    estimator,
+    X: np.ndarray,
+    y: np.ndarray,
+    sw: np.ndarray,
+    k: int = 5,
+    random_state: int = 42,
+) -> Dict:
+    """
+    K-fold utvärdering av **samma** modelltyp som den valda slutmodellen (samma hyperparametrar).
+
+    Skillnad mot ett enda train/test-uttag (80/20):
+    - Där är en **enda** slumpmässig uppdelning — en "tur" eller "otur" i vilka punkter som
+      hamnar i test kan ge optimistisk eller pessimistisk MAE/R².
+    - K-fold delar datan i k delar, tränar k gånger (varje gång på k-1 delar, testar på 1 del)
+      och rapporterar **medelvärde och standardavvikelse** över de k testerna.
+    - Det ger en **stabilare** bild av hur väl modellen generaliserar när datan är begränsad.
+
+    Detta ersätter **inte** hyperparametersökningen (RandomizedSearchCV använder redan
+    inre CV på träningsdelen). Här mäter vi bara **spridning** i prestanda över olika val
+    av testfold — samma arkitektur och hyperparametrar som den bästa modellen.
+    """
+    if len(X) < k:
+        return {
+            "kfold_mae_mean": None,
+            "kfold_mae_std": None,
+            "kfold_r2_mean": None,
+            "kfold_r2_std": None,
+            "kfold_k": k,
+            "kfold_note": f"För få rader ({len(X)}) för k={k}",
+        }
+
+    kf = KFold(n_splits=k, shuffle=True, random_state=random_state)
+    maes = []
+    r2s = []
+    for train_idx, test_idx in kf.split(X):
+        scaler_cv = RobustScaler()
+        X_tr = scaler_cv.fit_transform(X[train_idx])
+        X_te = scaler_cv.transform(X[test_idx])
+        y_tr, y_te = y[train_idx], y[test_idx]
+        sw_tr = sw[train_idx]
+        est = clone(estimator)
+        est.fit(X_tr, y_tr, sample_weight=sw_tr)
+        y_pred = est.predict(X_te)
+        maes.append(mean_absolute_error(y_te, y_pred))
+        r2s.append(r2_score(y_te, y_pred))
+
+    return {
+        "kfold_mae_mean": float(np.mean(maes)),
+        "kfold_mae_std": float(np.std(maes)),
+        "kfold_r2_mean": float(np.mean(r2s)),
+        "kfold_r2_std": float(np.std(r2s)),
+        "kfold_k": k,
+        "kfold_maes": [float(m) for m in maes],
+        "kfold_r2s": [float(r) for r in r2s],
+    }
+
+
+def subgroup_test_metrics_by_track_type(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    X_raw: np.ndarray,
+    feature_names: List[str],
+) -> Dict:
+    """
+    MAE på **det vanliga** hållna test-setet, uppdelat på människa vs hund (feature track_type_human).
+    Visar om modellen är sämre på en grupp trovändigt bra totalt-snitt.
+    """
+    out: Dict = {}
+    if "track_type_human" not in feature_names:
+        return out
+    tti = feature_names.index("track_type_human")
+    col = X_raw[:, tti]
+    human_mask = col > 0.5
+    dog_mask = ~human_mask
+    nh, nd = int(np.sum(human_mask)), int(np.sum(dog_mask))
+    out["test_n_human"] = nh
+    out["test_n_dog"] = nd
+    if nh >= 2:
+        out["test_mae_human"] = float(
+            mean_absolute_error(y_true[human_mask], y_pred[human_mask])
+        )
+    if nd >= 2:
+        out["test_mae_dog"] = float(
+            mean_absolute_error(y_true[dog_mask], y_pred[dog_mask])
+        )
+    return out
+
+
 def train_ml_model(data: List[Dict]):
     """
     Träna och optimera flera ML-modeller för kommersiell GPS-korrigering
@@ -1451,6 +1541,32 @@ def train_ml_model(data: List[Dict]):
     for param, value in best_model_info["params"].items():
         print(f"    {param}: {value}")
 
+    # K-fold på hela data (efter outliers): samma estimator-typ som bästa modellen
+    print("\n" + "=" * 60)
+    print("K-FOLD (5) — robustare än ett enda slumpmässigt test-uttag")
+    print("=" * 60)
+    print(
+        "  Här tränas om en kopia av bästa modellen k gånger med olika delningar.\n"
+        "  Medel ± std visar hur mycket resultatet svänger; ett enda 80/20-uttag kan\n"
+        "  råka vara optimistiskt eller pessimistiskt. (Hyperparametersökningen ovan\n"
+        "  använder redan CV inne på träningsdelen — detta är en extra helhetsbild.)\n"
+    )
+    kfold_stats = evaluate_kfold_final_estimator(
+        best_model, X, y, sw, k=5, random_state=42
+    )
+    if kfold_stats.get("kfold_mae_mean") is not None:
+        print(
+            f"  MAE (k-fold): {kfold_stats['kfold_mae_mean']:.4f} ± "
+            f"{kfold_stats['kfold_mae_std']:.4f} meter"
+        )
+        print(
+            f"  R²  (k-fold): {kfold_stats['kfold_r2_mean']:.4f} ± "
+            f"{kfold_stats['kfold_r2_std']:.4f}"
+        )
+        print(f"  MAE per fold: {[round(m, 4) for m in kfold_stats['kfold_maes']]}")
+    else:
+        print(f"  {kfold_stats.get('kfold_note', 'K-fold hoppades över.')}")
+
     # Feature importance för bästa modellen
     if hasattr(best_model, "feature_importances_"):
         print(f"\n  Top 10 Viktigaste Features:")
@@ -1461,6 +1577,28 @@ def train_ml_model(data: List[Dict]):
 
     # Visualisera förutsägelser för bästa modellen
     y_pred_test_best = best_model.predict(X_test_scaled)
+
+    print("\n" + "=" * 60)
+    print("TEST-SET PER SPÅRTYP (samma 20% som test_mae ovan)")
+    print("=" * 60)
+    subgroup_stats = subgroup_test_metrics_by_track_type(
+        y_test, y_pred_test_best, X_test, feature_names
+    )
+    if subgroup_stats.get("test_mae_human") is not None:
+        print(
+            f"  Människaspår: MAE {subgroup_stats['test_mae_human']:.4f} m "
+            f"(n={subgroup_stats['test_n_human']})"
+        )
+    if subgroup_stats.get("test_mae_dog") is not None:
+        print(
+            f"  Hundspår:       MAE {subgroup_stats['test_mae_dog']:.4f} m "
+            f"(n={subgroup_stats['test_n_dog']})"
+        )
+    if subgroup_stats.get("test_mae_human") is None and subgroup_stats.get(
+        "test_mae_dog"
+    ) is None:
+        print("  (För få rader per grupp för delad MAE.)")
+
     visualize_predictions(y_test, y_pred_test_best, best_model_info["test_mae"])
 
     # Spara bästa modellen och scaler
@@ -1498,7 +1636,24 @@ def train_ml_model(data: List[Dict]):
         "test_r2": float(best_model_info["test_r2"]),
         "hyperparameters": best_model_info["params"],
         "feature_names": feature_names,
+        "evaluation_notes": (
+            "test_* = ett hållt 20%-uttag (train_test_split, random_state=42). "
+            "kfold_* = medel±std över 5 folds på all data efter outlier-rensning, "
+            "samma modelltyp som vald slutmodell. "
+            "test_mae_human/dog = samma test-set uppdelat på track_type."
+        ),
     }
+    if kfold_stats.get("kfold_mae_mean") is not None:
+        model_info["kfold_mae_mean"] = kfold_stats["kfold_mae_mean"]
+        model_info["kfold_mae_std"] = kfold_stats["kfold_mae_std"]
+        model_info["kfold_r2_mean"] = kfold_stats["kfold_r2_mean"]
+        model_info["kfold_r2_std"] = kfold_stats["kfold_r2_std"]
+        model_info["kfold_k"] = kfold_stats["kfold_k"]
+        model_info["kfold_maes"] = kfold_stats["kfold_maes"]
+        model_info["kfold_r2s"] = kfold_stats["kfold_r2s"]
+    else:
+        model_info["kfold_note"] = kfold_stats.get("kfold_note", "")
+    model_info.update(subgroup_stats)
     with open(model_info_path, "w", encoding="utf-8") as f:
         json.dump(model_info, f, indent=2, ensure_ascii=False)
     print(f"  Modellinfo sparad till: {model_info_path} (model_version={model_version})")
