@@ -1,8 +1,7 @@
-# Docker-image till GHCR. Vi checkar ut UTAN Git LFS – annars failar Actions ofta
-# ("failed to fetch .../info/lfs") pga stora .pkl i LFS, kvot eller timeout.
-# I imagen hamnar LFS-pekare för stora modeller; ML-endpoints kan svara 503 tills riktiga
-# filer finns (samma mönster som Railway utan LFS – se backend load_pkl).
-# Full ML-image: bygg Docker lokalt efter `git lfs pull`, eller lägg modell i Release och COPY/ARG.
+# Docker-image till GHCR. Checkout MED Git LFS så att ml/output/*.pkl är riktiga filer
+# i build-kontexten (annars 503 på Railway/ML: "LFS-pekare"). Om jobbet failar på LFS-pull,
+# kontrollera GitHub LFS-bandbredd/kvot eller bygg imagen lokalt efter `git lfs pull`.
+# Railway: deploya från ghcr.io/.../gpsmcguffin:latest (inte bygga från repo utan LFS).
 
 name: Build and push to GHCR
 
@@ -21,7 +20,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: false
+          lfs: true
+
+      - name: Verify ML pickles are real files (not LFS pointers)
+        run: |
+          for f in ml/output/gps_correction_model_best.pkl ml/output/gps_correction_scaler.pkl; do
+            if [ ! -f "$f" ]; then echo "Missing $f"; exit 1; fi
+            if head -c 24 "$f" | grep -qF "version https://git-lfs"; then
+              echo "ERROR: $f is still a Git LFS pointer — LFS fetch failed."
+              exit 1
+            fi
+          done
+          echo "OK: model files look like binary pickles."
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
