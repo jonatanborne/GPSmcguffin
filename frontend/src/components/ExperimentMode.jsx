@@ -163,14 +163,35 @@ function ExperimentMode() {
             const res = await fetch(`${API_BASE}/ml/experiments/batch/generate`, {
                 method: 'POST'
             })
-            const data = await res.json()
-            
+            let data = {}
+            try {
+                data = await res.json()
+            } catch {
+                // ignore
+            }
+            if (!res.ok) {
+                const detail =
+                    typeof data.detail === 'string'
+                        ? data.detail
+                        : Array.isArray(data.detail)
+                          ? data.detail
+                                .map((x) =>
+                                    x && typeof x === 'object' && x.msg != null
+                                        ? String(x.msg)
+                                        : JSON.stringify(x)
+                                )
+                                .join('; ')
+                          : data.message || res.statusText
+                alert(`Fel vid generering (${res.status}): ${detail || 'Okänt fel'}`)
+                return
+            }
+
             if (data.status === 'success') {
                 alert(data.message || `Genererade ${data.generated} experiment`)
                 loadStats()
                 await loadNextExperiment()
             } else {
-                alert('Fel vid generering: ' + data.message)
+                alert('Fel vid generering: ' + (data.message || JSON.stringify(data)))
             }
         } catch (err) {
             alert('Fel vid generering: ' + err.message)
