@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import List, Optional, Literal, Any
 from datetime import datetime
 import math
@@ -811,9 +811,12 @@ class TrackCreate(BaseModel):
 
 
 class TrackPatch(BaseModel):
-    """Uppdatera spår (t.ex. visningsnamn)."""
+    """Uppdatera spår: namn och/eller human_track_id (endast hundspår). Skicka bara fält som ska ändras."""
 
-    name: str = Field(..., min_length=1, max_length=200)
+    model_config = ConfigDict(extra="forbid")
+
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    human_track_id: Optional[int] = None
 
 
 def _safe_int_db(v: Any, default: int = 0) -> int:
@@ -1907,24 +1910,73 @@ def smooth_track(
 @app.patch("/tracks/{track_id}", response_model=Track)
 @app.patch("/api/tracks/{track_id}", response_model=Track)
 def patch_track(track_id: int, payload: TrackPatch):
-    """Byt namn på ett spår."""
+    """Uppdatera namn och/eller koppling hundspår → människaspår."""
     try:
+        updates = payload.model_dump(exclude_unset=True)
+        if not updates:
+            raise HTTPException(status_code=400, detail="Inget att uppdatera")
+
         init_db()
         conn = get_db()
         cursor = get_cursor(conn)
         ph = "%s" if DATABASE_URL else "?"
-        new_name = payload.name.strip()
-        if not new_name:
-            conn.close()
-            raise HTTPException(status_code=400, detail="Namnet får inte vara tomt")
-        execute_query(
-            cursor,
-            f"UPDATE tracks SET name = {ph} WHERE id = {ph}",
-            (new_name, track_id),
-        )
-        if cursor.rowcount == 0:
+        execute_query(cursor, f"SELECT * FROM tracks WHERE id = {ph}", (track_id,))
+        row = cursor.fetchone()
+        if row is None:
             conn.close()
             raise HTTPException(status_code=404, detail="Track not found")
+
+        track_type = get_row_value(row, "track_type")
+        set_parts: List[str] = []
+        params: List = []
+
+        if "name" in updates:
+            new_name = (updates["name"] or "").strip()
+            if not new_name:
+                conn.close()
+                raise HTTPException(status_code=400, detail="Namnet får inte vara tomt")
+            set_parts.append(f"name = {ph}")
+            params.append(new_name)
+
+        if "human_track_id" in updates:
+            if track_type != "dog":
+                conn.close()
+                raise HTTPException(
+                    status_code=400,
+                    detail="human_track_id kan bara ändras på hundspår",
+                )
+            hid = updates["human_track_id"]
+            if hid is not None:
+                execute_query(
+                    cursor,
+                    f"SELECT id, track_type FROM tracks WHERE id = {ph}",
+                    (hid,),
+                )
+                ht = cursor.fetchone()
+                if ht is None:
+                    conn.close()
+                    raise HTTPException(
+                        status_code=404, detail="Människaspår hittades inte"
+                    )
+                if get_row_value(ht, "track_type") != "human":
+                    conn.close()
+                    raise HTTPException(
+                        status_code=400,
+                        detail="human_track_id måste referera till ett människaspår",
+                    )
+            set_parts.append(f"human_track_id = {ph}")
+            params.append(hid)
+
+        if not set_parts:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Inget att uppdatera")
+
+        params.append(track_id)
+        execute_query(
+            cursor,
+            f"UPDATE tracks SET {', '.join(set_parts)} WHERE id = {ph}",
+            tuple(params),
+        )
         conn.commit()
         conn.close()
         return get_track(track_id)
@@ -1940,6 +1992,7 @@ def patch_track(track_id: int, payload: TrackPatch):
 
 
 @app.delete("/tracks/{track_id}")
+@app.delete("/api/tracks/{track_id}")
 def delete_track(track_id: int):
     conn = get_db()
     cursor = get_cursor(conn)

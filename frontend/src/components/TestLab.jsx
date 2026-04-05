@@ -143,6 +143,8 @@ const TestLab = () => {
     const [cleanupData, setCleanupData] = useState(null)
     const [cleanupLoading, setCleanupLoading] = useState(false)
     const [cleanupSelectedIds, setCleanupSelectedIds] = useState([])
+    const [savingHumanLink, setSavingHumanLink] = useState(false)
+    const [humanLinkDraft, setHumanLinkDraft] = useState('')
 
     // Tröskel för "liten korrigering" (meter) – batch godkänn som ML
     const SMALL_CORRECTION_THRESHOLD_M = 5
@@ -185,6 +187,20 @@ const TestLab = () => {
         // 'own' – allt som inte är importerade
         return tracks.filter(t => t.track_source !== 'imported')
     }, [tracks, trackSourceFilter])
+
+    const dogTrackMeta = useMemo(
+        () => tracks.find((t) => String(t.id) === String(dogTrackId)),
+        [tracks, dogTrackId]
+    )
+
+    useEffect(() => {
+        if (!dogTrackId || !dogTrackMeta) {
+            setHumanLinkDraft('')
+            return
+        }
+        const hid = dogTrackMeta.human_track_id
+        setHumanLinkDraft(hid != null && hid !== undefined ? String(hid) : '')
+    }, [dogTrackId, dogTrackMeta])
 
     // Filtrera positioner baserat på status-filter
     const filteredHumanPositions = useMemo(() => {
@@ -938,6 +954,68 @@ const TestLab = () => {
         if (positionIdToKeep) {
             setSelectedPositionId(positionIdToKeep)
             setSelectedPositionTrackType(trackType)
+        }
+    }
+
+    const saveDogHumanLink = async () => {
+        if (!dogTrackId) return
+        setSavingHumanLink(true)
+        setError(null)
+        try {
+            const hid = humanLinkDraft === '' ? null : Number(humanLinkDraft)
+            if (humanLinkDraft !== '' && Number.isNaN(hid)) {
+                setError('Ogiltigt människaspår-id.')
+                return
+            }
+            await axios.patch(`${API_BASE}/tracks/${dogTrackId}`, {
+                human_track_id: hid,
+            })
+            await loadTracks()
+            await fetchTrack(dogTrackId, 'dog')
+            setMessage('Koppling till människaspår uppdaterad.')
+            setTimeout(() => setMessage(null), 3000)
+        } catch (err) {
+            console.error(err)
+            setError(
+                formatAxiosDetail(
+                    err.response?.data?.detail,
+                    'Kunde inte uppdatera koppling.'
+                )
+            )
+        } finally {
+            setSavingHumanLink(false)
+        }
+    }
+
+    const deleteSingleTrack = async (type) => {
+        const id = type === 'human' ? humanTrackId : dogTrackId
+        if (!id) return
+        if (
+            !window.confirm(
+                'Radera detta spår och alla dess positioner permanent? Detta går inte att ångra.'
+            )
+        ) {
+            return
+        }
+        setLoading(true)
+        setError(null)
+        try {
+            await axios.delete(`${API_BASE}/tracks/${id}`)
+            if (type === 'human') {
+                setHumanTrackId('')
+            } else {
+                setDogTrackId('')
+            }
+            await loadTracks()
+            setMessage('Spår raderat.')
+            setTimeout(() => setMessage(null), 3000)
+        } catch (err) {
+            console.error(err)
+            setError(
+                formatAxiosDetail(err.response?.data?.detail, 'Kunde inte radera spår.')
+            )
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -2480,6 +2558,16 @@ const TestLab = () => {
                                     )
                                 })}
                             </select>
+                            {humanTrackId && (
+                                <button
+                                    type="button"
+                                    onClick={() => deleteSingleTrack('human')}
+                                    disabled={loading}
+                                    className="mt-1.5 w-full px-2 py-1.5 rounded border border-red-200 bg-red-50 text-red-800 text-[11px] font-medium hover:bg-red-100 disabled:opacity-50"
+                                >
+                                    🗑️ Radera valt människaspår
+                                </button>
+                            )}
                         </div>
 
                         <div>
@@ -2505,6 +2593,52 @@ const TestLab = () => {
                                     )
                                 })}
                             </select>
+                            {dogTrackId && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteSingleTrack('dog')}
+                                        disabled={loading}
+                                        className="mt-1.5 w-full px-2 py-1.5 rounded border border-red-200 bg-red-50 text-red-800 text-[11px] font-medium hover:bg-red-100 disabled:opacity-50"
+                                    >
+                                        🗑️ Radera valt hundspår
+                                    </button>
+                                    <div className="mt-3 p-2 rounded border border-slate-200 bg-white space-y-2">
+                                        <div className="text-[11px] font-semibold text-slate-700">
+                                            Koppling hund → människa
+                                        </div>
+                                        <p className="text-[10px] text-slate-500 leading-snug">
+                                            Välj vilket människaspår detta hundspår hör till (positioner på
+                                            hundspåret behålls). Tom = fristående hundspår.
+                                        </p>
+                                        <select
+                                            value={humanLinkDraft}
+                                            onChange={(e) => setHumanLinkDraft(e.target.value)}
+                                            disabled={savingHumanLink || loading}
+                                            className="w-full border border-slate-300 rounded px-2 py-1.5 text-xs"
+                                        >
+                                            <option value="">
+                                                — Ingen koppling (fristående hundspår) —
+                                            </option>
+                                            {filteredTracks
+                                                .filter((t) => t.track_type === 'human')
+                                                .map((track) => (
+                                                    <option key={track.id} value={track.id}>
+                                                        {track.name} (id {track.id})
+                                                    </option>
+                                                ))}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={saveDogHumanLink}
+                                            disabled={savingHumanLink || loading}
+                                            className="w-full px-2 py-1.5 rounded bg-slate-700 text-white text-[11px] font-semibold hover:bg-slate-800 disabled:bg-slate-300"
+                                        >
+                                            {savingHumanLink ? 'Sparar…' : '💾 Spara koppling'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Knapp för att döpa om generiska spår */}
