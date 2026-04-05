@@ -963,11 +963,22 @@ const TestLab = () => {
                 setError('Ogiltigt människaspår-id.')
                 return
             }
-            await axios.patch(`${API_BASE}/tracks/${dogTrackId}`, {
+            const { data: updated } = await axios.patch(`${API_BASE}/tracks/${dogTrackId}`, {
                 human_track_id: hid,
             })
-            await loadTracks()
-            await fetchTrack(dogTrackId, 'dog')
+            const withSorted = Array.isArray(updated.positions)
+                ? [...updated.positions].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                : []
+            setDogTrack(updated)
+            setDogPositions(withSorted)
+            setTracks((prev) =>
+                prev.map((t) =>
+                    String(t.id) === String(dogTrackId)
+                        ? { ...t, human_track_id: updated.human_track_id ?? null }
+                        : t
+                )
+            )
+            void loadTracks()
             setMessage('Koppling till människaspår uppdaterad.')
             setTimeout(() => setMessage(null), 3000)
         } catch (err) {
