@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { normalizeTracksListResponse } from '../utils/tracksApi'
+import { osmTileLayer } from '../utils/osmTileLayer'
 import axios from 'axios'
 import L from 'leaflet'
 
@@ -647,9 +648,8 @@ const MLDashboard = () => {
                         }).setView([59.334, 18.066], 14)
 
                         // Skapa olika tile layers (samma zoom-stöd som TestLab)
-                        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        const osmLayer = osmTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '© OpenStreetMap contributors',
-                            maxZoom: 26,
                             maxNativeZoom: 19,
                         })
 

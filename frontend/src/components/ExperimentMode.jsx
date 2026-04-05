@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { osmTileLayer } from '../utils/osmTileLayer'
 
 // Fix för Leaflet ikoner
 delete L.Icon.Default.prototype._getIconUrl
@@ -258,9 +259,10 @@ function ExperimentMode() {
                 boxZoom: true,
                 keyboard: true,
             })
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            osmTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap',
-                maxZoom: 22
+                maxZoom: 22,
+                maxNativeZoom: 19,
             }).addTo(map)
             mapInstanceRef.current = map
         }

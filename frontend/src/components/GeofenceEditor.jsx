@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import axios from 'axios'
 import { normalizeTracksListResponse } from '../utils/tracksApi'
+import { osmTileLayer } from '../utils/osmTileLayer'
 
 // Fix för Leaflet ikoner
 delete L.Icon.Default.prototype._getIconUrl
@@ -1602,10 +1603,10 @@ const GeofenceEditor = () => {
     // Initiera karta
     useEffect(() => {
         if (mapRef.current && !mapInstanceRef.current) {
-            const map = L.map(mapRef.current).setView([59.334, 18.066], 15)
+            const map = L.map(mapRef.current, { maxZoom: 26, minZoom: 3 }).setView([59.334, 18.066], 15)
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+            osmTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
             }).addTo(map)
 
             mapInstanceRef.current = map

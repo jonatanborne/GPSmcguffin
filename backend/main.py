@@ -6596,6 +6596,7 @@ def generate_experiments_batch():
     man efter t.ex. purge inte alltid får exakt samma 15 lägsta track_id.
     """
     MAX_PER_BATCH = 15  # Max antal spår per anrop (undviker proxy timeout)
+    conn = None
     try:
         import numpy as np
 
@@ -6676,7 +6677,6 @@ def generate_experiments_batch():
         total_imported_dog = int(get_row_value(all_dog_row, "cnt") or 0)
 
         if not dog_tracks:
-            conn.close()
             return {
                 "status": "success",
                 "message": "Inga kundspår att generera för (saknar positioner, eller alla har redan väntande experiment).",
@@ -6928,7 +6928,6 @@ def generate_experiments_batch():
             experiments_created += 1
 
         conn.commit()
-        conn.close()
 
         remaining_after = max(0, eligible_total - experiments_created)
         msg = f"Genererade {experiments_created} experiment (slumpat bland spår utan väntande pending)."
@@ -6944,12 +6943,31 @@ def generate_experiments_batch():
             "remaining": remaining_after,
         }
 
+    except HTTPException:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        raise
     except Exception as e:
         import traceback
+
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
         raise HTTPException(
             status_code=500,
             detail=f"Fel vid generering av experiment: {str(e)}\n\n{traceback.format_exc()}"
         )
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 @app.get("/ml/experiments/next")

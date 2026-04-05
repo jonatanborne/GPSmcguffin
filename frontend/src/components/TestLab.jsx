@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import axios from 'axios'
 import { normalizeTracksListResponse } from '../utils/tracksApi'
+import { osmTileLayer } from '../utils/osmTileLayer'
 
 // Säkerställ att Leaflet använder CDN-ikoner (samma som GeofenceEditor)
 delete L.Icon.Default.prototype._getIconUrl
@@ -641,9 +642,8 @@ const TestLab = () => {
         console.log('Map created, center:', map.getCenter(), 'zoom:', map.getZoom())
 
         // Skapa olika tile layers med olika zoom-stöd
-        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const osmLayer = osmTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 26,
             maxNativeZoom: 19, // OSM har tiles till zoom 19 – Leaflet skalar upp vid zoom 20–26
         })
 
@@ -694,10 +694,6 @@ const TestLab = () => {
         // Börja med Esri Street Map (hög zoom-stöd)
         esriStreetLayer.addTo(map)
 
-        // Debug: Kontrollera att tile layer faktiskt laddas
-        esriStreetLayer.on('tileload', () => {
-            console.log('Tile loaded successfully')
-        })
         esriStreetLayer.on('tileerror', (error, tile) => {
             console.error('Tile load error:', error, tile)
         })
