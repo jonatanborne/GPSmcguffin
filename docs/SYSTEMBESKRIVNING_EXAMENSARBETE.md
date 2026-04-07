@@ -1,7 +1,26 @@
 # Dogtracks Geofence Kit – systembeskrivning (examensarbete)
 
 **Syfte med detta dokument:** En samlad, kopieringsbar beskrivning av hela systemet: tekniker, databas, API:er, ML, drift och hjälpverktyg.  
-**Uppdateringsunderlag:** `backend/main.py` (alla routes), `requirements.txt`, `frontend/package.json`, `Dockerfile`, `.github/workflows/`, `docs/`, `ml/`, `backend/scripts/`, `tools/`, `archive/`, övriga `.md`-filer i repot.
+**Uppdateringsunderlag:** `backend/main.py` (alla routes), `requirements.txt` (rot + `backend/requirements.txt` + `ml/requirements.txt`), `frontend/package.json`, `Dockerfile`, `.github/workflows/`, `.gitattributes`, `docs/`, `ml/`, `backend/scripts/`, `tools/`, `frontend/src/utils/`, `archive/`.
+
+**Senast genomgången mot kodbas:** 2026-04-05 (API-lista verifierad med `grep` av `@app`-routes i `main.py`). Vid större refaktorering: kör samma `grep` eller öppna `/docs` på en körande backend.
+
+---
+
+## 0. Ändringar och tillägg efter första versionen av denna fil
+
+Följande har lagts till eller förbättrats i kodbasen och ska beaktas tillsammans med resten av dokumentet:
+
+| Område | Vad som gjorts |
+|--------|----------------|
+| **CORS** | `allow_methods` inkluderar **`PATCH`** – behövs för `PATCH /tracks/{id}` (t.ex. `human_track_id`) från annan origin (Railway frontend ↔ backend). |
+| **ML batch-generering** | `POST /ml/experiments/batch/generate`: **`HTTPException` re-raises** (så 404 för saknad modell inte blir 500); **`finally`** stänger DB-anslutning; vid **Git LFS-pekare** i `.pkl` → **503** med förklaring. |
+| **Experimentläge (frontend)** | Vid fel-svar (4xx/5xx) visas **`detail`** från FastAPI i alert (t.ex. LFS-meddelande vid 503). |
+| **Testmiljö – spara koppling** | Efter lyckad `PATCH` uppdateras state från **samma svar**; `loadTracks()` körs i **bakgrunden** (`void`) så knappen inte låses under tung `GET /tracks`. |
+| **Karttiles (OSM)** | `frontend/src/utils/osmTileLayer.js` kapslar in Leaflet tile layer och **begränsar zoom i tile-URL** (publika OSM-tiles ~z19) för att undvika HTTP 400. |
+| **Spårlista (frontend)** | `frontend/src/utils/tracksApi.js` – **`normalizeTracksListResponse`**: om `/tracks` returnerar HTML (felkonfigurerad `VITE_API_URL`) fås tydlig varning istället för tyst tom lista. |
+| **CI / Docker-image** | `.github/workflows/build-push-ghcr.yml`: **`lfs: true`** vid checkout; **verifieringssteg** att `gps_correction_model_best.pkl` och `gps_correction_scaler.pkl` inte är LFS-textpekare innan `docker build`. |
+| **Git LFS** | **`.gitattributes`**: `*.pkl` spåras med LFS – stora modeller; kräver korrekt fetch vid build/deploy. |
 
 ---
 
@@ -46,7 +65,10 @@ GPSmcguffin/
 ├── docs/                # API, experiment, pipelines, denna fil, m.m.
 ├── archive/             # Railway-guider, äldre planer
 ├── Dockerfile           # Python 3.11-slim, kopierar backend + ml
-├── requirements.txt     # Rot: backend + ML (används i Dockerfile); `backend/requirements.txt` är smalare backend-only
+├── requirements.txt     # Rot: FastAPI + ML (pandas, matplotlib, seaborn, sklearn …) – används i Dockerfile
+├── backend/requirements.txt  # Smalare: FastAPI, uvicorn, pydantic, psycopg2, pillow, requests, numpy, python-dotenv (saknar t.ex. scikit-learn som rot-`requirements.txt` har för ML i API)
+├── ml/requirements.txt  # Extra för ren ML-träning (xgboost, jupyter, scipy …)
+├── .gitattributes       # Git LFS för *.pkl
 ├── .github/workflows/   # CI: build-push-ghcr.yml
 └── render.yaml          # Exempelkonfiguration Render (web + Python)
 ```
@@ -72,7 +94,12 @@ GPSmcguffin/
 
 **Lokalt tillstånd:** bl.a. **localStorage** – t.ex. kartval i TestLab (`testlab_tile_source`), i GeofenceEditor **offline-kö** (`offline_queue`) och cache av spår för återuppspelning när nätverket saknas.
 
-**Hjälpmodul:** `frontend/src/utils/osmTileLayer.js` – säkerställer att OSM-tile-URL:er inte begär zoom > ~19 (serverpolicy).
+**Hjälpmoduler under `frontend/src/utils/`:**
+
+| Fil | Funktion |
+|-----|----------|
+| **`osmTileLayer.js`** | Wrapper kring `L.tileLayer` som begränsar zoom i tile-URL (OSM publika tiles ~z19) så webbläsaren inte spammar 400-fel vid hög kart-zoom. |
+| **`tracksApi.js`** | **`normalizeTracksListResponse(data, response)`** – säkerställer att `GET /tracks` tolkas som JSON-array; vid HTML-svar (fel API-bas-URL vid build) returneras tom lista + **tydligt felmeddelande** till UI. |
 
 ---
 
@@ -85,17 +112,17 @@ GPSmcguffin/
 | **Pydantic v2** | `BaseModel`, fältvalidering, `Field`, `ConfigDict` |
 | **psycopg2-binary** | PostgreSQL |
 | **sqlite3** (stdlib) | SQLite när `DATABASE_URL` saknas |
-| **python-dotenv** | Laddar `backend/.env` lokalt |
+| **python-dotenv** | Laddar `backend/.env` lokalt (finns i `backend/requirements.txt`; rot-`requirements.txt` driver full stack + ML) |
 | **Pillow** | Bildhantering (t.ex. tiles/konvertering) |
 | **requests** | Utgående HTTP |
 | **pickle** | Laddning av ML-modeller (`_load_ml_pkl`) |
 | **NumPy, scikit-learn** (rot-`requirements.txt`) | ML i samma process som API |
-| **CORSMiddleware** | `allow_origins`, `allow_origin_regex` (Railway), `allow_methods` inkl. **PATCH** |
+| **CORSMiddleware** | `allow_origins`, `allow_origin_regex` (t.ex. `*.up.railway.app`), `allow_methods`: **GET, POST, PUT, PATCH, DELETE, OPTIONS** (PATCH krävs för korsorigin-spåruppdateringar) |
 | **StaticFiles** | Montering av `/static/tiles` för lokala PNG-tiles (om katalog finns) |
 | **StreamingResponse** | CSV-export av positioner (`text/csv`, download) |
 | **OpenAPI** | Swagger UI på `/docs` |
 
-**Kärnfil:** `backend/main.py` (alla HTTP-endpoints nedan).
+**Kärnfil:** `backend/main.py` (alla HTTP-endpoints nedan). Experiment-batch och liknande använder **`try` / `except HTTPException` / `except Exception` / `finally`** där anslutningar ska stängas konsekvent.
 
 **Pipelines** (`docs/PIPELINES.md`, kod under `backend/pipelines/`):
 
@@ -151,7 +178,7 @@ Skapas med **`backend/scripts/migrate_ml_experiments.py`**: `original_track_json
 ## 8. REST API – fullständig lista
 
 Bas: kör backend och öppna **`/docs`** för auktoritativ, interaktiv lista.  
-Nedan: alla routes i **`main.py`** (mars 2025). Många finns **dubbelt** med prefix **`/api`** för frontend/proxy.
+Nedan: alla **primära** sökvägar i **`main.py`** (validerade mot kod). Många endpoints finns **dubbelt** med prefix **`/api`** för frontend/proxy (samma handler).
 
 ### 8.1 Hälsa och metadata
 
@@ -257,8 +284,8 @@ Nedan: alla routes i **`main.py`** (mars 2025). Många finns **dubbelt** med pre
 |--------|-------------|
 | **`tools/tile_converter.py`** | Laddar karttiles (OSM/Esri m.fl.), skalar med **Pillow**, **requests** – se `tools/README_TILE_CONVERTER.md` |
 | **`jira/`** | Dokumentation för import-/projektflöden (t.ex. `IMPORT_GUIDE.md`) |
-| **GitHub Actions** | `.github/workflows/build-push-ghcr.yml` – Docker build, push till **GitHub Container Registry (GHCR)** |
-| **Git LFS** | Stora binärer (`.pkl`); CI kan använda `lfs: true` så imagen får riktiga filer |
+| **GitHub Actions** | `.github/workflows/build-push-ghcr.yml`: checkout med **`lfs: true`**, **verifiering** att viktiga `.pkl` inte är LFS-pekare, **docker/build-push-action** → taggar `ghcr.io/<owner>/gpsmcguffin:latest` och `:${{ github.sha }}` |
+| **Git LFS** | **`.gitattributes`**: `*.pkl` → LFS. CI hämtar blobbar så Docker-`COPY ml/` får **binära** modeller (annars 503 i produktion). |
 | **Railway** | Vanlig värd för frontend + backend + Postgres; se `archive/railway/`, `FRONTEND_RAILWAY_SETUP.md`, `DEPLOYMENT.md` |
 | **Render** | `render.yaml` – exempel på Python web service |
 | **Docker** | `Dockerfile`: Python 3.11-slim, sqlite3-paket, `COPY backend ml`, `CMD python3 /app/backend/run.py` |
@@ -273,7 +300,7 @@ Nedan: alla routes i **`main.py`** (mars 2025). Många finns **dubbelt** med pre
 - **JSON** – huvudsakligt API-format (UTF-8).
 - **CSV** – export av positioner.
 - **Pickle** – ML-modeller (version känslig mot Python/sklearn-version).
-- **HTTP** – REST; **CORS preflight** för cross-origin (t.ex. frontend på annan Railway-URL än API).
+- **HTTP** – REST; **CORS preflight** för cross-origin (t.ex. frontend på annan Railway-URL än API). **PATCH** måste vara tillåten i CORS för spåruppdateringar.
 
 ---
 
@@ -299,4 +326,12 @@ Nedan: alla routes i **`main.py`** (mars 2025). Många finns **dubbelt** med pre
 
 ---
 
-*Detta dokument är avsett att kunna klistras in i examensarbete eller bilagor. Uppdatera tabellen över API om `main.py` växer – källa: `grep '@app\\.' backend/main.py` eller `/docs`.*
+*Detta dokument är avsett att kunna klistras in i examensarbete eller bilagor.*
+
+**Underhåll:** Uppdatera API-tabellerna om nya `@app.get/post/...` läggs till i `backend/main.py`. Snabb kontroll:
+
+```bash
+grep -E '^@app\.(get|post|put|patch|delete)\(' backend/main.py
+```
+
+Öppna även **`https://<backend>/docs`** mot en körande miljö för exakt schema.
